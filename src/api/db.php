@@ -20,7 +20,7 @@ if (file_exists($envPath)) {
 // Prefer getenv (env_file in docker-compose will populate these)
 $DB_HOST = getenv('DB_HOST') ?: 'mongo';
 $DB_PORT = getenv('DB_PORT') ?: '27017';
-$DB_NAME = getenv('DB_NAME') ?: 'notes_app';
+$DB_NAME = getenv('DB_NAME') ?: 'scratchpad';
 $DB_USER = getenv('DB_USER') ?: getenv('MONGO_INITDB_ROOT_USERNAME') ?: null;
 $DB_PASS = getenv('DB_PASS') ?: getenv('MONGO_INITDB_ROOT_PASSWORD') ?: null;
 
