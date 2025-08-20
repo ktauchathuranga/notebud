@@ -3,7 +3,7 @@ services:
     build:
       context: ./docker/php
       dockerfile: Dockerfile
-    container_name: notes_web
+    container_name: scratchpad
     ports:
       - "8080:80"
     volumes:
