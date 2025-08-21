@@ -1,45 +1,60 @@
-```markdown
-# Notes App (PHP + MongoDB) — Dockerized
+# Scratchpad
 
-This project is a minimal notes application using plain HTML/CSS/JS for frontend, PHP for backend, and MongoDB for storage. It's fully dockerized: one container for the web (PHP + Apache) and one container for MongoDB. JWTs are used for authentication and are stored in an HttpOnly cookie that expires in 4 hours. Notes are automatically deleted 30 days after creation using a MongoDB TTL index.
+A simple note-taking app for university labs. Quick login, temporary storage, auto-delete after 30 days.
 
-What you get:
-- User registration & login (username + password, password hashing)
-- JWT stored in an HttpOnly cookie (4-hour expiration)
-- Notes UI: create, list, delete notes (multiple notes per user)
-- Automatic deletion of notes after 30 days (MongoDB TTL index)
-- Docker Compose to run the web app and MongoDB together
+## Why Scratchpad?
 
-Ports:
-- Web app: http://localhost:8080
-- MongoDB: 27017 (exposed for convenience; you can remove if not needed)
+Perfect for uni labs where you can't access OneDrive/Google Drive due to 2FA hassles. Just username/password login, 4-hour sessions, notes auto-clear in 30 days.
 
-Quick start
-1. Copy `.env.example` to `.env` and set secure values:
-   cp .env.example .env
-   Edit .env to set MONGO credentials and JWT_SECRET
+## Features
 
-2. Initialize (optional): The mongo container will run `docker-entrypoint-initdb.d/init-mongo.js` to create the TTL index and database automatically.
+- **Simple login** - No 2FA required
+- **4-hour sessions** - Perfect for max lecture duration  
+- **Auto-delete** - Notes vanish after 30 days
+- **Modern UI** - Dark theme, responsive design
+- **Auto-save** - Saves after 30 seconds of inactivity
+- **Edit notes** - Click to modify existing notes
 
-3. Build & run:
-   docker-compose up --build
+## Quick Start
 
-4. Open http://localhost:8080 in your browser.
+1. **Clone and start**
+```bash
+git clone <repo-url>
+cd scratchpad
+cp .env.example .env
+docker-compose up -d
+```
 
-Notes:
-- For development the cookie is not set as Secure. For production, set COOKIE_SECURE=true in `.env` and serve over HTTPS.
-- The MongoDB TTL index expires documents automatically after 30 days (2592000 seconds).
-- No external PHP libraries are required; we use the mongodb PHP extension (pecl) and PHP's built-in functions.
+2. **Access at** `http://localhost:8080`
 
-Security and production considerations
-- Use HTTPS in production and set COOKIE_SECURE=true.
-- Consider adding CSRF protection for state-modifying endpoints.
-- Add rate limiting and account lockout for failed login attempts.
-- Use a non-root MongoDB user in production (set env vars accordingly).
-- Backup your MongoDB data volume regularly.
+## Environment Setup
 
-If you want, I can:
-- Add HTTPS support (nginx reverse proxy with Let's Encrypt).
-- Add CSRF tokens for forms.
-- Add password reset via email.
-- Harden container permissions and provide a production-ready deployment.
+Edit `.env`:
+```env
+DB_NAME=scratchpad
+DB_USER=admin  
+DB_PASS=your_password
+MONGO_INITDB_ROOT_USERNAME=admin
+MONGO_INITDB_ROOT_PASSWORD=your_password
+JWT_SECRET=your_long_random_secret
+```
+
+## File Structure
+
+```
+src/
+├── public/          # Frontend (HTML, CSS, JS)
+├── api/             # Backend PHP endpoints
+└── ...
+```
+
+## Security
+
+- JWT authentication with HttpOnly cookies
+- Users only see their own notes
+- Input validation and sanitization
+- 4-hour session timeout
+
+---
+
+**Perfect for uni students who just want quick, temporary notes without authentication hassles.**
