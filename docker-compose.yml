@@ -1,35 +1,39 @@
 services:
   web:
-    build:
-      context: ./docker/php
+    build: 
+      context: .
       dockerfile: Dockerfile
-    container_name: scratchpad
     ports:
       - "8080:80"
     volumes:
-      - ./src:/var/www/html:rw
-    env_file:
-      - ./.env
+      - ./src:/var/www/html
     environment:
-      - PHP_MEMORY_LIMIT=256M
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASS=${DB_PASS}
+      - MONGODB_URI=${MONGODB_URI}
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - COOKIE_SECURE=${COOKIE_SECURE}
     depends_on:
       - mongo
     restart: unless-stopped
 
   mongo:
     image: mongo:6.0
-    container_name: notes_mongo
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+      - MONGO_INITDB_DATABASE=${DB_NAME}
     ports:
       - "27017:27017"
-    env_file:
-      - ./.env
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
-      MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE}
     volumes:
       - mongo_data:/data/db
-      - ./docker/mongo/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+    restart: unless-stopped
 
 volumes:
   mongo_data:
