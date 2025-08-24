@@ -1,7 +1,31 @@
-// Enhanced notes.js - Clean and maintainable version
+// Enhanced notes.js with inline SVG icons - Clean and maintainable version
 
 let notes = [];
 let isLoading = false;
+
+// SVG Icon definitions
+const ICONS = {
+  notepad: '<svg width="24" height="24" viewBox="0 0 256 256" fill="currentColor"><path d="M192,76H176V56a16,16,0,0,0-16-16H96A16,16,0,0,0,80,56V76H64A16,16,0,0,0,48,92V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V92A16,16,0,0,0,192,76ZM96,56h64V76H96ZM192,208H64V92H80v12a8,8,0,0,0,16,0V92h64v12a8,8,0,0,0,16,0V92h16V208Z"></path></svg>',
+  
+  pencil: '<svg width="24" height="24" viewBox="0 0 256 256" fill="currentColor"><path d="M227.31,73.37,182.63,28.68a16,16,0,0,0-22.63,0L36.69,152A15.86,15.86,0,0,0,32,163.31V208a16,16,0,0,0,16,16H92.69A15.86,15.86,0,0,0,104,219.31L227.31,96A16,16,0,0,0,227.31,73.37ZM92.69,208H48V163.31l88-88L180.69,120ZM192,108.68,147.31,64l24-24L216,84.68Z"></path></svg>',
+  
+  files: '<svg width="24" height="24" viewBox="0 0 256 256" fill="currentColor"><path d="M213.66,82.34l-56-56A8,8,0,0,0,152,24H56A16,16,0,0,0,40,40V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V88A8,8,0,0,0,213.66,82.34ZM160,51.31,188.69,80H160ZM200,216H56V40h88V88a8,8,0,0,0,8,8h48V216Z"></path></svg>',
+  
+  'floppy-disk': '<svg width="24" height="24" viewBox="0 0 256 256" fill="currentColor"><path d="M219.31,80,176,36.69A15.86,15.86,0,0,0,164.69,32H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V91.31A15.86,15.86,0,0,0,219.31,80ZM164,48l20,20H164ZM208,208H48V48H148V80a8,8,0,0,0,8,8h52V208Z"></path></svg>',
+  
+  'sign-in': '<svg width="24" height="24" viewBox="0 0 256 256" fill="currentColor"><path d="M141.66,133.66l-40,40a8,8,0,0,1-11.32-11.32L116.69,136H24a8,8,0,0,1,0-16h92.69L90.34,93.66a8,8,0,0,1,11.32-11.32l40,40A8,8,0,0,1,141.66,133.66ZM192,32H136a8,8,0,0,0,0,16h56V208H136a8,8,0,0,0,0,16h56a16,16,0,0,0,16-16V48A16,16,0,0,0,192,32Z"></path></svg>',
+  
+  'user-plus': '<svg width="24" height="24" viewBox="0 0 256 256" fill="currentColor"><path d="M256,136a8,8,0,0,1-8,8H232v16a8,8,0,0,1-16,0V144H200a8,8,0,0,1,0-16h16V112a8,8,0,0,1,16,0v16h16A8,8,0,0,1,256,136Zm-57.87,58.85a8,8,0,0,1-12.26,10.3C165.75,181.19,138.09,168,108,168s-57.75,13.19-77.87,37.15a8,8,0,0,1-12.25-10.3c14.94-17.78,33.52-30.41,54.17-37.17a68,68,0,1,1,71.9,0C164.6,164.44,183.18,177.07,198.13,194.85ZM108,152a52,52,0,1,0-52-52A52.06,52.06,0,0,0,108,152Z"></path></svg>',
+  
+  note: '<svg width="24" height="24" viewBox="0 0 256 256" fill="currentColor"><path d="M230.63,89.37,166.63,25.37a8,8,0,0,0-11.31,0L32,148.69A15.86,15.86,0,0,0,27.31,160L16,208a16,16,0,0,0,20,20l48-11.31a15.86,15.86,0,0,0,11.32-4.69L218.63,89.37a8,8,0,0,0,0-11.31ZM48,192l8-32,24,24ZM80,176,56,152,168,40l24,24Z"></path></svg>',
+  
+  'trash-simple': '<svg width="24" height="24" viewBox="0 0 256 256" fill="currentColor"><path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192V208Z"></path></svg>',
+  
+  'magnifying-glass': '<svg width="24" height="24" viewBox="0 0 256 256" fill="currentColor"><path d="m229.66,218.34-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"></path></svg>',
+
+  // Clock icon for session info
+  clock: '<svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm64-88a8,8,0,0,1-8,8H128a8,8,0,0,1-8-8V72a8,8,0,0,1,16,0v48h48A8,8,0,0,1,192,128Z"></path></svg>'
+};
 
 // Configuration
 const CONFIG = {
@@ -76,10 +100,12 @@ const Utils = {
     return element;
   },
 
+  // Updated to create SVG icons instead of font icons
   createIcon(iconName) {
-    const icon = document.createElement('i');
-    icon.className = `ph-${iconName}`;
-    return icon;
+    const wrapper = document.createElement('span');
+    wrapper.className = 'icon';
+    wrapper.innerHTML = ICONS[iconName] || ICONS.note;
+    return wrapper;
   }
 };
 
@@ -303,8 +329,10 @@ const NoteEditor = {
     // Focus on title field
     DOM.titleInput.focus();
     
-    // Show edit indicator
-    DOM.saveBtn.innerHTML = '<span><i class="ph-floppy-disk"></i> Update Note</span>';
+    // Show edit indicator - updated with SVG icon
+    DOM.saveBtn.innerHTML = '';
+    DOM.saveBtn.appendChild(Utils.createIcon('floppy-disk'));
+    DOM.saveBtn.appendChild(document.createTextNode(' Update Note'));
     DOM.saveBtn.dataset.editingId = note.id;
   },
 
@@ -321,7 +349,7 @@ const NoteEditor = {
     // Show loading state
     DOM.saveBtn.disabled = true;
     const isEditing = DOM.saveBtn.dataset.editingId;
-    DOM.saveBtn.innerHTML = isEditing ? '<span>Updating...</span>' : '<span>Saving...</span>';
+    DOM.saveBtn.textContent = isEditing ? 'Updating...' : 'Saving...';
     
     try {
       let result;
@@ -350,7 +378,7 @@ const NoteEditor = {
     } finally {
       DOM.saveBtn.disabled = false;
       if (!DOM.saveBtn.innerHTML.includes('Save Note')) {
-        DOM.saveBtn.innerHTML = '<span><i class="ph-floppy-disk"></i> Save Note</span>';
+        this.resetSaveButton();
       }
     }
   },
@@ -358,9 +386,15 @@ const NoteEditor = {
   reset() {
     DOM.titleInput.value = '';
     DOM.contentInput.value = '';
-    DOM.saveBtn.innerHTML = '<span><i class="ph-floppy-disk"></i> Save Note</span>';
+    this.resetSaveButton();
     delete DOM.saveBtn.dataset.editingId;
     CharacterCounter.update();
+  },
+
+  resetSaveButton() {
+    DOM.saveBtn.innerHTML = '';
+    DOM.saveBtn.appendChild(Utils.createIcon('floppy-disk'));
+    DOM.saveBtn.appendChild(document.createTextNode(' Save Note'));
   },
 
   scheduleAutoSave() {
@@ -486,7 +520,12 @@ const SessionManager = {
   displaySessionInfo() {
     const sessionEnd = new Date(window.JWT_EXP * 1000);
     DOM.userInfo.className = CSS_CLASSES.userInfo;
-    DOM.userInfo.textContent = `Session expires: ${sessionEnd.toLocaleTimeString()}, ${sessionEnd.toLocaleDateString()}`;
+    
+    // Clear and rebuild with icon
+    DOM.userInfo.innerHTML = '';
+    const clockIcon = Utils.createIcon('clock');
+    DOM.userInfo.appendChild(clockIcon);
+    DOM.userInfo.appendChild(document.createTextNode(` Session expires: ${sessionEnd.toLocaleTimeString()}`));
   },
 
   scheduleWarning() {
@@ -607,11 +646,11 @@ const AuthHandler = {
         }, 500);
       } else {
         MessageHandler.show(msg, data.error || 'Login failed', 'error');
-        AuthHandler.resetButton(loginBtn, '<span>Login</span>', form);
+        AuthHandler.resetButton(loginBtn, loginBtn.querySelector('span'), form);
       }
     } catch (error) {
       MessageHandler.show(msg, 'Network error. Please try again.', 'error');
-      AuthHandler.resetButton(loginBtn, '<span>Login</span>', form);
+      AuthHandler.resetButton(loginBtn, loginBtn.querySelector('span'), form);
     }
   },
 
@@ -646,24 +685,64 @@ const AuthHandler = {
         }, 2000);
       } else {
         MessageHandler.show(msg, data.error || 'Registration failed', 'error');
-        AuthHandler.resetButton(registerBtn, '<span>Create Account</span>', form);
+        AuthHandler.resetButton(registerBtn, registerBtn.querySelector('span'), form);
       }
     } catch (error) {
       MessageHandler.show(msg, 'Network error. Please try again.', 'error');
-      AuthHandler.resetButton(registerBtn, '<span>Create Account</span>', form);
+      AuthHandler.resetButton(registerBtn, registerBtn.querySelector('span'), form);
     }
   },
 
-  resetButton(button, text, form) {
+  resetButton(button, originalContent, form) {
     button.disabled = false;
-    button.innerHTML = text;
+    // Restore original button content with icon
+    if (button.id === 'loginBtn') {
+      button.innerHTML = '';
+      button.appendChild(Utils.createIcon('sign-in'));
+      button.appendChild(document.createTextNode(' Login'));
+    } else if (button.id === 'registerBtn') {
+      button.innerHTML = '';
+      button.appendChild(Utils.createIcon('user-plus'));
+      button.appendChild(document.createTextNode(' Create Account'));
+    }
     form.classList.remove(CSS_CLASSES.loading);
+  }
+};
+
+// Initialize header icons on page load
+const HeaderIcons = {
+  init() {
+    // Update header title with inline SVG
+    const headerTitle = document.querySelector('.topbar h1');
+    if (headerTitle) {
+      headerTitle.innerHTML = '';
+      headerTitle.appendChild(Utils.createIcon('notepad'));
+      headerTitle.appendChild(document.createTextNode('scratchpad'));
+    }
+
+    // Update section headers with inline SVGs
+    const editorHeader = document.querySelector('.editor h2');
+    if (editorHeader) {
+      editorHeader.innerHTML = '';
+      editorHeader.appendChild(Utils.createIcon('pencil'));
+      editorHeader.appendChild(document.createTextNode('Write Note'));
+    }
+
+    const notesHeader = document.querySelector('.notes-list h2');
+    if (notesHeader) {
+      notesHeader.innerHTML = '';
+      notesHeader.appendChild(Utils.createIcon('files'));
+      notesHeader.appendChild(document.createTextNode('Your Notes'));
+    }
   }
 };
 
 // Application initialization
 const App = {
   init() {
+    // Initialize header icons first
+    HeaderIcons.init();
+    
     // Initialize based on current page
     if (DOM.notesContainer) {
       // Notes page
@@ -675,6 +754,14 @@ const App = {
   },
 
   initNotesPage() {
+    // Update save button with inline SVG
+    const saveBtn = DOM.saveBtn;
+    if (saveBtn) {
+      saveBtn.innerHTML = '';
+      saveBtn.appendChild(Utils.createIcon('floppy-disk'));
+      saveBtn.appendChild(document.createTextNode(' Save Note'));
+    }
+
     NoteEditor.init();
     CharacterCounter.init();
     KeyboardShortcuts.init();
@@ -687,6 +774,21 @@ const App = {
   },
 
   initAuthPage() {
+    // Update auth form buttons with inline SVGs
+    const loginBtn = document.getElementById('loginBtn');
+    if (loginBtn) {
+      loginBtn.innerHTML = '';
+      loginBtn.appendChild(Utils.createIcon('sign-in'));
+      loginBtn.appendChild(document.createTextNode(' Login'));
+    }
+
+    const registerBtn = document.getElementById('registerBtn');
+    if (registerBtn) {
+      registerBtn.innerHTML = '';
+      registerBtn.appendChild(Utils.createIcon('user-plus'));
+      registerBtn.appendChild(document.createTextNode(' Create Account'));
+    }
+
     FormValidation.init();
     AuthHandler.init();
     
