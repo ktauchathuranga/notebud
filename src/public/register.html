@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://fonts.googleapis.com/css2?family=Della+Respira&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/phosphor-icons@1.4.2/src/css/icons.min.css">
   <title>Register - scratchpad</title>
   <link rel="stylesheet" href="css/style.css" />
 </head>
@@ -31,96 +32,15 @@
           minlength="6"
         />
         <button type="submit" id="registerBtn">
-          <span>Create Account</span>
+          <span><i class="ph-user-plus"></i> Create Account</span>
         </button>
       </form>
       
       <p>Already have an account? <a href="/login.html">Sign in</a></p>
-      <div id="msg" class="msg" style="display: none;"></div>
+      <div id="msg" class="msg"></div>
     </div>
   </main>
 
-  <script>
-    const form = document.getElementById('registerForm');
-    const msg = document.getElementById('msg');
-    const registerBtn = document.getElementById('registerBtn');
-    
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      
-      // Show loading state
-      registerBtn.disabled = true;
-      registerBtn.innerHTML = '<span>Creating account...</span>';
-      form.classList.add('loading');
-      msg.style.display = 'none';
-      
-      try {
-        const res = await fetch('/api/register.php', {
-          method: 'POST',
-          body: new URLSearchParams(new FormData(form))
-        });
-        
-        const data = await res.json();
-        
-        if (res.ok && data.success) {
-          // Success
-          msg.style.color = '#10b981';
-          msg.textContent = 'Account created successfully! You can now sign in.';
-          msg.style.display = 'block';
-          
-          form.reset();
-          registerBtn.innerHTML = '<span>Account Created ✓</span>';
-          
-          // Redirect to login after 2 seconds
-          setTimeout(() => {
-            location.href = '/login.html';
-          }, 2000);
-        } else {
-          // Error
-          msg.style.color = '#ef4444';
-          msg.textContent = data.error || 'Registration failed';
-          msg.style.display = 'block';
-          
-          // Reset button
-          registerBtn.disabled = false;
-          registerBtn.innerHTML = '<span>Create Account</span>';
-          form.classList.remove('loading');
-        }
-      } catch (error) {
-        // Network error
-        msg.style.color = '#ef4444';
-        msg.textContent = 'Network error. Please try again.';
-        msg.style.display = 'block';
-        
-        // Reset button
-        registerBtn.disabled = false;
-        registerBtn.innerHTML = '<span>Create Account</span>';
-        form.classList.remove('loading');
-      }
-    });
-    
-    // Auto-focus username field
-    document.querySelector('input[name="username"]').focus();
-    
-    // Real-time validation feedback
-    const usernameInput = document.querySelector('input[name="username"]');
-    const passwordInput = document.querySelector('input[name="password"]');
-    
-    usernameInput.addEventListener('input', () => {
-      if (usernameInput.value.length > 0 && usernameInput.value.length < 3) {
-        usernameInput.style.borderColor = '#ef4444';
-      } else {
-        usernameInput.style.borderColor = '';
-      }
-    });
-    
-    passwordInput.addEventListener('input', () => {
-      if (passwordInput.value.length > 0 && passwordInput.value.length < 6) {
-        passwordInput.style.borderColor = '#ef4444';
-      } else {
-        passwordInput.style.borderColor = '';
-      }
-    });
-  </script>
+  <script src="js/notes.js"></script>
 </body>
 </html>

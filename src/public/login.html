@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://fonts.googleapis.com/css2?family=Della+Respira&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/phosphor-icons@1.4.2/src/css/icons.min.css">
   <title>Login - scratchpad</title>
   <link rel="stylesheet" href="css/style.css" />
 </head>
@@ -29,69 +30,15 @@
           autocomplete="current-password"
         />
         <button type="submit" id="loginBtn">
-          <span>Login</span>
+          <span><i class="ph-sign-in"></i> Login</span>
         </button>
       </form>
       
       <p>Don't have an account? <a href="/register.html">Create one</a></p>
-      <div id="msg" class="msg" style="display: none;"></div>
+      <div id="msg" class="msg"></div>
     </div>
   </main>
 
-  <script>
-    const form = document.getElementById('loginForm');
-    const msg = document.getElementById('msg');
-    const loginBtn = document.getElementById('loginBtn');
-    
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      
-      // Show loading state
-      loginBtn.disabled = true;
-      loginBtn.innerHTML = '<span>Signing in...</span>';
-      form.classList.add('loading');
-      msg.style.display = 'none';
-      
-      try {
-        const res = await fetch('/api/login.php', {
-          method: 'POST',
-          body: new URLSearchParams(new FormData(form))
-        });
-        
-        const data = await res.json();
-        
-        if (res.ok && data.success) {
-          // Success - redirect to notes
-          loginBtn.innerHTML = '<span>Success! Redirecting...</span>';
-          setTimeout(() => {
-            location.href = '/notes.php';
-          }, 500);
-        } else {
-          // Error - show message
-          msg.style.color = '#ef4444';
-          msg.textContent = data.error || 'Login failed';
-          msg.style.display = 'block';
-          
-          // Reset button
-          loginBtn.disabled = false;
-          loginBtn.innerHTML = '<span>Login</span>';
-          form.classList.remove('loading');
-        }
-      } catch (error) {
-        // Network error
-        msg.style.color = '#ef4444';
-        msg.textContent = 'Network error. Please try again.';
-        msg.style.display = 'block';
-        
-        // Reset button
-        loginBtn.disabled = false;
-        loginBtn.innerHTML = '<span>Login</span>';
-        form.classList.remove('loading');
-      }
-    });
-    
-    // Auto-focus username field
-    document.querySelector('input[name="username"]').focus();
-  </script>
+  <script src="js/notes.js"></script>
 </body>
 </html>
