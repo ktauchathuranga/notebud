@@ -49,6 +49,7 @@ $exp = $payload['exp'] ?? null;
                 spellcheck="false" />
             <textarea
                 id="content"
+                maxlength="10000"
                 placeholder="Start typing your note here...
 
 Perfect for:
