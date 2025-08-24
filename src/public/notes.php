@@ -9,6 +9,8 @@ try {
     header('Location: /login.html');
     exit;
 }
+// --- Add: expose JWT expiration timestamp to JS ---
+$exp = $payload['exp'] ?? null;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -16,13 +18,18 @@ try {
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Scratchpad - Your Notes</title>
+    <link href="https://fonts.googleapis.com/css2?family=Della+Respira&display=swap" rel="stylesheet">
+    <title>scratchpad - Your Notes</title>
     <link rel="stylesheet" href="css/style.css" />
+    <!-- Expose the JWT exp claim to JS -->
+    <script>
+        window.JWT_EXP = <?= $exp ? intval($exp) : 'null' ?>;
+    </script>
 </head>
 
 <body>
     <header class="topbar">
-        <h1>Scratchpad</h1>
+        <h1>scratchpad</h1>
         <div>
             <span id="userInfo" style="color: var(--text-muted); margin-right: 1rem; font-size: 0.9rem;"></span>
             <button id="logoutBtn">Logout</button>
@@ -66,11 +73,14 @@ Your notes auto-delete after 30 days."
 
     <script src="js/notes.js"></script>
     <script>
-        // Display user info
+        // Display user info with real session expiration
         const userInfo = document.getElementById('userInfo');
-        const sessionStart = new Date();
-        const sessionEnd = new Date(sessionStart.getTime() + 4 * 60 * 60 * 1000); // 4 hours
-        userInfo.textContent = `Session expires: ${sessionEnd.toLocaleTimeString()}`;
+        if (window.JWT_EXP) {
+            const sessionEnd = new Date(window.JWT_EXP * 1000); // JWT exp is in seconds
+            userInfo.textContent = `Session expires: ${sessionEnd.toLocaleTimeString()}, ${sessionEnd.toLocaleDateString()}`;
+        } else {
+            userInfo.textContent = "Session expiration unknown";
+        }
 
         // Logout functionality
         document.getElementById('logoutBtn').addEventListener('click', async () => {
@@ -89,14 +99,22 @@ Your notes auto-delete after 30 days."
             location.href = '/login.html';
         });
 
-        // Auto-save functionality is handled in notes.js
+        // Session warning based on real JWT expiration
+        if (window.JWT_EXP) {
+            const now = Date.now();
+            const timeUntilExpiry = window.JWT_EXP * 1000 - now;
+            const warningTime = timeUntilExpiry - (30 * 60 * 1000); // 30 min before expiry
 
-        // Session warning
-        setTimeout(() => {
-            if (confirm('Your session will expire in 30 minutes. Click OK to extend your session.')) {
-                location.reload();
+            if (warningTime > 0) {
+                setTimeout(() => {
+                    if (confirm('Your session will expire in 30 minutes. Click OK to extend your session.')) {
+                        location.reload();
+                    }
+                }, warningTime);
             }
-        }, 3.5 * 60 * 60 * 1000); // 3.5 hours
+        }
+
+        // Auto-save functionality is handled in notes.js
     </script>
 </body>
 

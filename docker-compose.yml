@@ -1,7 +1,7 @@
 services:
   web:
     build: 
-      context: .
+      context: ./docker/php
       dockerfile: Dockerfile
     ports:
       - "8080:80"
@@ -23,7 +23,7 @@ services:
     restart: unless-stopped
 
   mongo:
-    image: mongo:6.0
+    image: mongo:7.0
     environment:
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
