@@ -30,6 +30,12 @@
 
 h1, h2, h3 {
   font-family: 'Della Respira', serif;
+  letter-spacing: 0.5px;
+}
+
+button, button span {
+  font-family: 'Della Respira', serif;
+  letter-spacing: 0.5px;
 }
 
 body {
