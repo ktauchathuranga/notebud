@@ -338,7 +338,6 @@ button {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  font-family: inherit;
   position: relative;
   overflow: hidden;
 }
