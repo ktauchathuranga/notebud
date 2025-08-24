@@ -87,13 +87,6 @@ body::before {
   gap: 0.5rem;
 }
 
-.topbar h1::before {
-  content: '📝';
-  font-size: 1.5rem;
-  filter: none;
-  -webkit-text-fill-color: initial;
-}
-
 /* Container */
 .container {
   max-width: 1200px;
@@ -190,11 +183,6 @@ body::before {
   gap: 0.5rem;
 }
 
-.editor h2::before {
-  content: '✍️';
-  font-size: 1.1rem;
-}
-
 /* Notes list */
 .notes-list {
   background: var(--card);
@@ -221,9 +209,36 @@ body::before {
   border-bottom: 1px solid var(--border);
 }
 
-.notes-list h2::before {
-  content: '📚';
-  font-size: 1.1rem;
+/* Search functionality */
+.search-wrapper {
+  position: relative;
+  margin-bottom: 1rem;
+}
+
+.search-wrapper .search-icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.search-wrapper input {
+  padding-left: 2.5rem;
+  margin-bottom: 0;
+}
+
+/* Character counter */
+.char-counter {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-align: right;
+  margin-top: 0.5rem;
+}
+
+.char-counter.warning {
+  color: var(--warning);
 }
 
 /* Form inputs */
@@ -248,6 +263,10 @@ input:focus, textarea:focus {
 
 input::placeholder, textarea::placeholder {
   color: var(--text-muted);
+}
+
+input.error, textarea.error {
+  border-color: var(--danger);
 }
 
 textarea {
@@ -314,6 +333,14 @@ button.danger:hover {
   box-shadow: 0 8px 25px rgba(239, 68, 68, 0.3);
 }
 
+button.warning {
+  background: linear-gradient(135deg, var(--warning), #d97706);
+}
+
+button.warning:hover {
+  box-shadow: 0 8px 25px rgba(245, 158, 11, 0.3);
+}
+
 #logoutBtn {
   background: rgba(239, 68, 68, 0.1);
   color: var(--danger);
@@ -336,12 +363,23 @@ button.danger:hover {
   margin-bottom: 1rem;
   transition: all 0.3s ease;
   position: relative;
+  animation: fadeIn 0.3s ease;
 }
 
 .note:hover {
   border-color: var(--primary);
   transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
+}
+
+.note.deleting {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.note.slide-out {
+  transform: translateX(-100%);
+  transition: all 0.3s ease;
 }
 
 .note h3 {
@@ -388,18 +426,30 @@ button.danger:hover {
   font-size: 0.9rem;
   font-weight: 500;
   animation: slideIn 0.3s ease;
+  display: none;
 }
 
-.msg[style*="green"] {
+.msg.success {
   background: rgba(16, 185, 129, 0.1);
   color: var(--success);
   border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
-.msg:not([style*="green"]) {
+.msg.error {
   background: rgba(239, 68, 68, 0.1);
   color: var(--danger);
   border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.msg.show {
+  display: block;
+}
+
+/* User info */
+.user-info {
+  color: var(--text-muted);
+  margin-right: 1rem;
+  font-size: 0.9rem;
 }
 
 /* Auth form specific */
@@ -427,12 +477,8 @@ button.danger:hover {
   color: var(--text-muted);
 }
 
-.empty-state::before {
-  content: '📄';
-  font-size: 3rem;
-  display: block;
-  margin-bottom: 1rem;
-  opacity: 0.5;
+.empty-state.error {
+  color: var(--danger);
 }
 
 /* Animations */
@@ -450,10 +496,6 @@ button.danger:hover {
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
-}
-
-.note {
-  animation: fadeIn 0.3s ease;
 }
 
 /* Loading states */
