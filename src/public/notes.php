@@ -19,11 +19,10 @@ $exp = $payload['exp'] ?? null;
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png">
-<link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
-<link rel="manifest" href="favicon/site.webmanifest">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
+    <link rel="manifest" href="favicon/site.webmanifest">
     <link href="https://fonts.googleapis.com/css2?family=Della+Respira&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/phosphor-icons@1.4.2/src/css/icons.min.css">
     <title>scratchpad - Your Notes</title>
     <link rel="stylesheet" href="css/style.css" />
     <!-- Expose the JWT exp claim to JS -->
@@ -34,16 +33,16 @@ $exp = $payload['exp'] ?? null;
 
 <body>
     <header class="topbar">
-        <h1><i class="ph-notepad"></i>scratchpad</h1>
+        <h1>scratchpad</h1>
         <div>
-            <span id="userInfo"></span>
             <button id="logoutBtn">Logout</button>
+            <span id="userInfo"></span>
         </div>
     </header>
 
     <main class="container">
         <section class="editor">
-            <h2><i class="ph-pencil"></i>Write Note</h2>
+            <h2>Write Note</h2>
             <input
                 id="title"
                 placeholder="Note title (optional)"
@@ -61,13 +60,13 @@ Perfect for:
 Your notes auto-delete after 30 days."
                 spellcheck="false"></textarea>
             <button id="saveBtn">
-                <span><i class="ph-floppy-disk"></i> Save Note</span>
+                <span>Save Note</span>
             </button>
             <div id="saveMsg" class="msg"></div>
         </section>
 
         <section class="notes-list">
-            <h2><i class="ph-files"></i>Your Notes</h2>
+            <h2>Your Notes</h2>
             <div id="notesContainer">
                 <div class="empty-state">
                     <div>No notes yet. Create your first note!</div>
