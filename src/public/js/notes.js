@@ -382,3 +382,4 @@ setInterval(() => {
     fetchNotes();
   }
 }, 300000); // Every 5 minutes
+
