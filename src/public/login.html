@@ -10,6 +10,43 @@
   <link href="https://fonts.googleapis.com/css2?family=Della+Respira&display=swap" rel="stylesheet">
   <title>Login - scratchpad</title>
   <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .remember-option {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin: 1rem 0;
+    }
+    
+    .remember-option input[type="checkbox"] {
+      width: auto;
+      margin: 0;
+      transform: scale(1.1);
+    }
+    
+    .remember-option label {
+      color: var(--text);
+      font-size: 0.9rem;
+      cursor: pointer;
+      user-select: none;
+    }
+    
+    .session-info {
+      background: rgba(99, 102, 241, 0.1);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: 8px;
+      padding: 0.75rem;
+      margin: 1rem 0;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+    
+    .session-info.permanent {
+      background: rgba(16, 185, 129, 0.1);
+      border-color: rgba(16, 185, 129, 0.3);
+    }
+  </style>
 </head>
 <body>
   <main class="auth-container">
@@ -32,6 +69,21 @@
           required 
           autocomplete="current-password"
         />
+        
+        <div class="remember-option">
+          <input type="checkbox" id="permanentLogin" name="permanent" />
+          <label for="permanentLogin">Keep me signed in permanently</label>
+        </div>
+        
+        <div id="sessionInfo" class="session-info" style="display: none;">
+          <div class="temporary">
+            <strong>Temporary session:</strong> Your session will expire after 4 hours for security.
+          </div>
+          <div class="permanent" style="display: none;">
+            <strong>Permanent session:</strong> You'll stay signed in until you manually logout. You can also logout all temporary sessions from the main app.
+          </div>
+        </div>
+        
         <button type="submit" id="loginBtn">
           <span>Login</span>
         </button>
@@ -42,6 +94,26 @@
     </div>
   </main>
 
+  <script>
+    // Show session info based on checkbox state
+    document.getElementById('permanentLogin').addEventListener('change', function() {
+      const sessionInfo = document.getElementById('sessionInfo');
+      const tempInfo = sessionInfo.querySelector('.temporary');
+      const permInfo = sessionInfo.querySelector('.permanent');
+      
+      if (this.checked) {
+        sessionInfo.style.display = 'block';
+        sessionInfo.classList.add('permanent');
+        tempInfo.style.display = 'none';
+        permInfo.style.display = 'block';
+      } else {
+        sessionInfo.style.display = 'block';
+        sessionInfo.classList.remove('permanent');
+        tempInfo.style.display = 'block';
+        permInfo.style.display = 'none';
+      }
+    });
+  </script>
   <script src="js/notes.js"></script>
 </body>
 </html>
