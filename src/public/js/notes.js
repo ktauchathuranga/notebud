@@ -839,7 +839,7 @@ const HeaderIcons = {
     if (headerTitle) {
       headerTitle.innerHTML = '';
       headerTitle.appendChild(Utils.createIcon('notepad'));
-      headerTitle.appendChild(document.createTextNode('scratchpad'));
+      headerTitle.appendChild(document.createTextNode('notebud'));
     }
 
     // Update section headers with inline SVGs
