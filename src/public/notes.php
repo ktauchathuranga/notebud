@@ -25,7 +25,7 @@ $sessionId = $payload['session_id'] ?? null;
     <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
     <link rel="manifest" href="favicon/site.webmanifest">
     <link href="https://fonts.googleapis.com/css2?family=Della+Respira&display=swap" rel="stylesheet">
-    <title>scratchpad - Your Notes</title>
+    <title>notebud - Your Notes</title>
     <link rel="stylesheet" href="css/style.css" />
     <!-- Expose session info to JS -->
     <script>
@@ -40,7 +40,7 @@ $sessionId = $payload['session_id'] ?? null;
             gap: 1rem;
             flex-wrap: wrap;
         }
-        
+
         .session-status {
             display: flex;
             align-items: center;
@@ -48,22 +48,22 @@ $sessionId = $payload['session_id'] ?? null;
             font-size: 0.85rem;
             color: var(--text-muted);
         }
-        
+
         .session-status.permanent {
             color: var(--success);
         }
-        
+
         .session-status .indicator {
             width: 8px;
             height: 8px;
             border-radius: 50%;
             background: var(--warning);
         }
-        
+
         .session-status.permanent .indicator {
             background: var(--success);
         }
-        
+
         .logout-all-btn {
             background: rgba(239, 68, 68, 0.1);
             color: var(--danger);
@@ -74,17 +74,17 @@ $sessionId = $payload['session_id'] ?? null;
             cursor: pointer;
             transition: all 0.3s ease;
         }
-        
+
         .logout-all-btn:hover {
             background: var(--danger);
             color: white;
         }
-        
+
         .logout-all-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
         }
-        
+
         @media (max-width: 768px) {
             .session-controls {
                 flex-direction: column;
@@ -97,7 +97,7 @@ $sessionId = $payload['session_id'] ?? null;
 
 <body>
     <header class="topbar">
-        <h1>scratchpad</h1>
+        <h1>notebud</h1>
         <div class="session-controls">
             <div id="sessionStatus" class="session-status">
                 <span class="indicator"></span>
