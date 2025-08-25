@@ -101,13 +101,12 @@ function mongo_delete_one($namespace, $filter)
     return $result;
 }
 
-// Initialize database (create indexes if needed)
 function init_database()
 {
     global $manager, $DB_NAME;
 
     try {
-        // Create TTL index for auto-deletion (30 days = 2592000 seconds)
+        // Create TTL index for notes auto-deletion (30 days = 2592000 seconds)
         $command = new MongoDB\Driver\Command([
             'createIndexes' => 'notes',
             'indexes' => [
@@ -118,11 +117,80 @@ function init_database()
                 ]
             ]
         ]);
-
         $manager->executeCommand($DB_NAME, $command);
+        
+        // Create TTL index for temporary sessions auto-cleanup
+        $command = new MongoDB\Driver\Command([
+            'createIndexes' => 'sessions',
+            'indexes' => [
+                [
+                    'key' => ['expires_at' => 1],
+                    'name' => 'expires_at_ttl',
+                    'expireAfterSeconds' => 0, // Expire at the specified time
+                    'partialFilterExpression' => ['permanent' => false]
+                ],
+                [
+                    'key' => ['user_id' => 1, 'session_id' => 1],
+                    'name' => 'user_session_unique',
+                    'unique' => true
+                ],
+                [
+                    'key' => ['user_id' => 1],
+                    'name' => 'user_sessions_index'
+                ],
+                [
+                    'key' => ['last_activity' => 1],
+                    'name' => 'last_activity_index'
+                ]
+            ]
+        ]);
+        $manager->executeCommand($DB_NAME, $command);
+        
+        // Create index on users collection for faster username lookups
+        $command = new MongoDB\Driver\Command([
+            'createIndexes' => 'users',
+            'indexes' => [
+                [
+                    'key' => ['username' => 1],
+                    'name' => 'username_unique',
+                    'unique' => true
+                ]
+            ]
+        ]);
+        $manager->executeCommand($DB_NAME, $command);
+        
     } catch (Exception $e) {
-        // Index might already exist, ignore error
+        // Indexes might already exist, ignore error
         error_log("Index creation note: " . $e->getMessage());
+    }
+}
+
+// Helper function to clean up expired sessions (can be called periodically)
+function cleanup_expired_sessions()
+{
+    global $manager, $DB_NAME;
+    
+    try {
+        $sessionsNs = $DB_NAME . '.sessions';
+        $bulk = new MongoDB\Driver\BulkWrite();
+        
+        // Remove temporary sessions that have expired
+        $bulk->delete([
+            'permanent' => false,
+            'expires_at' => ['$lt' => new MongoDB\BSON\UTCDateTime()]
+        ]);
+        
+        $result = $manager->executeBulkWrite($sessionsNs, $bulk);
+        $deletedCount = $result->getDeletedCount();
+        
+        if ($deletedCount > 0) {
+            error_log("Cleaned up {$deletedCount} expired session(s)");
+        }
+        
+        return $deletedCount;
+    } catch (Exception $e) {
+        error_log("Error cleaning up sessions: " . $e->getMessage());
+        return 0;
     }
 }
 

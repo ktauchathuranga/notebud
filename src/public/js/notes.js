@@ -1,4 +1,4 @@
-// Enhanced notes.js with inline SVG icons - Clean and maintainable version
+// Enhanced notes.js with inline SVG icons and permanent login support - Complete version
 
 let notes = [];
 let isLoading = false;
@@ -24,7 +24,10 @@ const ICONS = {
   'magnifying-glass': '<svg width="24" height="24" viewBox="0 0 256 256" fill="currentColor"><path d="m229.66,218.34-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"></path></svg>',
 
   // Clock icon for session info
-  clock: '<svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm64-88a8,8,0,0,1-8,8H128a8,8,0,0,1-8-8V72a8,8,0,0,1,16,0v48h48A8,8,0,0,1,192,128Z"></path></svg>'
+  clock: '<svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm64-88a8,8,0,0,1-8,8H128a8,8,0,0,1-8-8V72a8,8,0,0,1,16,0v48h48A8,8,0,0,1,192,128Z"></path></svg>',
+
+  // Sign out icon for logout all
+  'sign-out': '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256"><path d="M112,216a8,8,0,0,1-8,8H48a16,16,0,0,1-16-16V48A16,16,0,0,1,48,32h56a8,8,0,0,1,0,16H48V208h56A8,8,0,0,1,112,216Zm109.66-93.66-40-40a8,8,0,0,0-11.32,11.32L188.69,112H104a8,8,0,0,0,0,16h84.69l-18.35,18.34a8,8,0,0,0,11.32,11.32l40-40A8,8,0,0,0,221.66,122.34Z"></path></svg>'
 };
 
 // Configuration
@@ -501,31 +504,117 @@ const KeyboardShortcuts = {
   }
 };
 
-// Session management
+// Session management with permanent login support
 const SessionManager = {
   init() {
+    this.displaySessionStatus();
+    
     if (DOM.userInfo && window.JWT_EXP) {
       this.displaySessionInfo();
-      this.scheduleWarning();
+      if (!window.IS_PERMANENT) {
+        this.scheduleWarning();
+      }
     }
     
-    // Periodic refresh to check for session expiry
-    setInterval(() => {
-      if (!isLoading && document.visibilityState === 'visible') {
-        NotesDisplay.load();
-      }
-    }, CONFIG.REFRESH_INTERVAL);
+    // Show logout all button for permanent sessions
+    this.initLogoutAllButton();
+    
+    // Periodic refresh to check for session expiry (only for temporary sessions)
+    if (!window.IS_PERMANENT) {
+      setInterval(() => {
+        if (!isLoading && document.visibilityState === 'visible') {
+          NotesDisplay.load();
+        }
+      }, CONFIG.REFRESH_INTERVAL);
+    }
+  },
+
+  displaySessionStatus() {
+    const statusElement = document.getElementById('sessionStatus');
+    if (!statusElement) return;
+    
+    const textElement = statusElement.querySelector('.text');
+    
+    if (window.IS_PERMANENT) {
+      statusElement.classList.add('permanent');
+      textElement.textContent = 'Permanent Session';
+    } else {
+      statusElement.classList.remove('permanent');
+      textElement.textContent = 'Temporary Session (4h)';
+    }
   },
 
   displaySessionInfo() {
-    const sessionEnd = new Date(window.JWT_EXP * 1000);
-    DOM.userInfo.className = CSS_CLASSES.userInfo;
+    if (!window.IS_PERMANENT && window.JWT_EXP) {
+      const sessionEnd = new Date(window.JWT_EXP * 1000);
+      DOM.userInfo.className = CSS_CLASSES.userInfo;
+      
+      // Clear and rebuild with icon
+      DOM.userInfo.innerHTML = '';
+      const clockIcon = Utils.createIcon('clock');
+      DOM.userInfo.appendChild(clockIcon);
+      DOM.userInfo.appendChild(document.createTextNode(` Expires: ${sessionEnd.toLocaleTimeString()}`));
+    } else if (window.IS_PERMANENT) {
+      DOM.userInfo.className = CSS_CLASSES.userInfo;
+      DOM.userInfo.innerHTML = '';
+      const clockIcon = Utils.createIcon('clock');
+      DOM.userInfo.appendChild(clockIcon);
+      DOM.userInfo.appendChild(document.createTextNode(' No expiration'));
+    }
+  },
+
+  initLogoutAllButton() {
+    const logoutAllBtn = document.getElementById('logoutAllBtn');
+    if (!logoutAllBtn) return;
     
-    // Clear and rebuild with icon
-    DOM.userInfo.innerHTML = '';
-    const clockIcon = Utils.createIcon('clock');
-    DOM.userInfo.appendChild(clockIcon);
-    DOM.userInfo.appendChild(document.createTextNode(` Session expires: ${sessionEnd.toLocaleTimeString()}`));
+    // Only show for permanent sessions
+    if (window.IS_PERMANENT) {
+      logoutAllBtn.style.display = 'inline-block';
+      logoutAllBtn.addEventListener('click', this.logoutAllTempSessions);
+    }
+  },
+
+  async logoutAllTempSessions() {
+    const btn = document.getElementById('logoutAllBtn');
+    if (!confirm('This will logout all your temporary sessions on other devices. Continue?')) {
+      return;
+    }
+    
+    btn.disabled = true;
+    btn.textContent = 'Logging out...';
+    
+    try {
+      const response = await fetch('/api/logout_all_temp.php', { 
+        method: 'POST' 
+      });
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        btn.textContent = 'Success!';
+        setTimeout(() => {
+          btn.textContent = 'Logout All Temp Sessions';
+          btn.disabled = false;
+        }, 2000);
+        
+        // Show success message
+        MessageHandler.show(document.getElementById('saveMsg'), 
+          data.message || 'All temporary sessions logged out successfully!', 
+          'success');
+      } else {
+        throw new Error(data.error || 'Failed to logout sessions');
+      }
+    } catch (error) {
+      console.error('Error logging out sessions:', error);
+      btn.textContent = 'Failed';
+      setTimeout(() => {
+        btn.textContent = 'Logout All Temp Sessions';
+        btn.disabled = false;
+      }, 2000);
+      
+      MessageHandler.show(document.getElementById('saveMsg'), 
+        'Failed to logout sessions. Please try again.', 
+        'error');
+    }
   },
 
   scheduleWarning() {
@@ -603,7 +692,7 @@ const FormValidation = {
   }
 };
 
-// Auth form handlers
+// Enhanced Auth Handler with permanent login support
 const AuthHandler = {
   init() {
     const loginForm = document.getElementById('loginForm');
@@ -611,10 +700,40 @@ const AuthHandler = {
     
     if (loginForm) {
       loginForm.addEventListener('submit', this.handleLogin);
+      
+      // Handle permanent login checkbox
+      const permanentCheckbox = document.getElementById('permanentLogin');
+      if (permanentCheckbox) {
+        permanentCheckbox.addEventListener('change', this.updateSessionInfo);
+        
+        // Initialize session info display
+        this.updateSessionInfo();
+      }
     }
     
     if (registerForm) {
       registerForm.addEventListener('submit', this.handleRegister);
+    }
+  },
+
+  updateSessionInfo() {
+    const sessionInfo = document.getElementById('sessionInfo');
+    const tempInfo = sessionInfo?.querySelector('.temporary');
+    const permInfo = sessionInfo?.querySelector('.permanent');
+    const checkbox = document.getElementById('permanentLogin');
+    
+    if (!sessionInfo) return;
+    
+    if (checkbox?.checked) {
+      sessionInfo.style.display = 'block';
+      sessionInfo.classList.add('permanent');
+      if (tempInfo) tempInfo.style.display = 'none';
+      if (permInfo) permInfo.style.display = 'block';
+    } else {
+      sessionInfo.style.display = 'block';
+      sessionInfo.classList.remove('permanent');
+      if (tempInfo) tempInfo.style.display = 'block';
+      if (permInfo) permInfo.style.display = 'none';
     }
   },
 
@@ -632,9 +751,11 @@ const AuthHandler = {
     MessageHandler.hide(msg);
     
     try {
+      const formData = new FormData(form);
+      
       const response = await fetch('/api/login.php', {
         method: 'POST',
-        body: new URLSearchParams(new FormData(form))
+        body: new URLSearchParams(formData)
       });
       
       const data = await response.json();
@@ -646,11 +767,11 @@ const AuthHandler = {
         }, 500);
       } else {
         MessageHandler.show(msg, data.error || 'Login failed', 'error');
-        AuthHandler.resetButton(loginBtn, loginBtn.querySelector('span'), form);
+        AuthHandler.resetLoginButton(loginBtn, form);
       }
     } catch (error) {
       MessageHandler.show(msg, 'Network error. Please try again.', 'error');
-      AuthHandler.resetButton(loginBtn, loginBtn.querySelector('span'), form);
+      AuthHandler.resetLoginButton(loginBtn, form);
     }
   },
 
@@ -685,26 +806,27 @@ const AuthHandler = {
         }, 2000);
       } else {
         MessageHandler.show(msg, data.error || 'Registration failed', 'error');
-        AuthHandler.resetButton(registerBtn, registerBtn.querySelector('span'), form);
+        AuthHandler.resetRegisterButton(registerBtn, form);
       }
     } catch (error) {
       MessageHandler.show(msg, 'Network error. Please try again.', 'error');
-      AuthHandler.resetButton(registerBtn, registerBtn.querySelector('span'), form);
+      AuthHandler.resetRegisterButton(registerBtn, form);
     }
   },
 
-  resetButton(button, originalContent, form) {
+  resetLoginButton(button, form) {
     button.disabled = false;
-    // Restore original button content with icon
-    if (button.id === 'loginBtn') {
-      button.innerHTML = '';
-      button.appendChild(Utils.createIcon('sign-in'));
-      button.appendChild(document.createTextNode(' Login'));
-    } else if (button.id === 'registerBtn') {
-      button.innerHTML = '';
-      button.appendChild(Utils.createIcon('user-plus'));
-      button.appendChild(document.createTextNode(' Create Account'));
-    }
+    button.innerHTML = '';
+    button.appendChild(Utils.createIcon('sign-in'));
+    button.appendChild(document.createTextNode(' Login'));
+    form.classList.remove(CSS_CLASSES.loading);
+  },
+
+  resetRegisterButton(button, form) {
+    button.disabled = false;
+    button.innerHTML = '';
+    button.appendChild(Utils.createIcon('user-plus'));
+    button.appendChild(document.createTextNode(' Create Account'));
     form.classList.remove(CSS_CLASSES.loading);
   }
 };
@@ -733,6 +855,14 @@ const HeaderIcons = {
       notesHeader.innerHTML = '';
       notesHeader.appendChild(Utils.createIcon('files'));
       notesHeader.appendChild(document.createTextNode('Your Notes'));
+    }
+
+    // Update logout all button with inline SVG if it exists
+    const logoutAllBtn = document.getElementById('logoutAllBtn');
+    if (logoutAllBtn && window.IS_PERMANENT) {
+      logoutAllBtn.innerHTML = '';
+      logoutAllBtn.appendChild(Utils.createIcon('sign-out'));
+      logoutAllBtn.appendChild(document.createTextNode(' Logout All Temp Sessions'));
     }
   }
 };
