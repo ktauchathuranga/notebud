@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   && rm -rf /var/lib/apt/lists/*
 
 # Copy custom Apache vhost that sets DocumentRoot to /var/www/html/public
-COPY 000-default.conf /etc/apache2/sites-available/000-default.conf
+COPY docker/php/000-default.conf /etc/apache2/sites-available/000-default.conf
 
 # Set working directory
 WORKDIR /var/www/html
