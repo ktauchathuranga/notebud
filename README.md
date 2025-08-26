@@ -2,9 +2,11 @@
 
 A simple note-taking app designed for university labs with flexible session management. Quick login with both temporary and permanent session options, automatic cleanup, and seamless cloud or local database support.
 
-## Why NoteBud?
+## Why notebud?
 
 Perfect for uni labs where you can't access OneDrive/Google Drive due to 2FA hassles. Choose between temporary sessions (4-hour auto-logout) or permanent sessions (logout only when you want). Notes auto-clear in 30 days to keep things tidy.
+
+Visit us at [https://notebud.cc](https://notebud.cc) to start taking notes!
 
 ## Features
 
@@ -48,7 +50,7 @@ cp .env.cloud .env
 docker-compose up -d web
 ```
 
-Access at `http://localhost:8080`
+Access the app at `http://localhost:8080` for local development or visit [https://notebud.cc](https://notebud.cc) for the live version.
 
 ## Database Configuration
 
@@ -160,50 +162,50 @@ docker-compose build --no-cache
 ```
 notebud
 ├── docker
-│   ├── mongo
-│   │   └── init-mongo.js
-│   └── php
-│       ├── 000-default.conf
-│       └── Dockerfile
+│   ├── mongo
+│   │   └── init-mongo.js
+│   └── php
+│       ├── 000-default.conf
+│       └── Dockerfile
 ├── docker-compose.yml
 ├── init-mongo.js
 ├── README.md
 ├── src
-│   ├── api
-│   │   ├── auth.php
-│   │   ├── db.php
-│   │   ├── delete_note.php
-│   │   ├── get_notes.php
-│   │   ├── jwt.php
-│   │   ├── login.php
-│   │   ├── logout_all_temp.php
-│   │   ├── logout.php
-│   │   ├── register.php
-│   │   ├── save_note.php
-│   │   └── update_note.php
-│   └── public
-│       ├── css
-│       │   └── style.css
-│       ├── favicon
-│       │   ├── android-chrome-192x192.png
-│       │   ├── android-chrome-512x512.png
-│       │   ├── apple-touch-icon.png
-│       │   ├── favicon-16x16.png
-│       │   ├── favicon-32x32.png
-│       │   ├── favicon.ico
-│       │   └── site.webmanifest
-│       ├── index.php
-│       ├── js
-│       │   └── notes.js
-│       ├── login.html
-│       ├── notes.php
-│       └── register.html
+│   ├── api
+│   │   ├── auth.php
+│   │   ├── db.php
+│   │   ├── delete_note.php
+│   │   ├── get_notes.php
+│   │   ├── jwt.php
+│   │   ├── login.php
+│   │   ├── logout_all_temp.php
+│   │   ├── logout.php
+│   │   ├── register.php
+│   │   ├── save_note.php
+│   │   └── update_note.php
+│   └── public
+│       ├── css
+│       │   └── style.css
+│       ├── favicon
+│       │   ├── android-chrome-192x192.png
+│       │   ├── android-chrome-512x512.png
+│       │   ├── apple-touch-icon.png
+│       │   ├── favicon-16x16.png
+│       │   ├── favicon-32x32.png
+│       │   ├── favicon.ico
+│       │   └── site.webmanifest
+│       ├── index.php
+│       ├── js
+│       │   └── notes.js
+│       ├── login.html
+│       ├── notes.php
+│       └── register.html
 └── switch.sh
 ```
 
 ## Contributing
 
-We welcome contributions to NoteBud! Please follow these guidelines:
+We welcome contributions to notebud! Please follow these guidelines:
 
 ### Getting Started
 
@@ -292,7 +294,7 @@ For new features:
    docker-compose up -d
    ```
 
-3. **Access application**: `http://localhost:8080`
+3. **Access application**: `http://localhost:8080` or [https://notebud.cc](https://notebud.cc)
 
 4. **Monitor logs**:
    ```bash
@@ -327,7 +329,9 @@ If you encounter issues or have questions:
 - Check existing [GitHub Issues](https://github.com/yourusername/notebud/issues)
 - Create a new issue with detailed information
 - Join discussions in existing issues
+- Visit [https://notebud.cc](https://notebud.cc) for the live application
 
 ---
 
 **Perfect for university students who need quick, flexible note-taking without authentication hassles.**
+
