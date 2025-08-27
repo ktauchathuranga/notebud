@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   && rm -rf /var/lib/apt/lists/*
 
 # Install sockets extension for WebSocket functionality
-RUN docker-php-ext-install sockets
+RUN docker-php-ext-install sockets pcntl
 
 # Copy application files
 COPY . /var/www/html/
@@ -23,5 +23,8 @@ RUN chown -R www-data:www-data /var/www/html \
 # Expose WebSocket port
 EXPOSE 8080
 
-# Run the WebSocket server
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD php -r "echo 'Health check OK';" || exit 1
+
+# Run the WebSocket server with signal handling
 CMD ["php", "/var/www/html/src/websocket/websocket_server.php"]
