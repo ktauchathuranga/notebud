@@ -136,11 +136,11 @@ const NotesAPI = {
     isLoading = true;
     
     try {
-      const response = await fetch('/api/get_notes.php');
+      const response = await fetch('/api/get_notes');
       
       if (!response.ok) {
         if (response.status === 401) {
-          location.href = '/login.html';
+          location.href = '/login';
           return;
         }
         throw new Error('Failed to fetch notes');
@@ -157,7 +157,7 @@ const NotesAPI = {
 
   async save(title, content) {
     const body = new URLSearchParams({ title, content });
-    const response = await fetch('/api/save_note.php', { 
+    const response = await fetch('/api/save_note', { 
       method: 'POST', 
       body 
     });
@@ -166,7 +166,7 @@ const NotesAPI = {
 
   async update(id, title, content) {
     const body = new URLSearchParams({ id, title, content });
-    const response = await fetch('/api/update_note.php', { 
+    const response = await fetch('/api/update_note', { 
       method: 'POST', 
       body 
     });
@@ -174,7 +174,7 @@ const NotesAPI = {
   },
 
   async delete(id) {
-    const response = await fetch('/api/delete_note.php', { 
+    const response = await fetch('/api/delete_note', { 
       method: 'POST', 
       body: new URLSearchParams({ id }) 
     });
@@ -584,7 +584,7 @@ const SessionManager = {
     btn.textContent = 'Logging out...';
     
     try {
-      const response = await fetch('/api/logout_all_temp.php', { 
+      const response = await fetch('/api/logout_all_temp', { 
         method: 'POST' 
       });
       const data = await response.json();
@@ -647,12 +647,12 @@ const LogoutHandler = {
     btn.textContent = 'Logging out...';
 
     try {
-      await fetch('/api/logout.php', { method: 'POST' });
+      await fetch('/api/logout', { method: 'POST' });
     } catch (error) {
       console.log('Logout request failed, but redirecting anyway');
     }
 
-    location.href = '/login.html';
+    location.href = '/login';
   }
 };
 
@@ -753,7 +753,7 @@ const AuthHandler = {
     try {
       const formData = new FormData(form);
       
-      const response = await fetch('/api/login.php', {
+      const response = await fetch('/api/login', {
         method: 'POST',
         body: new URLSearchParams(formData)
       });
@@ -763,7 +763,7 @@ const AuthHandler = {
       if (response.ok && data.success) {
         loginBtn.innerHTML = '<span>Success! Redirecting...</span>';
         setTimeout(() => {
-          location.href = '/notes.php';
+          location.href = '/notes';
         }, 500);
       } else {
         MessageHandler.show(msg, data.error || 'Login failed', 'error');
@@ -789,7 +789,7 @@ const AuthHandler = {
     MessageHandler.hide(msg);
     
     try {
-      const response = await fetch('/api/register.php', {
+      const response = await fetch('/api/register', {
         method: 'POST',
         body: new URLSearchParams(new FormData(form))
       });
@@ -802,7 +802,7 @@ const AuthHandler = {
         registerBtn.innerHTML = '<span>Account Created ✓</span>';
         
         setTimeout(() => {
-          location.href = '/login.html';
+          location.href = '/login';
         }, 2000);
       } else {
         MessageHandler.show(msg, data.error || 'Registration failed', 'error');
