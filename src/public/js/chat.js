@@ -10,6 +10,23 @@ let reconnectAttempts = 0;
 let maxReconnectAttempts = 5;
 let lastMessageSender = null;
 
+function getWebSocketUrl() {
+    // Allow server to override via window.WS_URL
+    if (window.WS_URL) return window.WS_URL;
+
+    // Local development: use ws://localhost:8091
+    if (
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1"
+    ) {
+        return "ws://localhost:8091";
+    }
+
+    // Production (Render): use your Render websocket URL
+    // If you run websocket on a different subdomain, change accordingly
+    return "wss://notebud-t6u9.onrender.com";
+}
+
 // Initialize chat
 document.addEventListener('DOMContentLoaded', () => {
     console.log('=== CHAT PAGE DEBUG START ===');
@@ -38,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function initializeWebSocket() {
     const token = window.JWT_TOKEN;
     console.log('Using JWT token from PHP for WebSocket auth');
-    
+
     if (!token) {
         console.error('No JWT token available for WebSocket authentication');
         showNotification('Authentication error. Please refresh the page.', 'error');
@@ -46,22 +63,23 @@ function initializeWebSocket() {
     }
 
     updateConnectionStatus('connecting');
-    console.log('Attempting to connect to WebSocket server at ws://localhost:8091...');
+    const wsUrl = getWebSocketUrl();
+    console.log('Attempting to connect to WebSocket server at ' + wsUrl);
 
     try {
-        socket = new WebSocket('ws://localhost:8091');
-        
+        socket = new WebSocket(wsUrl);
+
         socket.onopen = function() {
             console.log('WebSocket connected successfully');
             reconnectAttempts = 0;
             updateConnectionStatus('connected');
-            
+
             socket.send(JSON.stringify({
                 type: 'auth',
                 token: token
             }));
         };
-        
+
         socket.onmessage = function(event) {
             console.log('WebSocket message received:', event.data);
             try {
@@ -71,12 +89,12 @@ function initializeWebSocket() {
                 console.error('Error parsing WebSocket message:', e, 'Raw data:', event.data);
             }
         };
-        
+
         socket.onclose = function(event) {
             console.log('WebSocket disconnected. Code:', event.code, 'Reason:', event.reason);
             isConnected = false;
             updateConnectionStatus('disconnected');
-            
+
             if (reconnectAttempts < maxReconnectAttempts) {
                 reconnectAttempts++;
                 console.log(`Reconnection attempt ${reconnectAttempts}/${maxReconnectAttempts} in 3 seconds...`);
@@ -86,7 +104,7 @@ function initializeWebSocket() {
                 showNotification('Unable to connect to chat server. Please refresh the page.', 'error');
             }
         };
-        
+
         socket.onerror = function(error) {
             console.error('WebSocket error:', error);
             updateConnectionStatus('disconnected');
