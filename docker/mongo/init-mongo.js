@@ -1,5 +1,5 @@
 // Initialize database and TTL index on notes.createdAt (30 days)
-db = db.getSiblingDB(process.env.MONGO_INITDB_DATABASE || "scratchpad");
+db = db.getSiblingDB(process.env.MONGO_INITDB_DATABASE || "notebud");
 
 // Create notes collection if it doesn't exist
 if (!db.getCollectionNames().includes("notes")) {
