@@ -16,6 +16,10 @@ COPY . /var/www/html/
 # Set working directory
 WORKDIR /var/www/html
 
+# Set proper permissions
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html
+
 # Expose WebSocket port
 EXPOSE 8080
 
