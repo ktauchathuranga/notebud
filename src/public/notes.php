@@ -85,6 +85,22 @@ $sessionId = $payload['session_id'] ?? null;
             cursor: not-allowed;
         }
 
+        .chat-link {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+            border-radius: 6px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .chat-link:hover {
+            background: var(--primary);
+            color: white;
+        }
+
         @media (max-width: 768px) {
             .session-controls {
                 flex-direction: column;
@@ -103,6 +119,7 @@ $sessionId = $payload['session_id'] ?? null;
                 <span class="indicator"></span>
                 <span class="text"></span>
             </div>
+            <a href="/chat" class="chat-link">💬 Chat</a>
             <button id="logoutAllBtn" class="logout-all-btn" style="display: none;">
                 Logout All Temp Sessions
             </button>
