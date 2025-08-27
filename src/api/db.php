@@ -18,7 +18,7 @@ if (file_exists($envPath)) {
 }
 
 // Get database configuration
-$DB_NAME = getenv('DB_NAME') ?: 'scratchpad';
+$DB_NAME = getenv('DB_NAME') ?: 'notebud';
 
 // Try to use full MongoDB URI first (for Atlas)
 $MONGODB_URI = getenv('MONGODB_URI');
@@ -118,7 +118,7 @@ function init_database()
             ]
         ]);
         $manager->executeCommand($DB_NAME, $command);
-        
+
         // Create TTL index for temporary sessions auto-cleanup
         $command = new MongoDB\Driver\Command([
             'createIndexes' => 'sessions',
@@ -145,7 +145,7 @@ function init_database()
             ]
         ]);
         $manager->executeCommand($DB_NAME, $command);
-        
+
         // Create indexes on users collection
         $command = new MongoDB\Driver\Command([
             'createIndexes' => 'users',
@@ -166,7 +166,6 @@ function init_database()
             ]
         ]);
         $manager->executeCommand($DB_NAME, $command);
-        
     } catch (Exception $e) {
         // Indexes might already exist, ignore error
         error_log("Index creation note: " . $e->getMessage());
@@ -177,24 +176,24 @@ function init_database()
 function cleanup_expired_sessions()
 {
     global $manager, $DB_NAME;
-    
+
     try {
         $sessionsNs = $DB_NAME . '.sessions';
         $bulk = new MongoDB\Driver\BulkWrite();
-        
+
         // Remove temporary sessions that have expired
         $bulk->delete([
             'permanent' => false,
             'expires_at' => ['$lt' => new MongoDB\BSON\UTCDateTime()]
         ]);
-        
+
         $result = $manager->executeBulkWrite($sessionsNs, $bulk);
         $deletedCount = $result->getDeletedCount();
-        
+
         if ($deletedCount > 0) {
             error_log("Cleaned up {$deletedCount} expired session(s)");
         }
-        
+
         return $deletedCount;
     } catch (Exception $e) {
         error_log("Error cleaning up sessions: " . $e->getMessage());
