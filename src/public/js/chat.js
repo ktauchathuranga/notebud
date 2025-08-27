@@ -24,7 +24,7 @@ function getWebSocketUrl() {
 
     // Production (Render): use your Render websocket URL
     // If you run websocket on a different subdomain, change accordingly
-    return "wss://notebud-t6u9.onrender.com";
+    return "wss://notebud-websocket.onrender.com";
 }
 
 // Initialize chat
