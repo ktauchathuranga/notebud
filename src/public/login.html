@@ -46,6 +46,27 @@
       background: rgba(16, 185, 129, 0.1);
       border-color: rgba(16, 185, 129, 0.3);
     }
+    
+    .auth-links {
+      text-align: center;
+      margin: 1rem 0;
+    }
+    
+    .auth-links p {
+      margin: 0.5rem 0;
+    }
+    
+    .reset-link {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+    
+    .reset-link:hover {
+      color: var(--accent);
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
@@ -89,7 +110,10 @@
         </button>
       </form>
       
-      <p>Don't have an account? <a href="/register">Create one</a></p>
+      <div class="auth-links">
+        <p>Don't have an account? <a href="/register">Create one</a></p>
+        <p><a href="/reset-password" class="reset-link">Forgot your password?</a></p>
+      </div>
       <div id="msg" class="msg"></div>
     </div>
   </main>
