@@ -148,7 +148,15 @@ class WebSocketServer
 
     public function __construct($address = '0.0.0.0', $port = 8080)
     {
-        $this->server = stream_socket_server("tcp://$address:$port", $errno, $errstr);
+        // Create server socket with proper options
+        $context = stream_context_create([
+            'socket' => [
+                'so_reuseport' => 1,
+                'so_reuseaddr' => 1,
+            ],
+        ]);
+
+        $this->server = stream_socket_server("tcp://$address:$port", $errno, $errstr, STREAM_SERVER_BIND | STREAM_SERVER_LISTEN, $context);
 
         if (!$this->server) {
             echo "Error creating server: $errstr ($errno)\n";
@@ -171,19 +179,45 @@ class WebSocketServer
             }
 
             // Handle existing clients
+            $read = [];
             foreach ($this->clients as $clientId => $clientData) {
-                $this->handleClient($clientId);
+                $read[] = $clientData['socket'];
             }
 
+            if (!empty($read)) {
+                $write = null;
+                $except = null;
+                $changed = @stream_select($read, $write, $except, 0, 100000); // 100ms timeout
+
+                if ($changed > 0) {
+                    foreach ($read as $socket) {
+                        $clientId = (int)$socket;
+                        $this->handleClient($clientId);
+                    }
+                }
+            }
+
+            // Clean up disconnected clients
+            $this->cleanupClients();
+
             // Small delay to prevent high CPU usage
-            usleep(10000); // 10ms
+            usleep(1000); // 1ms
+        }
+    }
+
+    private function cleanupClients()
+    {
+        foreach ($this->clients as $clientId => $clientData) {
+            if (feof($clientData['socket'])) {
+                $this->disconnectClient($clientId);
+            }
         }
     }
 
     private function handleNewConnection($client)
     {
         stream_set_blocking($client, false);
-        stream_set_timeout($client, 1);
+        stream_set_timeout($client, 5);
 
         $clientId = (int)$client;
         $this->clients[$clientId] = [
@@ -191,7 +225,8 @@ class WebSocketServer
             'handshake_done' => false,
             'user_id' => null,
             'username' => null,
-            'buffer' => ''
+            'buffer' => '',
+            'last_activity' => time()
         ];
 
         echo "New connection: $clientId\n";
@@ -209,12 +244,7 @@ class WebSocketServer
         // Read data from client
         $data = @fread($socket, 8192);
 
-        if ($data === false) {
-            // Error reading
-            return;
-        }
-
-        if ($data === '') {
+        if ($data === false || $data === '') {
             // Check if connection is still alive
             if (feof($socket)) {
                 $this->disconnectClient($clientId);
@@ -225,6 +255,7 @@ class WebSocketServer
 
         echo "Received data from client $clientId: " . strlen($data) . " bytes\n";
         $this->clients[$clientId]['buffer'] .= $data;
+        $this->clients[$clientId]['last_activity'] = time();
 
         if (!$client['handshake_done']) {
             $this->processHandshake($clientId);
@@ -239,14 +270,21 @@ class WebSocketServer
         $buffer = $client['buffer'];
 
         // Check if we have a complete HTTP request
-        if (strpos($buffer, "\r\n\r\n") === false) {
+        $headerEnd = strpos($buffer, "\r\n\r\n");
+        if ($headerEnd === false) {
             echo "Handshake incomplete for client $clientId, waiting for more data\n";
             return; // Not complete yet
         }
 
-        $lines = explode("\r\n", $buffer);
-        $headers = [];
+        $headerSection = substr($buffer, 0, $headerEnd);
+        $lines = explode("\r\n", $headerSection);
 
+        // Parse the request line
+        $requestLine = array_shift($lines);
+        echo "Request line: $requestLine\n";
+
+        // Parse headers
+        $headers = [];
         foreach ($lines as $line) {
             if (strpos($line, ':') !== false) {
                 list($key, $value) = explode(':', $line, 2);
@@ -254,8 +292,37 @@ class WebSocketServer
             }
         }
 
+        echo "Headers received: " . json_encode($headers) . "\n";
+
+        // Check for required WebSocket headers
         if (!isset($headers['Sec-WebSocket-Key'])) {
             echo "Missing Sec-WebSocket-Key header for client $clientId\n";
+            // Send a proper HTTP error response
+            $errorResponse = "HTTP/1.1 400 Bad Request\r\n" .
+                "Content-Type: text/plain\r\n" .
+                "Content-Length: 26\r\n" .
+                "Connection: close\r\n\r\n" .
+                "Missing WebSocket headers";
+            @fwrite($client['socket'], $errorResponse);
+            $this->disconnectClient($clientId);
+            return;
+        }
+
+        // Validate other required headers
+        $upgrade = $headers['Upgrade'] ?? '';
+        $connection = $headers['Connection'] ?? '';
+
+        if (
+            strtolower($upgrade) !== 'websocket' ||
+            strpos(strtolower($connection), 'upgrade') === false
+        ) {
+            echo "Invalid WebSocket headers for client $clientId\n";
+            $errorResponse = "HTTP/1.1 400 Bad Request\r\n" .
+                "Content-Type: text/plain\r\n" .
+                "Content-Length: 25\r\n" .
+                "Connection: close\r\n\r\n" .
+                "Invalid WebSocket request";
+            @fwrite($client['socket'], $errorResponse);
             $this->disconnectClient($clientId);
             return;
         }
@@ -263,10 +330,13 @@ class WebSocketServer
         $key = $headers['Sec-WebSocket-Key'];
         $acceptKey = base64_encode(pack('H*', sha1($key . '258EAFA5-E914-47DA-95CA-C5AB0DC85B11')));
 
-        $response = "HTTP/1.1 101 Switching Protocols\r\n";
-        $response .= "Upgrade: websocket\r\n";
-        $response .= "Connection: Upgrade\r\n";
-        $response .= "Sec-WebSocket-Accept: $acceptKey\r\n\r\n";
+        $response = "HTTP/1.1 101 Switching Protocols\r\n" .
+            "Upgrade: websocket\r\n" .
+            "Connection: Upgrade\r\n" .
+            "Sec-WebSocket-Accept: $acceptKey\r\n" .
+            "\r\n";
+
+        echo "Sending handshake response to client $clientId\n";
 
         if (@fwrite($client['socket'], $response) === false) {
             echo "Failed to send handshake response to client $clientId\n";
@@ -275,7 +345,8 @@ class WebSocketServer
         }
 
         $this->clients[$clientId]['handshake_done'] = true;
-        $this->clients[$clientId]['buffer'] = '';
+        // Remove the processed headers from buffer
+        $this->clients[$clientId]['buffer'] = substr($buffer, $headerEnd + 4);
 
         echo "Handshake completed for client $clientId\n";
     }
@@ -349,7 +420,17 @@ class WebSocketServer
     {
         if (strlen($data) < 2) return false;
 
-        $length = ord($data[1]) & 127;
+        $firstByte = ord($data[0]);
+        $secondByte = ord($data[1]);
+
+        // Check if frame is masked (client frames should be masked)
+        $masked = ($secondByte & 128) == 128;
+        if (!$masked) {
+            echo "Received unmasked frame from client\n";
+            return null; // Client frames must be masked
+        }
+
+        $length = $secondByte & 127;
         $indexFirstMask = 2;
 
         if ($length == 126) {
@@ -377,7 +458,7 @@ class WebSocketServer
 
     private function encode($data)
     {
-        $encoded = chr(129); // Text frame
+        $encoded = chr(129); // Text frame (FIN=1, opcode=1)
         $length = strlen($data);
 
         if ($length <= 125) {
@@ -391,6 +472,7 @@ class WebSocketServer
         return $encoded . $data;
     }
 
+    // Rest of your methods remain the same...
     private function processMessage($clientId, $message)
     {
         global $JWT_SECRET, $DB_NAME;
