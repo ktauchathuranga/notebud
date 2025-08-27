@@ -32,13 +32,23 @@ if ($existing) {
     exit;
 }
 
+// Generate refresh token
+$refreshToken = bin2hex(random_bytes(32)); // 64 character hex string
 $hash = password_hash($password, PASSWORD_DEFAULT);
+
 $doc = [
     'username' => $username,
     'password_hash' => $hash,
+    'refresh_token' => $refreshToken,
+    'token_used' => false,
     'createdAt' => new MongoDB\BSON\UTCDateTime()
 ];
 
 $id = mongo_insert_one($ns, $doc);
 
-echo json_encode(['success' => true]);
+echo json_encode([
+    'success' => true, 
+    'refresh_token' => $refreshToken,
+    'message' => 'Account created successfully! Save this refresh token - you can use it with your username to reset your password if needed.'
+]);
+?>

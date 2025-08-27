@@ -146,7 +146,7 @@ function init_database()
         ]);
         $manager->executeCommand($DB_NAME, $command);
         
-        // Create index on users collection for faster username lookups
+        // Create indexes on users collection
         $command = new MongoDB\Driver\Command([
             'createIndexes' => 'users',
             'indexes' => [
@@ -154,6 +154,14 @@ function init_database()
                     'key' => ['username' => 1],
                     'name' => 'username_unique',
                     'unique' => true
+                ],
+                [
+                    'key' => ['refresh_token' => 1],
+                    'name' => 'refresh_token_index'
+                ],
+                [
+                    'key' => ['username' => 1, 'refresh_token' => 1, 'token_used' => 1],
+                    'name' => 'password_reset_index'
                 ]
             ]
         ]);
