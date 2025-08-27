@@ -23,7 +23,6 @@ function getWebSocketUrl() {
     }
 
     // Production (Render): use your Render websocket URL
-    // If you run websocket on a different subdomain, change accordingly
     return "wss://notebud-websocket.onrender.com";
 }
 
@@ -198,12 +197,17 @@ function handleWebSocketMessage(data) {
             
         case 'new_message':
             console.log('New message received for chat:', data.chat_id);
+            
+            // ALWAYS display the message if it's for the current chat
             if (data.chat_id === currentChatId) {
+                console.log('Displaying message in current chat:', data.message);
                 displayMessage(data);
             }
+            
+            // Update active chats list to show latest message time
             loadActiveChats();
             
-            // Show notification if not current chat
+            // Show notification if not current chat and not from current user
             if (data.chat_id !== currentChatId && data.from_user_id !== currentUserId) {
                 showNotification(`💬 New message from ${data.from_username}`);
                 
@@ -252,12 +256,6 @@ function setupEventListeners() {
             if (e.key === 'Enter' && !e.target.disabled) {
                 sendMessage();
             }
-        });
-        
-        // Auto-resize input (if you want to make it a textarea later)
-        messageInput.addEventListener('input', function() {
-            this.style.height = 'auto';
-            this.style.height = this.scrollHeight + 'px';
         });
     }
     
@@ -361,7 +359,7 @@ function openChat(chatId, withUser, isOnline) {
     if (noChatSelected) noChatSelected.style.display = 'none';
     if (chatArea) {
         chatArea.style.display = 'flex';
-        chatArea.style.flexDirection = 'column';
+        chatArea.classList.add('active');
     }
     if (chatWithUser) chatWithUser.textContent = withUser;
     
@@ -414,7 +412,7 @@ function sendMessage() {
     
     if (!message || !currentChatId) return;
     
-    console.log('Sending message to chat:', currentChatId);
+    console.log('Sending message to chat:', currentChatId, 'Message:', message);
     
     // Add loading state
     const sendBtn = document.getElementById('sendMessageBtn');
@@ -430,20 +428,27 @@ function sendMessage() {
         message: message
     }));
     
+    // Clear input immediately for better UX
     messageInput.value = '';
     
     // Reset button
     setTimeout(() => {
-        if (sendBtn) {
+        if (sendBtn && isConnected) {
             sendBtn.disabled = false;
             sendBtn.textContent = originalText;
         }
-    }, 1000);
+    }, 500);
 }
 
+// FIXED: Simplified message display function
 function displayMessage(messageData) {
+    console.log('Displaying message:', messageData);
+    
     const messagesContainer = document.getElementById('chatMessages');
-    if (!messagesContainer) return;
+    if (!messagesContainer) {
+        console.error('Messages container not found');
+        return;
+    }
     
     // Remove loading placeholder if it exists
     const loadingPlaceholder = messagesContainer.querySelector('.loading-placeholder');
@@ -452,62 +457,37 @@ function displayMessage(messageData) {
     }
     
     const isOwn = messageData.from_user_id === currentUserId;
-    const shouldGroup = lastMessageSender === messageData.from_user_id;
+    console.log('Message is from current user:', isOwn, 'Current user ID:', currentUserId, 'Message from:', messageData.from_user_id);
     
-    if (!shouldGroup) {
-        // Create new message group
-        const messageGroup = document.createElement('div');
-        messageGroup.className = `message-group ${isOwn ? 'own' : 'other'}`;
-        messageGroup.setAttribute('data-sender', messageData.from_user_id);
-        
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${isOwn ? 'own' : 'other'}`;
-        messageDiv.textContent = messageData.message;
-        
-        const messageInfo = document.createElement('div');
-        messageInfo.className = 'message-info';
-        const timestamp = new Date(messageData.timestamp * 1000).toLocaleTimeString([], {
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-        messageInfo.textContent = `${isOwn ? 'You' : messageData.from_username} • ${timestamp}`;
-        
-        messageGroup.appendChild(messageDiv);
-        messageGroup.appendChild(messageInfo);
-        messagesContainer.appendChild(messageGroup);
-    } else {
-        // Add to existing group
-        const lastGroup = messagesContainer.querySelector(`[data-sender="${messageData.from_user_id}"]:last-child`);
-        if (lastGroup) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${isOwn ? 'own' : 'other'}`;
-            messageDiv.textContent = messageData.message;
-            
-            // Insert before the message info
-            const messageInfo = lastGroup.querySelector('.message-info');
-            lastGroup.insertBefore(messageDiv, messageInfo);
-            
-            // Update timestamp
-            const timestamp = new Date(messageData.timestamp * 1000).toLocaleTimeString([], {
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-            messageInfo.textContent = `${isOwn ? 'You' : messageData.from_username} • ${timestamp}`;
-        }
-    }
+    // Create message element
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message-group ${isOwn ? 'own' : 'other'}`;
     
-    lastMessageSender = messageData.from_user_id;
+    const messageContent = document.createElement('div');
+    messageContent.className = `message ${isOwn ? 'own' : 'other'}`;
+    messageContent.textContent = messageData.message;
     
-    // Smooth scroll to bottom
-    setTimeout(() => {
-        messagesContainer.scrollTo({
-            top: messagesContainer.scrollHeight,
-            behavior: 'smooth'
-        });
-    }, 100);
+    const messageInfo = document.createElement('div');
+    messageInfo.className = 'message-info';
+    const timestamp = messageData.timestamp 
+        ? new Date(messageData.timestamp * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    messageInfo.textContent = `${isOwn ? 'You' : messageData.from_username} • ${timestamp}`;
+    
+    messageDiv.appendChild(messageContent);
+    messageDiv.appendChild(messageInfo);
+    messagesContainer.appendChild(messageDiv);
+    
+    // Force scroll to bottom
+    console.log('Scrolling to bottom');
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    
+    console.log('Message displayed successfully');
 }
 
 function displayChatMessages(messages) {
+    console.log('Displaying chat messages:', messages.length);
+    
     const messagesContainer = document.getElementById('chatMessages');
     if (!messagesContainer) return;
     
@@ -525,59 +505,31 @@ function displayChatMessages(messages) {
     
     messages.forEach(message => {
         const isOwn = message.from_user_id === currentUserId;
-        const shouldGroup = lastMessageSender === message.from_user_id;
         
-        if (!shouldGroup) {
-            // Create new message group
-            const messageGroup = document.createElement('div');
-            messageGroup.className = `message-group ${isOwn ? 'own' : 'other'}`;
-            messageGroup.setAttribute('data-sender', message.from_user_id);
-            
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${isOwn ? 'own' : 'other'}`;
-            messageDiv.textContent = message.message;
-            
-            const messageInfo = document.createElement('div');
-            messageInfo.className = 'message-info';
-            const timestamp = new Date(message.timestamp).toLocaleTimeString([], {
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-            messageInfo.textContent = `${isOwn ? 'You' : message.from_username} • ${timestamp}`;
-            
-            messageGroup.appendChild(messageDiv);
-            messageGroup.appendChild(messageInfo);
-            messagesContainer.appendChild(messageGroup);
-        } else {
-            // Add to existing group
-            const lastGroup = messagesContainer.querySelector(`[data-sender="${message.from_user_id}"]:last-child`);
-            if (lastGroup) {
-                const messageDiv = document.createElement('div');
-                messageDiv.className = `message ${isOwn ? 'own' : 'other'}`;
-                messageDiv.textContent = message.message;
-                
-                // Insert before the message info
-                const messageInfo = lastGroup.querySelector('.message-info');
-                lastGroup.insertBefore(messageDiv, messageInfo);
-                
-                // Update timestamp
-                const timestamp = new Date(message.timestamp).toLocaleTimeString([], {
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
-                messageInfo.textContent = `${isOwn ? 'You' : message.from_username} • ${timestamp}`;
-            }
-        }
+        // Create message element
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message-group ${isOwn ? 'own' : 'other'}`;
         
-        lastMessageSender = message.from_user_id;
+        const messageContent = document.createElement('div');
+        messageContent.className = `message ${isOwn ? 'own' : 'other'}`;
+        messageContent.textContent = message.message;
+        
+        const messageInfo = document.createElement('div');
+        messageInfo.className = 'message-info';
+        const timestamp = new Date(message.timestamp).toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        messageInfo.textContent = `${isOwn ? 'You' : message.from_username} • ${timestamp}`;
+        
+        messageDiv.appendChild(messageContent);
+        messageDiv.appendChild(messageInfo);
+        messagesContainer.appendChild(messageDiv);
     });
     
-    // Smooth scroll to bottom
+    // Scroll to bottom
     setTimeout(() => {
-        messagesContainer.scrollTo({
-            top: messagesContainer.scrollHeight,
-            behavior: 'smooth'
-        });
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }, 100);
 }
 
