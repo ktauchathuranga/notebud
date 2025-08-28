@@ -129,14 +129,14 @@ function updateConnectionStatus(status) {
     
     switch (status) {
         case 'connected':
-            statusElement.innerHTML = '🟢 Connected to chat server';
+            statusElement.innerHTML = 'Connected to chat server';
             isConnected = true;
             if (sendRequestBtn) sendRequestBtn.disabled = false;
             if (messageInput) messageInput.disabled = false;
             if (sendMessageBtn) sendMessageBtn.disabled = false;
             break;
         case 'connecting':
-            statusElement.innerHTML = '🔄 Connecting to chat server...';
+            statusElement.innerHTML = 'Connecting to chat server...';
             isConnected = false;
             if (sendRequestBtn) sendRequestBtn.disabled = true;
             if (messageInput) messageInput.disabled = true;
@@ -144,9 +144,9 @@ function updateConnectionStatus(status) {
             break;
         case 'disconnected':
             if (reconnectAttempts < maxReconnectAttempts) {
-                statusElement.innerHTML = `🔄 Reconnecting... (${reconnectAttempts}/${maxReconnectAttempts})`;
+                statusElement.innerHTML = `Reconnecting... (${reconnectAttempts}/${maxReconnectAttempts})`;
             } else {
-                statusElement.innerHTML = '🔴 Disconnected from chat server';
+                statusElement.innerHTML = 'Disconnected from chat server';
             }
             isConnected = false;
             if (sendRequestBtn) sendRequestBtn.disabled = true;
@@ -165,7 +165,7 @@ function handleWebSocketMessage(data) {
             currentUsername = data.username;
             console.log('WebSocket authentication successful. User:', currentUsername, 'ID:', currentUserId);
             
-            showNotification(`✅ Connected as ${currentUsername}`, 'success');
+            showNotification(`Connected as ${currentUsername}`, 'success');
             
             socket.send(JSON.stringify({ type: 'get_chat_requests' }));
             socket.send(JSON.stringify({ type: 'get_active_chats' }));
@@ -173,26 +173,34 @@ function handleWebSocketMessage(data) {
             
         case 'new_chat_request':
             console.log('New chat request received from:', data.from_username);
-            showNotification(`💬 New chat request from ${data.from_username}`);
+            showNotification(`New chat request from ${data.from_username}`);
             loadChatRequests();
             break;
             
         case 'chat_request_sent':
             console.log('Chat request sent to:', data.to_username);
-            showNotification(`✅ Chat request sent to ${data.to_username}`);
+            showNotification(`Chat request sent to ${data.to_username}`);
             const usernameInput = document.getElementById('usernameInput');
             if (usernameInput) usernameInput.value = '';
             break;
             
         case 'chat_accepted':
             console.log('Chat accepted by:', data.with_user);
-            showNotification(`🎉 Chat accepted by ${data.with_user}`);
+            showNotification(`Chat accepted by ${data.with_user}`);
             loadActiveChats();
+            loadChatRequests(); // Refresh to remove the accepted request
             break;
             
         case 'chat_declined':
             console.log('Chat declined by:', data.by_user);
-            showNotification(`❌ Chat request declined by ${data.by_user}`);
+            showNotification(`Chat request declined by ${data.by_user}`);
+            loadChatRequests(); // Refresh to remove the declined request
+            break;
+
+        case 'request_status_changed':
+            // Refresh both requests and chats for the requester
+            loadChatRequests();
+            loadActiveChats();
             break;
             
         case 'new_message':
@@ -209,7 +217,7 @@ function handleWebSocketMessage(data) {
             
             // Show notification if not current chat and not from current user
             if (data.chat_id !== currentChatId && data.from_user_id !== currentUserId) {
-                showNotification(`💬 New message from ${data.from_username}`);
+                showNotification(`New message from ${data.from_username}`);
                 
                 // Add visual indicator to chat list item
                 const chatItem = document.querySelector(`[data-chat-id="${data.chat_id}"]`);
@@ -239,7 +247,7 @@ function handleWebSocketMessage(data) {
             
         case 'error':
             console.error('WebSocket server error:', data.message);
-            showNotification(`❌ ${data.message}`, 'error');
+            showNotification(`${data.message}`, 'error');
             break;
             
         default:
@@ -278,7 +286,7 @@ function setupEventListeners() {
 
 function sendChatRequest() {
     if (!isConnected) {
-        showNotification('❌ Not connected to chat server', 'error');
+        showNotification('Not connected to chat server', 'error');
         return;
     }
     
@@ -286,13 +294,13 @@ function sendChatRequest() {
     const username = usernameInput ? usernameInput.value.trim() : '';
     
     if (!username) {
-        showNotification('❌ Please enter a username', 'error');
+        showNotification('Please enter a username', 'error');
         usernameInput?.focus();
         return;
     }
     
     if (username === currentUsername) {
-        showNotification('❌ You cannot send a chat request to yourself', 'error');
+        showNotification('You cannot send a chat request to yourself', 'error');
         return;
     }
     
@@ -322,7 +330,7 @@ function sendChatRequest() {
 
 function acceptChatRequest(fromUserId) {
     if (!isConnected) {
-        showNotification('❌ Not connected to chat server', 'error');
+        showNotification('Not connected to chat server', 'error');
         return;
     }
     
@@ -331,11 +339,14 @@ function acceptChatRequest(fromUserId) {
         type: 'accept_chat_request',
         from_user_id: fromUserId
     }));
+    
+    // Refresh the requests list after a short delay
+    setTimeout(() => loadChatRequests(), 1000);
 }
 
 function declineChatRequest(fromUserId) {
     if (!isConnected) {
-        showNotification('❌ Not connected to chat server', 'error');
+        showNotification('Not connected to chat server', 'error');
         return;
     }
     
@@ -344,6 +355,21 @@ function declineChatRequest(fromUserId) {
         type: 'decline_chat_request',
         from_user_id: fromUserId
     }));
+    
+    // Refresh the requests list after a short delay
+    setTimeout(() => loadChatRequests(), 1000);
+}
+
+function acceptChatRequestWithLoading(fromUserId, buttonElement) {
+    const actionsDiv = buttonElement.parentNode;
+    actionsDiv.innerHTML = '<div style="text-align: center; color: #22c55e;">Accepting...</div>';
+    acceptChatRequest(fromUserId);
+}
+
+function declineChatRequestWithLoading(fromUserId, buttonElement) {
+    const actionsDiv = buttonElement.parentNode;
+    actionsDiv.innerHTML = '<div style="text-align: center; color: #ef4444;">Declining...</div>';
+    declineChatRequest(fromUserId);
 }
 
 function openChat(chatId, withUser, isOnline) {
@@ -403,7 +429,7 @@ function openChat(chatId, withUser, isOnline) {
 
 function sendMessage() {
     if (!isConnected) {
-        showNotification('❌ Not connected to chat server', 'error');
+        showNotification('Not connected to chat server', 'error');
         return;
     }
     
@@ -497,7 +523,7 @@ function displayChatMessages(messages) {
     if (messages.length === 0) {
         messagesContainer.innerHTML = `
             <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--gray-500); font-style: italic;">
-                No messages yet. Start the conversation! 👋
+                No messages yet. Start the conversation!
             </div>
         `;
         return;
@@ -547,10 +573,11 @@ function displayChatRequests(requests) {
     requests.forEach(request => {
         const requestDiv = document.createElement('div');
         requestDiv.className = 'request-item';
+        requestDiv.id = `request-${request.from_user_id}`;
         
         const fromDiv = document.createElement('div');
         fromDiv.className = 'request-from';
-        fromDiv.innerHTML = `👤 <strong>${escapeHtml(request.from_username)}</strong>`;
+        fromDiv.innerHTML = `<strong>${escapeHtml(request.from_username)}</strong>`;
         
         const timeDiv = document.createElement('div');
         timeDiv.className = 'request-time';
@@ -559,8 +586,8 @@ function displayChatRequests(requests) {
         const actionsDiv = document.createElement('div');
         actionsDiv.className = 'request-actions';
         actionsDiv.innerHTML = `
-            <button class="accept-btn" onclick="acceptChatRequest('${request.from_user_id}')">✅ Accept</button>
-            <button class="decline-btn" onclick="declineChatRequest('${request.from_user_id}')">❌ Decline</button>
+            <button class="accept-btn" onclick="acceptChatRequestWithLoading('${request.from_user_id}', this)">Accept</button>
+            <button class="decline-btn" onclick="declineChatRequestWithLoading('${request.from_user_id}', this)">Decline</button>
         `;
         
         requestDiv.appendChild(fromDiv);

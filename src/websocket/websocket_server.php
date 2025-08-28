@@ -264,92 +264,92 @@ class WebSocketServer
         }
     }
 
-private function processHandshake($clientId)
-{
-    $client = $this->clients[$clientId];
-    $buffer = $client['buffer'];
+    private function processHandshake($clientId)
+    {
+        $client = $this->clients[$clientId];
+        $buffer = $client['buffer'];
 
-    // Check if we have a complete HTTP request
-    $headerEnd = strpos($buffer, "\r\n\r\n");
-    if ($headerEnd === false) {
-        echo "Handshake incomplete for client $clientId, waiting for more data\n";
-        return; // Not complete yet
-    }
-
-    $headerSection = substr($buffer, 0, $headerEnd);
-    $lines = explode("\r\n", $headerSection);
-
-    // Parse the request line
-    $requestLine = array_shift($lines);
-    echo "Request line: $requestLine\n";
-
-    // Parse headers with case-insensitive keys
-    $headers = [];
-    foreach ($lines as $line) {
-        if (strpos($line, ':') !== false) {
-            list($key, $value) = explode(':', $line, 2);
-            $headers[strtolower(trim($key))] = trim($value);
+        // Check if we have a complete HTTP request
+        $headerEnd = strpos($buffer, "\r\n\r\n");
+        if ($headerEnd === false) {
+            echo "Handshake incomplete for client $clientId, waiting for more data\n";
+            return; // Not complete yet
         }
+
+        $headerSection = substr($buffer, 0, $headerEnd);
+        $lines = explode("\r\n", $headerSection);
+
+        // Parse the request line
+        $requestLine = array_shift($lines);
+        echo "Request line: $requestLine\n";
+
+        // Parse headers with case-insensitive keys
+        $headers = [];
+        foreach ($lines as $line) {
+            if (strpos($line, ':') !== false) {
+                list($key, $value) = explode(':', $line, 2);
+                $headers[strtolower(trim($key))] = trim($value);
+            }
+        }
+
+        echo "Headers received: " . json_encode($headers) . "\n";
+
+        // Check for required WebSocket headers (case-insensitive)
+        if (!isset($headers['sec-websocket-key'])) {
+            echo "Missing Sec-WebSocket-Key header for client $clientId\n";
+            // Send a proper HTTP error response
+            $errorResponse = "HTTP/1.1 400 Bad Request\r\n" .
+                "Content-Type: text/plain\r\n" .
+                "Content-Length: 26\r\n" .
+                "Connection: close\r\n\r\n" .
+                "Missing WebSocket headers";
+            @fwrite($client['socket'], $errorResponse);
+            $this->disconnectClient($clientId);
+            return;
+        }
+
+        // Validate other required headers (case-insensitive)
+        $upgrade = strtolower($headers['upgrade'] ?? '');
+        $connection = strtolower($headers['connection'] ?? '');
+
+        if (
+            $upgrade !== 'websocket' ||
+            strpos($connection, 'upgrade') === false
+        ) {
+            echo "Invalid WebSocket headers for client $clientId\n";
+            $errorResponse = "HTTP/1.1 400 Bad Request\r\n" .
+                "Content-Type: text/plain\r\n" .
+                "Content-Length: 25\r\n" .
+                "Connection: close\r\n\r\n" .
+                "Invalid WebSocket request";
+            @fwrite($client['socket'], $errorResponse);
+            $this->disconnectClient($clientId);
+            return;
+        }
+
+        $key = $headers['sec-websocket-key'];
+        $acceptKey = base64_encode(pack('H*', sha1($key . '258EAFA5-E914-47DA-95CA-C5AB0DC85B11')));
+
+        $response = "HTTP/1.1 101 Switching Protocols\r\n" .
+            "Upgrade: websocket\r\n" .
+            "Connection: Upgrade\r\n" .
+            "Sec-WebSocket-Accept: $acceptKey\r\n" .
+            "\r\n";
+
+        echo "Sending handshake response to client $clientId\n";
+
+        if (@fwrite($client['socket'], $response) === false) {
+            echo "Failed to send handshake response to client $clientId\n";
+            $this->disconnectClient($clientId);
+            return;
+        }
+
+        $this->clients[$clientId]['handshake_done'] = true;
+        // Remove the processed headers from buffer
+        $this->clients[$clientId]['buffer'] = substr($buffer, $headerEnd + 4);
+
+        echo "Handshake completed for client $clientId\n";
     }
-
-    echo "Headers received: " . json_encode($headers) . "\n";
-
-    // Check for required WebSocket headers (case-insensitive)
-    if (!isset($headers['sec-websocket-key'])) {
-        echo "Missing Sec-WebSocket-Key header for client $clientId\n";
-        // Send a proper HTTP error response
-        $errorResponse = "HTTP/1.1 400 Bad Request\r\n" .
-            "Content-Type: text/plain\r\n" .
-            "Content-Length: 26\r\n" .
-            "Connection: close\r\n\r\n" .
-            "Missing WebSocket headers";
-        @fwrite($client['socket'], $errorResponse);
-        $this->disconnectClient($clientId);
-        return;
-    }
-
-    // Validate other required headers (case-insensitive)
-    $upgrade = strtolower($headers['upgrade'] ?? '');
-    $connection = strtolower($headers['connection'] ?? '');
-
-    if (
-        $upgrade !== 'websocket' ||
-        strpos($connection, 'upgrade') === false
-    ) {
-        echo "Invalid WebSocket headers for client $clientId\n";
-        $errorResponse = "HTTP/1.1 400 Bad Request\r\n" .
-            "Content-Type: text/plain\r\n" .
-            "Content-Length: 25\r\n" .
-            "Connection: close\r\n\r\n" .
-            "Invalid WebSocket request";
-        @fwrite($client['socket'], $errorResponse);
-        $this->disconnectClient($clientId);
-        return;
-    }
-
-    $key = $headers['sec-websocket-key'];
-    $acceptKey = base64_encode(pack('H*', sha1($key . '258EAFA5-E914-47DA-95CA-C5AB0DC85B11')));
-
-    $response = "HTTP/1.1 101 Switching Protocols\r\n" .
-        "Upgrade: websocket\r\n" .
-        "Connection: Upgrade\r\n" .
-        "Sec-WebSocket-Accept: $acceptKey\r\n" .
-        "\r\n";
-
-    echo "Sending handshake response to client $clientId\n";
-
-    if (@fwrite($client['socket'], $response) === false) {
-        echo "Failed to send handshake response to client $clientId\n";
-        $this->disconnectClient($clientId);
-        return;
-    }
-
-    $this->clients[$clientId]['handshake_done'] = true;
-    // Remove the processed headers from buffer
-    $this->clients[$clientId]['buffer'] = substr($buffer, $headerEnd + 4);
-
-    echo "Handshake completed for client $clientId\n";
-}
 
     private function processMessages($clientId)
     {
@@ -472,7 +472,6 @@ private function processHandshake($clientId)
         return $encoded . $data;
     }
 
-    // Rest of your methods remain the same...
     private function processMessage($clientId, $message)
     {
         global $JWT_SECRET, $DB_NAME;
@@ -581,15 +580,38 @@ private function processHandshake($clientId)
 
             $toUserId = (string)$toUser->_id;
 
-            // Check if request already exists
-            $existing = mongo_find_one($DB_NAME . '.chat_requests', [
-                'from_user_id' => $fromUserId,
-                'to_user_id' => $toUserId,
-                'status' => 'pending'
+            // Check if users already have an active chat
+            $existingChat = mongo_find_one($DB_NAME . '.chats', [
+                'participants' => ['$all' => [$fromUserId, $toUserId]]
             ]);
 
-            if ($existing) {
-                $this->sendToClient($clientId, ['type' => 'error', 'message' => 'Chat request already sent']);
+            if ($existingChat) {
+                $this->sendToClient($clientId, ['type' => 'error', 'message' => 'You already have an active chat with this user']);
+                return;
+            }
+
+            // Check if request already exists (either direction)
+            $existingRequest = mongo_find_one($DB_NAME . '.chat_requests', [
+                '$or' => [
+                    [
+                        'from_user_id' => $fromUserId,
+                        'to_user_id' => $toUserId,
+                        'status' => 'pending'
+                    ],
+                    [
+                        'from_user_id' => $toUserId,
+                        'to_user_id' => $fromUserId,
+                        'status' => 'pending'
+                    ]
+                ]
+            ]);
+
+            if ($existingRequest) {
+                if ($existingRequest->from_user_id === $fromUserId) {
+                    $this->sendToClient($clientId, ['type' => 'error', 'message' => 'Chat request already sent']);
+                } else {
+                    $this->sendToClient($clientId, ['type' => 'error', 'message' => 'This user has already sent you a chat request']);
+                }
                 return;
             }
 
@@ -667,6 +689,11 @@ private function processHandshake($clientId)
                     'chat_id' => $chatId,
                     'with_user' => $this->clients[$clientId]['username']
                 ]);
+
+                // Also notify the requester to refresh their view
+                $this->sendToClient($this->userSockets[$fromUserId], [
+                    'type' => 'request_status_changed'
+                ]);
             }
 
             echo "Chat request accepted by {$this->clients[$clientId]['username']}\n";
@@ -697,6 +724,11 @@ private function processHandshake($clientId)
                 $this->sendToClient($this->userSockets[$fromUserId], [
                     'type' => 'chat_declined',
                     'by_user' => $this->clients[$clientId]['username']
+                ]);
+
+                // Also notify the requester to refresh their view
+                $this->sendToClient($this->userSockets[$fromUserId], [
+                    'type' => 'request_status_changed'
                 ]);
             }
 
