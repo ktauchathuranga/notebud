@@ -24,7 +24,6 @@ $sessionId = $payload['session_id'] ?? null;
     <link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
     <link rel="manifest" href="favicon/site.webmanifest">
-    <link href="https://fonts.googleapis.com/css2?family=Della+Respira&display=swap" rel="stylesheet">
     <title>notebud - Your Notes</title>
     <link rel="stylesheet" href="css/style.css" />
     <!-- Expose session info to JS -->
@@ -33,82 +32,6 @@ $sessionId = $payload['session_id'] ?? null;
         window.IS_PERMANENT = <?= json_encode($isPermanent) ?>;
         window.SESSION_ID = <?= json_encode($sessionId) ?>;
     </script>
-    <style>
-        .session-controls {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .session-status {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-        }
-
-        .session-status.permanent {
-            color: var(--success);
-        }
-
-        .session-status .indicator {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--warning);
-        }
-
-        .session-status.permanent .indicator {
-            background: var(--success);
-        }
-
-        .logout-all-btn {
-            background: rgba(239, 68, 68, 0.1);
-            color: var(--danger);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            padding: 0.4rem 0.8rem;
-            font-size: 0.8rem;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .logout-all-btn:hover {
-            background: var(--danger);
-            color: white;
-        }
-
-        .logout-all-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .chat-link {
-            background: rgba(99, 102, 241, 0.1);
-            color: var(--primary);
-            border: 1px solid rgba(99, 102, 241, 0.3);
-            padding: 0.4rem 0.8rem;
-            font-size: 0.8rem;
-            border-radius: 6px;
-            text-decoration: none;
-            transition: all 0.3s ease;
-        }
-
-        .chat-link:hover {
-            background: var(--primary);
-            color: white;
-        }
-
-        @media (max-width: 768px) {
-            .session-controls {
-                flex-direction: column;
-                align-items: flex-end;
-                gap: 0.5rem;
-            }
-        }
-    </style>
 </head>
 
 <body>
@@ -123,7 +46,7 @@ $sessionId = $payload['session_id'] ?? null;
             <button id="logoutAllBtn" class="logout-all-btn" style="display: none;">
                 Logout All Temp Sessions
             </button>
-            <button id="logoutBtn">Logout</button>
+            <button id="logoutBtn" class="logout-btn">Logout</button>
             <span id="userInfo"></span>
         </div>
     </header>

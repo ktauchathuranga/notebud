@@ -1,6 +1,6 @@
 <?php
 // src/websocket/websocket_server.php
-// Standalone WebSocket server for notebud chat
+// Standalone WebSocket server for notebud chat with enhanced real-time updates
 
 // Error reporting
 error_reporting(E_ALL);
@@ -676,23 +676,24 @@ class WebSocketServer
 
             mongo_insert_one($DB_NAME . '.chats', $chatDoc);
 
-            // Notify both users
+            // Get usernames for the notification
+            $fromUserObj = mongo_find_one($DB_NAME . '.users', ['_id' => new MongoDB\BSON\ObjectId($fromUserId)]);
+            $fromUsername = $fromUserObj ? $fromUserObj->username : 'Unknown';
+
+            // Notify both users with enhanced data
             $this->sendToClient($clientId, [
                 'type' => 'chat_accepted',
                 'chat_id' => $chatId,
-                'with_user' => $this->getUsernameById($fromUserId)
+                'with_user' => $fromUsername,
+                'with_user_id' => $fromUserId
             ]);
 
             if (isset($this->userSockets[$fromUserId])) {
                 $this->sendToClient($this->userSockets[$fromUserId], [
                     'type' => 'chat_accepted',
                     'chat_id' => $chatId,
-                    'with_user' => $this->clients[$clientId]['username']
-                ]);
-
-                // Also notify the requester to refresh their view
-                $this->sendToClient($this->userSockets[$fromUserId], [
-                    'type' => 'request_status_changed'
+                    'with_user' => $this->clients[$clientId]['username'],
+                    'with_user_id' => $userId
                 ]);
             }
 
@@ -725,11 +726,6 @@ class WebSocketServer
                     'type' => 'chat_declined',
                     'by_user' => $this->clients[$clientId]['username']
                 ]);
-
-                // Also notify the requester to refresh their view
-                $this->sendToClient($this->userSockets[$fromUserId], [
-                    'type' => 'request_status_changed'
-                ]);
             }
 
             echo "Chat request declined by {$this->clients[$clientId]['username']}\n";
@@ -757,13 +753,15 @@ class WebSocketServer
 
             if (!$chat) return;
 
+            $timestamp = time();
+
             // Save message
             $messageDoc = [
                 'chat_id' => $chatId,
                 'from_user_id' => $userId,
                 'from_username' => $this->clients[$clientId]['username'],
                 'message' => $messageText,
-                'created_at' => new MongoDB\BSON\UTCDateTime()
+                'created_at' => new MongoDB\BSON\UTCDateTime($timestamp * 1000)
             ];
 
             mongo_insert_one($DB_NAME . '.chat_messages', $messageDoc);
@@ -772,10 +770,10 @@ class WebSocketServer
             mongo_update_one(
                 $DB_NAME . '.chats',
                 ['chat_id' => $chatId],
-                ['$set' => ['last_message_at' => new MongoDB\BSON\UTCDateTime()]]
+                ['$set' => ['last_message_at' => new MongoDB\BSON\UTCDateTime($timestamp * 1000)]]
             );
 
-            // Send to all participants
+            // Send to all participants with consistent timestamp
             foreach ($chat->participants as $participantId) {
                 if (isset($this->userSockets[$participantId])) {
                     $this->sendToClient($this->userSockets[$participantId], [
@@ -784,7 +782,7 @@ class WebSocketServer
                         'from_user_id' => $userId,
                         'from_username' => $this->clients[$clientId]['username'],
                         'message' => $messageText,
-                        'timestamp' => time()
+                        'timestamp' => $timestamp
                     ]);
                 }
             }
@@ -811,7 +809,7 @@ class WebSocketServer
             $requests = mongo_find($DB_NAME . '.chat_requests', [
                 'to_user_id' => $userId,
                 'status' => 'pending'
-            ]);
+            ], ['sort' => ['created_at' => -1]]);
 
             $requestList = [];
             foreach ($requests as $request) {
@@ -828,8 +826,6 @@ class WebSocketServer
                 'type' => 'chat_requests',
                 'requests' => $requestList
             ];
-
-            echo "Sending response: " . json_encode($response) . "\n";
 
             $this->sendToClient($clientId, $response);
 
@@ -888,8 +884,6 @@ class WebSocketServer
                 'type' => 'active_chats',
                 'chats' => $chatList
             ];
-
-            echo "Sending response: " . json_encode($response) . "\n";
 
             $this->sendToClient($clientId, $response);
 
