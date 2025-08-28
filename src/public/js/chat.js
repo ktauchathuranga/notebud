@@ -1,5 +1,5 @@
 // src/public/js/chat.js
-// Enhanced chat functionality with professional UI
+// Enhanced chat functionality with professional real-time updates
 
 let socket = null;
 let currentChatId = null;
@@ -9,6 +9,11 @@ let isConnected = false;
 let reconnectAttempts = 0;
 let maxReconnectAttempts = 5;
 let lastMessageSender = null;
+
+// State management for real-time updates
+let chatRequestsCache = [];
+let activeChatsCache = [];
+let currentChatMessagesCache = [];
 
 function getWebSocketUrl() {
     // Allow server to override via window.WS_URL
@@ -157,7 +162,9 @@ function updateConnectionStatus(status) {
 }
 
 function handleWebSocketMessage(data) {
-    console.log('Handling WebSocket message type:', data.type, 'Data:', data);
+    console.log('=== WebSocket Message Received ===');
+    console.log('Type:', data.type);
+    console.log('Full data:', data);
     
     switch (data.type) {
         case 'auth_success':
@@ -167,14 +174,23 @@ function handleWebSocketMessage(data) {
             
             showNotification(`Connected as ${currentUsername}`, 'success');
             
-            socket.send(JSON.stringify({ type: 'get_chat_requests' }));
-            socket.send(JSON.stringify({ type: 'get_active_chats' }));
+            // Request initial data
+            requestChatRequests();
+            requestActiveChats();
             break;
             
         case 'new_chat_request':
             console.log('New chat request received from:', data.from_username);
             showNotification(`New chat request from ${data.from_username}`);
-            loadChatRequests();
+            
+            // Add the new request to cache and update UI
+            const newRequest = {
+                from_user_id: data.from_user_id,
+                from_username: data.from_username,
+                created_at: new Date().toISOString()
+            };
+            chatRequestsCache.unshift(newRequest);
+            renderChatRequests();
             break;
             
         case 'chat_request_sent':
@@ -185,63 +201,72 @@ function handleWebSocketMessage(data) {
             break;
             
         case 'chat_accepted':
-            console.log('Chat accepted by:', data.with_user);
+            console.log('Chat accepted - chat_id:', data.chat_id, 'with_user:', data.with_user);
             showNotification(`Chat accepted by ${data.with_user}`);
-            loadActiveChats();
-            loadChatRequests(); // Refresh to remove the accepted request
+            
+            // Add new chat to cache
+            const newChat = {
+                chat_id: data.chat_id,
+                with_user: data.with_user,
+                with_user_id: data.with_user_id || 'unknown',
+                online: true, // Assume online since they just accepted
+                last_message_at: new Date().toISOString()
+            };
+            
+            // Remove from requests if it exists
+            chatRequestsCache = chatRequestsCache.filter(req => 
+                req.from_username !== data.with_user && 
+                req.to_username !== data.with_user
+            );
+            
+            // Add to active chats if not already exists
+            const existingChatIndex = activeChatsCache.findIndex(chat => chat.chat_id === data.chat_id);
+            if (existingChatIndex === -1) {
+                activeChatsCache.unshift(newChat);
+            }
+            
+            // Update UI immediately
+            renderChatRequests();
+            renderActiveChats();
             break;
             
         case 'chat_declined':
             console.log('Chat declined by:', data.by_user);
             showNotification(`Chat request declined by ${data.by_user}`);
-            loadChatRequests(); // Refresh to remove the declined request
+            
+            // Remove from requests cache
+            chatRequestsCache = chatRequestsCache.filter(req => req.from_username !== data.by_user);
+            renderChatRequests();
             break;
 
         case 'request_status_changed':
-            // Refresh both requests and chats for the requester
-            loadChatRequests();
-            loadActiveChats();
+            // Refresh data from server
+            requestChatRequests();
+            requestActiveChats();
             break;
             
         case 'new_message':
             console.log('New message received for chat:', data.chat_id);
-            
-            // ALWAYS display the message if it's for the current chat
-            if (data.chat_id === currentChatId) {
-                console.log('Displaying message in current chat:', data.message);
-                displayMessage(data);
-            }
-            
-            // Update active chats list to show latest message time
-            loadActiveChats();
-            
-            // Show notification if not current chat and not from current user
-            if (data.chat_id !== currentChatId && data.from_user_id !== currentUserId) {
-                showNotification(`New message from ${data.from_username}`);
-                
-                // Add visual indicator to chat list item
-                const chatItem = document.querySelector(`[data-chat-id="${data.chat_id}"]`);
-                if (chatItem && !chatItem.classList.contains('active')) {
-                    chatItem.style.background = 'linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%)';
-                    chatItem.style.borderColor = '#f59e0b';
-                }
-            }
+            handleNewMessage(data);
             break;
             
         case 'chat_requests':
             console.log('Chat requests received:', data.requests.length, 'requests');
-            displayChatRequests(data.requests);
+            chatRequestsCache = data.requests;
+            renderChatRequests();
             break;
             
         case 'active_chats':
             console.log('Active chats received:', data.chats.length, 'chats');
-            displayActiveChats(data.chats);
+            activeChatsCache = data.chats;
+            renderActiveChats();
             break;
             
         case 'chat_messages':
             console.log('Chat messages received for chat:', data.chat_id, 'Messages:', data.messages.length);
             if (data.chat_id === currentChatId) {
-                displayChatMessages(data.messages);
+                currentChatMessagesCache = data.messages;
+                renderChatMessages();
             }
             break;
             
@@ -253,6 +278,214 @@ function handleWebSocketMessage(data) {
         default:
             console.log('Unknown WebSocket message type:', data.type, 'Full data:', data);
     }
+}
+
+function handleNewMessage(messageData) {
+    const isForCurrentChat = messageData.chat_id === currentChatId;
+    const isFromCurrentUser = messageData.from_user_id === currentUserId;
+    
+    // Update the message in the current chat if it's the active chat
+    if (isForCurrentChat) {
+        // Add to messages cache and render
+        const newMessage = {
+            from_user_id: messageData.from_user_id,
+            from_username: messageData.from_username,
+            message: messageData.message,
+            timestamp: messageData.timestamp ? new Date(messageData.timestamp * 1000).toISOString() : new Date().toISOString()
+        };
+        
+        currentChatMessagesCache.push(newMessage);
+        appendMessageToUI(newMessage);
+    }
+    
+    // Update the last message time in active chats cache
+    const chatIndex = activeChatsCache.findIndex(chat => chat.chat_id === messageData.chat_id);
+    if (chatIndex !== -1) {
+        activeChatsCache[chatIndex].last_message_at = new Date().toISOString();
+        
+        // Move this chat to the top of the list
+        const [updatedChat] = activeChatsCache.splice(chatIndex, 1);
+        activeChatsCache.unshift(updatedChat);
+        
+        renderActiveChats();
+    }
+    
+    // Show notification if not current chat and not from current user
+    if (!isForCurrentChat && !isFromCurrentUser) {
+        showNotification(`New message from ${messageData.from_username}`);
+        
+        // Add visual indicator to chat list item
+        setTimeout(() => {
+            const chatItem = document.querySelector(`[data-chat-id="${messageData.chat_id}"]`);
+            if (chatItem && !chatItem.classList.contains('active')) {
+                chatItem.style.background = 'linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%)';
+                chatItem.style.borderColor = '#f59e0b';
+            }
+        }, 100);
+    }
+}
+
+function appendMessageToUI(messageData) {
+    const messagesContainer = document.getElementById('chatMessages');
+    if (!messagesContainer) return;
+    
+    // Remove loading placeholder if it exists
+    const loadingPlaceholder = messagesContainer.querySelector('.loading-placeholder');
+    if (loadingPlaceholder) {
+        loadingPlaceholder.remove();
+    }
+    
+    const isOwn = messageData.from_user_id === currentUserId;
+    
+    // Create message element
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message-group ${isOwn ? 'own' : 'other'}`;
+    
+    const messageContent = document.createElement('div');
+    messageContent.className = `message ${isOwn ? 'own' : 'other'}`;
+    messageContent.textContent = messageData.message;
+    
+    const messageInfo = document.createElement('div');
+    messageInfo.className = 'message-info';
+    const timestamp = messageData.timestamp 
+        ? new Date(messageData.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    messageInfo.textContent = `${isOwn ? 'You' : messageData.from_username} • ${timestamp}`;
+    
+    messageDiv.appendChild(messageContent);
+    messageDiv.appendChild(messageInfo);
+    messagesContainer.appendChild(messageDiv);
+    
+    // Smooth scroll to bottom
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+function requestChatRequests() {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({ type: 'get_chat_requests' }));
+    }
+}
+
+function requestActiveChats() {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({ type: 'get_active_chats' }));
+    }
+}
+
+function renderChatRequests() {
+    const requestsList = document.getElementById('requestsList');
+    if (!requestsList) return;
+    
+    if (chatRequestsCache.length === 0) {
+        requestsList.innerHTML = '<div class="loading-placeholder">No pending requests</div>';
+        return;
+    }
+    
+    requestsList.innerHTML = '';
+    
+    chatRequestsCache.forEach(request => {
+        const requestDiv = document.createElement('div');
+        requestDiv.className = 'request-item';
+        requestDiv.id = `request-${request.from_user_id}`;
+        
+        const fromDiv = document.createElement('div');
+        fromDiv.className = 'request-from';
+        fromDiv.innerHTML = `<strong>${escapeHtml(request.from_username)}</strong>`;
+        
+        const timeDiv = document.createElement('div');
+        timeDiv.className = 'request-time';
+        timeDiv.textContent = formatRelativeTime(new Date(request.created_at));
+        
+        const actionsDiv = document.createElement('div');
+        actionsDiv.className = 'request-actions';
+        actionsDiv.innerHTML = `
+            <button class="accept-btn" onclick="acceptChatRequestWithLoading('${request.from_user_id}', this)">Accept</button>
+            <button class="decline-btn" onclick="declineChatRequestWithLoading('${request.from_user_id}', this)">Decline</button>
+        `;
+        
+        requestDiv.appendChild(fromDiv);
+        requestDiv.appendChild(timeDiv);
+        requestDiv.appendChild(actionsDiv);
+        requestsList.appendChild(requestDiv);
+    });
+}
+
+function renderActiveChats() {
+    const chatsList = document.getElementById('chatsList');
+    if (!chatsList) return;
+    
+    if (activeChatsCache.length === 0) {
+        chatsList.innerHTML = '<div class="loading-placeholder">No active chats</div>';
+        return;
+    }
+    
+    chatsList.innerHTML = '';
+    
+    // Sort chats by last message time (most recent first)
+    const sortedChats = [...activeChatsCache].sort((a, b) => 
+        new Date(b.last_message_at) - new Date(a.last_message_at)
+    );
+    
+    sortedChats.forEach(chat => {
+        const chatDiv = document.createElement('div');
+        chatDiv.className = 'chat-list-item';
+        chatDiv.setAttribute('data-chat-id', chat.chat_id);
+        chatDiv.onclick = () => openChat(chat.chat_id, chat.with_user, chat.online);
+        
+        const avatar = document.createElement('div');
+        avatar.className = `chat-avatar ${chat.online ? 'online' : 'offline'}`;
+        avatar.style.background = window.getAvatarColor ? window.getAvatarColor(chat.with_user) : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+        avatar.textContent = window.getUserInitials ? window.getUserInitials(chat.with_user) : chat.with_user.charAt(0).toUpperCase();
+        
+        const content = document.createElement('div');
+        content.className = 'chat-list-content';
+        
+        const username = document.createElement('div');
+        username.className = 'chat-username';
+        username.textContent = chat.with_user;
+        
+        const time = document.createElement('div');
+        time.className = 'chat-time';
+        time.textContent = formatRelativeTime(new Date(chat.last_message_at));
+        
+        content.appendChild(username);
+        content.appendChild(time);
+        
+        chatDiv.appendChild(avatar);
+        chatDiv.appendChild(content);
+        chatsList.appendChild(chatDiv);
+        
+        // Mark as active if this is the current chat
+        if (chat.chat_id === currentChatId) {
+            chatDiv.classList.add('active');
+        }
+    });
+}
+
+function renderChatMessages() {
+    const messagesContainer = document.getElementById('chatMessages');
+    if (!messagesContainer) return;
+    
+    messagesContainer.innerHTML = '';
+    lastMessageSender = null;
+    
+    if (currentChatMessagesCache.length === 0) {
+        messagesContainer.innerHTML = `
+            <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--gray-500); font-style: italic;">
+                No messages yet. Start the conversation!
+            </div>
+        `;
+        return;
+    }
+    
+    currentChatMessagesCache.forEach(message => {
+        appendMessageToUI(message);
+    });
+    
+    // Scroll to bottom
+    setTimeout(() => {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }, 100);
 }
 
 function setupEventListeners() {
@@ -339,9 +572,6 @@ function acceptChatRequest(fromUserId) {
         type: 'accept_chat_request',
         from_user_id: fromUserId
     }));
-    
-    // Refresh the requests list after a short delay
-    setTimeout(() => loadChatRequests(), 1000);
 }
 
 function declineChatRequest(fromUserId) {
@@ -355,9 +585,6 @@ function declineChatRequest(fromUserId) {
         type: 'decline_chat_request',
         from_user_id: fromUserId
     }));
-    
-    // Refresh the requests list after a short delay
-    setTimeout(() => loadChatRequests(), 1000);
 }
 
 function acceptChatRequestWithLoading(fromUserId, buttonElement) {
@@ -374,7 +601,9 @@ function declineChatRequestWithLoading(fromUserId, buttonElement) {
 
 function openChat(chatId, withUser, isOnline) {
     currentChatId = chatId;
-    lastMessageSender = null; // Reset message grouping
+    lastMessageSender = null;
+    currentChatMessagesCache = []; // Clear messages cache
+    
     console.log('Opening chat:', chatId, 'with:', withUser);
     
     // Update UI
@@ -405,6 +634,8 @@ function openChat(chatId, withUser, isOnline) {
     const chatElement = document.querySelector(`[data-chat-id="${chatId}"]`);
     if (chatElement) {
         chatElement.classList.add('active');
+        chatElement.style.background = '';
+        chatElement.style.borderColor = '';
     }
     
     // Enable message input
@@ -464,199 +695,6 @@ function sendMessage() {
             sendBtn.textContent = originalText;
         }
     }, 500);
-}
-
-// FIXED: Simplified message display function
-function displayMessage(messageData) {
-    console.log('Displaying message:', messageData);
-    
-    const messagesContainer = document.getElementById('chatMessages');
-    if (!messagesContainer) {
-        console.error('Messages container not found');
-        return;
-    }
-    
-    // Remove loading placeholder if it exists
-    const loadingPlaceholder = messagesContainer.querySelector('.loading-placeholder');
-    if (loadingPlaceholder) {
-        loadingPlaceholder.remove();
-    }
-    
-    const isOwn = messageData.from_user_id === currentUserId;
-    console.log('Message is from current user:', isOwn, 'Current user ID:', currentUserId, 'Message from:', messageData.from_user_id);
-    
-    // Create message element
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `message-group ${isOwn ? 'own' : 'other'}`;
-    
-    const messageContent = document.createElement('div');
-    messageContent.className = `message ${isOwn ? 'own' : 'other'}`;
-    messageContent.textContent = messageData.message;
-    
-    const messageInfo = document.createElement('div');
-    messageInfo.className = 'message-info';
-    const timestamp = messageData.timestamp 
-        ? new Date(messageData.timestamp * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    messageInfo.textContent = `${isOwn ? 'You' : messageData.from_username} • ${timestamp}`;
-    
-    messageDiv.appendChild(messageContent);
-    messageDiv.appendChild(messageInfo);
-    messagesContainer.appendChild(messageDiv);
-    
-    // Force scroll to bottom
-    console.log('Scrolling to bottom');
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    
-    console.log('Message displayed successfully');
-}
-
-function displayChatMessages(messages) {
-    console.log('Displaying chat messages:', messages.length);
-    
-    const messagesContainer = document.getElementById('chatMessages');
-    if (!messagesContainer) return;
-    
-    messagesContainer.innerHTML = '';
-    lastMessageSender = null;
-    
-    if (messages.length === 0) {
-        messagesContainer.innerHTML = `
-            <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--gray-500); font-style: italic;">
-                No messages yet. Start the conversation!
-            </div>
-        `;
-        return;
-    }
-    
-    messages.forEach(message => {
-        const isOwn = message.from_user_id === currentUserId;
-        
-        // Create message element
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message-group ${isOwn ? 'own' : 'other'}`;
-        
-        const messageContent = document.createElement('div');
-        messageContent.className = `message ${isOwn ? 'own' : 'other'}`;
-        messageContent.textContent = message.message;
-        
-        const messageInfo = document.createElement('div');
-        messageInfo.className = 'message-info';
-        const timestamp = new Date(message.timestamp).toLocaleTimeString([], {
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-        messageInfo.textContent = `${isOwn ? 'You' : message.from_username} • ${timestamp}`;
-        
-        messageDiv.appendChild(messageContent);
-        messageDiv.appendChild(messageInfo);
-        messagesContainer.appendChild(messageDiv);
-    });
-    
-    // Scroll to bottom
-    setTimeout(() => {
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    }, 100);
-}
-
-function displayChatRequests(requests) {
-    const requestsList = document.getElementById('requestsList');
-    if (!requestsList) return;
-    
-    if (requests.length === 0) {
-        requestsList.innerHTML = '<div class="loading-placeholder">No pending requests</div>';
-        return;
-    }
-    
-    requestsList.innerHTML = '';
-    
-    requests.forEach(request => {
-        const requestDiv = document.createElement('div');
-        requestDiv.className = 'request-item';
-        requestDiv.id = `request-${request.from_user_id}`;
-        
-        const fromDiv = document.createElement('div');
-        fromDiv.className = 'request-from';
-        fromDiv.innerHTML = `<strong>${escapeHtml(request.from_username)}</strong>`;
-        
-        const timeDiv = document.createElement('div');
-        timeDiv.className = 'request-time';
-        timeDiv.textContent = formatRelativeTime(new Date(request.created_at));
-        
-        const actionsDiv = document.createElement('div');
-        actionsDiv.className = 'request-actions';
-        actionsDiv.innerHTML = `
-            <button class="accept-btn" onclick="acceptChatRequestWithLoading('${request.from_user_id}', this)">Accept</button>
-            <button class="decline-btn" onclick="declineChatRequestWithLoading('${request.from_user_id}', this)">Decline</button>
-        `;
-        
-        requestDiv.appendChild(fromDiv);
-        requestDiv.appendChild(timeDiv);
-        requestDiv.appendChild(actionsDiv);
-        requestsList.appendChild(requestDiv);
-    });
-}
-
-function displayActiveChats(chats) {
-    const chatsList = document.getElementById('chatsList');
-    if (!chatsList) return;
-    
-    if (chats.length === 0) {
-        chatsList.innerHTML = '<div class="loading-placeholder">No active chats</div>';
-        return;
-    }
-    
-    chatsList.innerHTML = '';
-    
-    // Sort chats by last message time (most recent first)
-    chats.sort((a, b) => new Date(b.last_message_at) - new Date(a.last_message_at));
-    
-    chats.forEach(chat => {
-        const chatDiv = document.createElement('div');
-        chatDiv.className = 'chat-list-item';
-        chatDiv.setAttribute('data-chat-id', chat.chat_id);
-        chatDiv.onclick = () => openChat(chat.chat_id, chat.with_user, chat.online);
-        
-        const avatar = document.createElement('div');
-        avatar.className = `chat-avatar ${chat.online ? 'online' : 'offline'}`;
-        avatar.style.background = window.getAvatarColor ? window.getAvatarColor(chat.with_user) : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-        avatar.textContent = window.getUserInitials ? window.getUserInitials(chat.with_user) : chat.with_user.charAt(0).toUpperCase();
-        
-        const content = document.createElement('div');
-        content.className = 'chat-list-content';
-        
-        const username = document.createElement('div');
-        username.className = 'chat-username';
-        username.textContent = chat.with_user;
-        
-        const time = document.createElement('div');
-        time.className = 'chat-time';
-        time.textContent = formatRelativeTime(new Date(chat.last_message_at));
-        
-        content.appendChild(username);
-        content.appendChild(time);
-        
-        chatDiv.appendChild(avatar);
-        chatDiv.appendChild(content);
-        chatsList.appendChild(chatDiv);
-        
-        // Mark as active if this is the current chat
-        if (chat.chat_id === currentChatId) {
-            chatDiv.classList.add('active');
-        }
-    });
-}
-
-function loadChatRequests() {
-    if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({ type: 'get_chat_requests' }));
-    }
-}
-
-function loadActiveChats() {
-    if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({ type: 'get_active_chats' }));
-    }
 }
 
 function showNotification(message, type = 'success') {
@@ -720,4 +758,32 @@ async function logout() {
         console.log('Logout request failed, but redirecting anyway');
     }
     window.location.href = '/login';
+}
+
+// Deprecated functions - keeping for compatibility
+function loadChatRequests() {
+    requestChatRequests();
+}
+
+function loadActiveChats() {
+    requestActiveChats();
+}
+
+function displayMessage(messageData) {
+    appendMessageToUI(messageData);
+}
+
+function displayChatMessages(messages) {
+    currentChatMessagesCache = messages;
+    renderChatMessages();
+}
+
+function displayChatRequests(requests) {
+    chatRequestsCache = requests;
+    renderChatRequests();
+}
+
+function displayActiveChats(chats) {
+    activeChatsCache = chats;
+    renderActiveChats();
 }
