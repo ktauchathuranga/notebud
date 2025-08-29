@@ -24,7 +24,7 @@ function getWebSocketUrl() {
         window.location.hostname === "localhost" ||
         window.location.hostname === "127.0.0.1"
     ) {
-        return "ws://localhost:8092";
+        return "ws://localhost:8091";
     }
 
     // Production (Render): use your Render websocket URL
