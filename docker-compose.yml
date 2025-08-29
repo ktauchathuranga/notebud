@@ -28,8 +28,6 @@ services:
       dockerfile: docker/websocket/Dockerfile
     ports:
       - "8091:8080"
-    volumes:
-      - ./src:/var/www/html/src
     environment:
       - DB_HOST=${DB_HOST}
       - DB_PORT=${DB_PORT}
@@ -40,6 +38,8 @@ services:
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
+      - WEBSOCKET_BIND_ADDRESS=0.0.0.0:8080
+      - RUST_LOG=info
     depends_on:
       - mongo
     restart: unless-stopped

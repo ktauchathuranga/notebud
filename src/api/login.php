@@ -1,9 +1,7 @@
 <?php
 // src/api/login.php
 require_once __DIR__ . '/db.php';
-require_once __DIR__ . '/jwt.php';
 require_once __DIR__ . '/auth.php';
-
 header('Content-Type: application/json');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -16,55 +14,71 @@ $username = trim($_POST['username'] ?? '');
 $password = $_POST['password'] ?? '';
 $isPermanent = isset($_POST['permanent']) && $_POST['permanent'] === 'on';
 
-if ($username === '' || $password === '') {
+if (empty($username) || empty($password)) {
     http_response_code(400);
-    echo json_encode(['error' => 'Username and password required']);
+    echo json_encode(['error' => 'Username and password are required']);
     exit;
 }
 
-$ns = $DB_NAME . '.users';
-$user = mongo_find_one($ns, ['username' => $username]);
-if (!$user) {
-    http_response_code(401);
-    echo json_encode(['error' => 'Invalid credentials']);
-    exit;
+try {
+    $usersNs = $DB_NAME . '.users';
+
+    $user = mongo_find_one($usersNs, ['username' => $username]);
+
+    if (!$user || !password_verify($password, $user->password_hash)) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Invalid username or password']);
+        exit;
+    }
+
+    // Clean up expired sessions
+    cleanup_expired_sessions();
+
+    // Generate session ID
+    $sessionId = bin2hex(random_bytes(32));
+    $userId = (string)$user->_id; // Ensure it's a string
+
+    // Create session in database
+    $sessionsNs = $DB_NAME . '.sessions';
+    $session = [
+        'user_id' => $userId,
+        'session_id' => $sessionId,
+        'permanent' => $isPermanent,
+        'created_at' => new MongoDB\BSON\UTCDateTime(),
+        'last_activity' => new MongoDB\BSON\UTCDateTime()
+    ];
+
+    if (!$isPermanent) {
+        // Temporary session expires in 4 hours
+        $expiresAt = time() + (4 * 60 * 60);
+        $session['expires_at'] = new MongoDB\BSON\UTCDateTime($expiresAt * 1000);
+    }
+
+    mongo_insert_one($sessionsNs, $session);
+
+    // Create JWT payload - IMPORTANT: Make sure this matches what Rust expects
+    $jwtPayload = [
+        'user_id' => $userId,     // String, not ObjectId
+        'username' => $user->username,  // Add username field
+        'session_id' => $sessionId,
+        'permanent' => $isPermanent
+        // iat and exp will be added by jwt_encode
+    ];
+
+    // Set cookie
+    set_auth_cookie($jwtPayload, $isPermanent);
+
+    // DEBUG: Let's see what we're creating
+    error_log("Login: Created JWT for user_id=" . $userId . ", username=" . $user->username);
+
+    echo json_encode([
+        'success' => true,
+        'user_id' => $userId,
+        'username' => $user->username,
+        'permanent' => $isPermanent
+    ]);
+} catch (Exception $e) {
+    error_log("Login error: " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(['error' => 'Login failed. Please try again.']);
 }
-
-// $user is BSON document (stdClass)
-$hash = $user->password_hash ?? null;
-if (!$hash || !password_verify($password, $hash)) {
-    http_response_code(401);
-    echo json_encode(['error' => 'Invalid credentials']);
-    exit;
-}
-
-// Create token with user_id and session type
-$userId = (string)$user->_id;
-$sessionId = bin2hex(random_bytes(16)); // Generate unique session ID
-$payload = [
-    'user_id' => $userId,
-    'session_id' => $sessionId,
-    'permanent' => $isPermanent
-];
-
-// Store session information in database
-$sessionDoc = [
-    'user_id' => $userId,
-    'session_id' => $sessionId,
-    'permanent' => $isPermanent,
-    'created_at' => new MongoDB\BSON\UTCDateTime(),
-    'last_activity' => new MongoDB\BSON\UTCDateTime()
-];
-
-// If permanent session, don't set TTL. If temporary, set TTL for 4 hours
-if (!$isPermanent) {
-    $sessionDoc['expires_at'] = new MongoDB\BSON\UTCDateTime((time() + 4 * 60 * 60) * 1000);
-}
-
-$sessionsNs = $DB_NAME . '.sessions';
-mongo_insert_one($sessionsNs, $sessionDoc);
-
-set_auth_cookie($payload, $isPermanent);
-
-echo json_encode(['success' => true, 'permanent' => $isPermanent]);
-?>
