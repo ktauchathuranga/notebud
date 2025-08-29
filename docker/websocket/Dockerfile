@@ -22,14 +22,14 @@ COPY --from=builder /app/target/release/notebud_websocket /usr/local/bin/notebud
 
 # Set environment variables
 ENV RUST_LOG=info
-ENV WEBSOCKET_BIND_ADDRESS=0.0.0.0:8080
+ENV WEBSOCKET_BIND_ADDRESS=0.0.0.0:10000
 
 # Expose the WebSocket port
-EXPOSE 8080 8081
+EXPOSE 10000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD timeout 5s bash -c 'cat < /dev/null > /dev/tcp/localhost/8080' || exit 1
+  CMD timeout 5s bash -c 'cat < /dev/null > /dev/tcp/localhost/10000' || exit 1
 
 # Run the WebSocket server
 CMD ["notebud_websocket"]

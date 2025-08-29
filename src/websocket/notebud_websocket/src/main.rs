@@ -10,8 +10,8 @@ use std::sync::Arc;
 
 use futures_util::{SinkExt, StreamExt};
 use hyper::service::{make_service_fn, service_fn};
-use hyper::{Body, Method, Request, Response, Server, StatusCode};
-use tokio::net::{TcpListener, TcpStream};
+use hyper::upgrade::Upgraded;
+use hyper::{Body, Method, Request, Response, Server, StatusCode, header};
 use tokio::sync::Mutex;
 use tokio_tungstenite::{accept_async, tungstenite::Message};
 
@@ -28,13 +28,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Load environment variables
     dotenv::dotenv().ok();
 
-    // Get port from Render's PORT environment variable, fallback to 8080
-    let port = env::var("PORT").unwrap_or_else(|_| "8080".to_string());
-    let http_port = port.parse::<u16>().unwrap_or(8080);
-    let ws_port = http_port + 1; // Use next port for WebSocket
-
-    let http_bind_address = format!("0.0.0.0:{}", http_port);
-    let ws_bind_address = format!("0.0.0.0:{}", ws_port);
+    // Get port from Render's PORT environment variable, fallback to 10000 (Render's default)
+    let port = env::var("PORT").unwrap_or_else(|_| "10000".to_string());
+    let bind_port = port.parse::<u16>().unwrap_or(10000);
+    let bind_address = format!("0.0.0.0:{}", bind_port);
 
     let db_name = env::var("DB_NAME").unwrap_or_else(|_| "notebud".to_string());
     let jwt_secret = env::var("JWT_SECRET").expect("JWT_SECRET environment variable is required");
@@ -43,8 +40,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let connection_string = build_mongodb_connection_string(&db_name);
 
     log::info!("Starting notebud server...");
-    log::info!("HTTP server will listen on {}", http_bind_address);
-    log::info!("WebSocket server will listen on {}", ws_bind_address);
+    log::info!("Server will listen on {}", bind_address);
     log::info!("Connecting to MongoDB...");
     log::debug!(
         "MongoDB connection string: {}",
@@ -61,70 +57,76 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Initialize message handler
     let message_handler = Arc::new(Mutex::new(MessageHandler::new(db, jwt_validator)));
 
-    // Start HTTP server for health checks
-    let http_addr: SocketAddr = http_bind_address.parse()?;
-    let make_svc = make_service_fn(move |_conn| async move {
-        Ok::<_, Infallible>(service_fn(handle_http_request))
+    // Create service
+    let handler_for_service = Arc::clone(&message_handler);
+    let make_svc = make_service_fn(move |_conn| {
+        let handler = Arc::clone(&handler_for_service);
+        async move {
+            Ok::<_, Infallible>(service_fn(move |req| {
+                let handler = Arc::clone(&handler);
+                handle_request(req, handler)
+            }))
+        }
     });
 
-    let http_server = Server::bind(&http_addr).serve(make_svc);
-    log::info!("HTTP server listening on {}", http_bind_address);
+    // Start the combined server
+    let addr: SocketAddr = bind_address.parse()?;
+    let server = Server::bind(&addr).serve(make_svc);
 
-    // Start WebSocket server
-    let ws_handler = Arc::clone(&message_handler);
-    let ws_server = async move {
-        let listener = TcpListener::bind(&ws_bind_address).await?;
-        log::info!("WebSocket server listening on {}", ws_bind_address);
+    log::info!(
+        "Combined HTTP/WebSocket server listening on {}",
+        bind_address
+    );
 
-        while let Ok((stream, addr)) = listener.accept().await {
-            let handler = Arc::clone(&ws_handler);
-            tokio::spawn(handle_connection(stream, addr, handler));
-        }
-
-        Ok::<(), Box<dyn std::error::Error + Send + Sync>>(())
-    };
-
-    // Run both servers concurrently
-    tokio::select! {
-        result = http_server => {
-            if let Err(e) = result {
-                log::error!("HTTP server error: {}", e);
-            }
-        }
-        result = ws_server => {
-            if let Err(e) = result {
-                log::error!("WebSocket server error: {}", e);
-            }
-        }
+    if let Err(e) = server.await {
+        log::error!("Server error: {}", e);
     }
 
     Ok(())
 }
 
-async fn handle_http_request(req: Request<Body>) -> Result<Response<Body>, Infallible> {
+async fn handle_request(
+    mut req: Request<Body>,
+    message_handler: Arc<Mutex<MessageHandler>>,
+) -> Result<Response<Body>, Infallible> {
     match (req.method(), req.uri().path()) {
+        // WebSocket upgrade endpoint
+        (&Method::GET, "/ws") | (&Method::GET, "/websocket") => {
+            if hyper_tungstenite::is_upgrade_request(&req) {
+                match hyper_tungstenite::upgrade(&mut req, None) {
+                    Ok((response, websocket)) => {
+                        tokio::spawn(handle_websocket(websocket, message_handler));
+                        Ok(response)
+                    }
+                    Err(e) => {
+                        log::error!("WebSocket upgrade failed: {}", e);
+                        Ok(Response::builder()
+                            .status(StatusCode::BAD_REQUEST)
+                            .body(Body::from("WebSocket upgrade failed"))
+                            .unwrap())
+                    }
+                }
+            } else {
+                Ok(Response::builder()
+                    .status(StatusCode::BAD_REQUEST)
+                    .body(Body::from("This endpoint requires WebSocket upgrade"))
+                    .unwrap())
+            }
+        }
+
         // Health check endpoint
         (&Method::GET, "/health") => {
             log::debug!("Health check requested");
             Ok(Response::builder()
                 .status(StatusCode::OK)
                 .header("Content-Type", "application/json")
-                .body(Body::from(r#"{"status":"ok","service":"notebud-websocket","timestamp":"2025-08-29T15:36:20Z"}"#))
+                .body(Body::from(r#"{"status":"ok","service":"notebud-websocket","timestamp":"2025-08-30T00:00:00Z"}"#))
                 .unwrap())
         }
 
         // Root endpoint with service info
         (&Method::GET, "/") => {
-            let ws_port = env::var("PORT")
-                .unwrap_or_else(|_| "8080".to_string())
-                .parse::<u16>()
-                .unwrap_or(8080)
-                + 1;
-
-            let response_body = format!(
-                r#"{{"status":"ok","service":"notebud-websocket","websocket_port":{},"endpoints":{{"/health":"Health check","/":"Service info"}}}}"#,
-                ws_port
-            );
+            let response_body = r#"{"status":"ok","service":"notebud-websocket","endpoints":{"/health":"Health check","/ws":"WebSocket endpoint","/":"Service info"}}"#;
 
             Ok(Response::builder()
                 .status(StatusCode::OK)
@@ -147,20 +149,19 @@ async fn handle_http_request(req: Request<Body>) -> Result<Response<Body>, Infal
     }
 }
 
-async fn handle_connection(
-    stream: TcpStream,
-    addr: SocketAddr,
+async fn handle_websocket(
+    websocket: hyper_tungstenite::HyperWebsocket,
     message_handler: Arc<Mutex<MessageHandler>>,
 ) {
-    log::info!("New connection from: {}", addr);
-
-    let ws_stream = match accept_async(stream).await {
+    let ws_stream = match websocket.await {
         Ok(ws) => ws,
         Err(e) => {
-            log::error!("WebSocket handshake failed for {}: {}", addr, e);
+            log::error!("WebSocket connection failed: {}", e);
             return;
         }
     };
+
+    log::info!("New WebSocket connection established");
 
     let (mut ws_sender, mut ws_receiver) = ws_stream.split();
     let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel::<Message>();
@@ -171,7 +172,7 @@ async fn handle_connection(
         handler.add_client(tx)
     };
 
-    log::info!("Client {} registered from {}", client_id, addr);
+    log::info!("Client {} registered", client_id);
 
     // Spawn task to forward messages to WebSocket
     let ws_sender_task = tokio::spawn(async move {
