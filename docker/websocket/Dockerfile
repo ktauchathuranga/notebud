@@ -1,30 +1,35 @@
-FROM php:8.2-cli
+FROM rust:1.88 as builder
 
-# Install dependencies and the MongoDB extension
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libssl-dev pkg-config git unzip ca-certificates \
-  && pecl install mongodb \
-  && docker-php-ext-enable mongodb \
-  && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+COPY src/websocket/notebud_websocket/Cargo.toml ./
+# Copy Cargo.lock if it exists
+COPY src/websocket/notebud_websocket/Cargo.lock* ./
+COPY src/websocket/notebud_websocket/src/ src/
 
-# Install sockets extension for WebSocket functionality
-RUN docker-php-ext-install sockets pcntl
+# Build the application
+RUN cargo build --release
 
-# Copy application files
-COPY . /var/www/html/
+# Runtime stage
+FROM debian:bookworm-slim
 
-# Set working directory
-WORKDIR /var/www/html
+# Install required system dependencies
+RUN apt-get update && \
+    apt-get install -y ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
 
-# Set proper permissions
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 /var/www/html
+# Copy the binary from builder stage
+COPY --from=builder /app/target/release/notebud_websocket /usr/local/bin/notebud_websocket
 
-# Expose WebSocket port
+# Set environment variables
+ENV RUST_LOG=info
+ENV WEBSOCKET_BIND_ADDRESS=0.0.0.0:8080
+
+# Expose the WebSocket port
 EXPOSE 8080
 
+# Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD php -r "echo 'Health check OK';" || exit 1
+  CMD timeout 5s bash -c 'cat < /dev/null > /dev/tcp/localhost/8080' || exit 1
 
-# Run the WebSocket server with signal handling
-CMD ["php", "/var/www/html/src/websocket/websocket_server.php"]
+# Run the WebSocket server
+CMD ["notebud_websocket"]
