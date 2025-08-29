@@ -25,7 +25,7 @@ ENV RUST_LOG=info
 ENV WEBSOCKET_BIND_ADDRESS=0.0.0.0:8080
 
 # Expose the WebSocket port
-EXPOSE 8080
+EXPOSE 8080 8081
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
