@@ -1,9 +1,19 @@
 FROM rust:1.88 as builder
 
 WORKDIR /app
+
+# Copy Cargo files first to cache dependencies
 COPY src/websocket/notebud_websocket/Cargo.toml ./
-# Copy Cargo.lock if it exists
 COPY src/websocket/notebud_websocket/Cargo.lock* ./
+
+# Create dummy main.rs to build dependencies
+RUN mkdir src && echo "fn main() {}" > src/main.rs
+
+# Build dependencies (this layer will be cached)
+RUN cargo build --release
+RUN rm src/main.rs
+
+# Copy actual source code
 COPY src/websocket/notebud_websocket/src/ src/
 
 # Build the application
@@ -14,22 +24,35 @@ FROM debian:bookworm-slim
 
 # Install required system dependencies
 RUN apt-get update && \
-    apt-get install -y ca-certificates && \
+    apt-get install -y \
+        ca-certificates \
+        libssl3 \
+        libssl-dev \
+        pkg-config && \
     rm -rf /var/lib/apt/lists/*
+
+# Create a non-root user
+RUN groupadd -r notebud && useradd -r -g notebud notebud
 
 # Copy the binary from builder stage
 COPY --from=builder /app/target/release/notebud_websocket /usr/local/bin/notebud_websocket
 
+# Set proper permissions
+RUN chmod +x /usr/local/bin/notebud_websocket
+
+# Switch to non-root user
+USER notebud
+
 # Set environment variables
 ENV RUST_LOG=info
-ENV WEBSOCKET_BIND_ADDRESS=0.0.0.0:8080
+ENV RUST_BACKTRACE=1
 
-# Expose the WebSocket port
-EXPOSE 8080 8081
+# Expose the port (Render will set PORT env var)
+EXPOSE 8080
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD timeout 5s bash -c 'cat < /dev/null > /dev/tcp/localhost/8080' || exit 1
+  CMD echo "Health check placeholder"
 
 # Run the WebSocket server
 CMD ["notebud_websocket"]

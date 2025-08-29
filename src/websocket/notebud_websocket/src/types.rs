@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc::UnboundedSender;
-use tokio_tungstenite::tungstenite::Message;
+use warp::ws::Message;
 
 #[derive(Debug, Clone)]
 pub struct ClientInfo {
@@ -120,4 +120,3 @@ pub struct User {
     pub online: bool,
     pub last_seen: Option<String>,
 }
-

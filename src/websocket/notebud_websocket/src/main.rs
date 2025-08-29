@@ -3,21 +3,22 @@ mod database;
 mod handlers;
 mod types;
 
-use std::convert::Infallible;
+use std::collections::HashMap;
 use std::env;
-use std::net::SocketAddr;
 use std::sync::Arc;
 
 use futures_util::{SinkExt, StreamExt};
-use hyper::service::{make_service_fn, service_fn};
-use hyper::{Body, Method, Request, Response, Server, StatusCode};
-use tokio::sync::Mutex;
-use tokio_tungstenite::{WebSocketStream, tungstenite::Message};
+use serde_json;
+use tokio::sync::{Mutex, mpsc};
+use warp::Filter;
+use warp::ws::{Message, WebSocket};
 
 use crate::auth::JwtValidator;
 use crate::database::DatabaseManager;
 use crate::handlers::MessageHandler;
 use crate::types::IncomingMessage;
+
+type Clients = Arc<Mutex<HashMap<usize, mpsc::UnboundedSender<Message>>>>;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -28,19 +29,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv().ok();
 
     // Get port from Render's PORT environment variable, fallback to 8080
-    let port = env::var("PORT").unwrap_or_else(|_| "8080".to_string());
-    let http_port = port.parse::<u16>().unwrap_or(8080);
-
-    let bind_address = format!("0.0.0.0:{}", http_port);
+    let port = env::var("PORT")
+        .unwrap_or_else(|_| "8080".to_string())
+        .parse::<u16>()
+        .unwrap_or(8080);
 
     let db_name = env::var("DB_NAME").unwrap_or_else(|_| "notebud".to_string());
     let jwt_secret = env::var("JWT_SECRET").expect("JWT_SECRET environment variable is required");
 
-    // Build MongoDB connection string using the same logic as PHP
+    // Build MongoDB connection string
     let connection_string = build_mongodb_connection_string(&db_name);
 
-    log::info!("Starting notebud server...");
-    log::info!("Server will listen on {}", bind_address);
+    log::info!("Starting notebud WebSocket server...");
+    log::info!("Server will listen on 0.0.0.0:{}", port);
     log::info!("Connecting to MongoDB...");
     log::debug!(
         "MongoDB connection string: {}",
@@ -57,123 +58,59 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Initialize message handler
     let message_handler = Arc::new(Mutex::new(MessageHandler::new(db, jwt_validator)));
 
-    // Start HTTP server that also handles WebSocket upgrades
-    let addr: SocketAddr = bind_address.parse()?;
-    let handler = Arc::clone(&message_handler);
+    // CORS headers for WebSocket
+    let cors = warp::cors()
+        .allow_any_origin()
+        .allow_headers(vec!["content-type", "authorization", "x-requested-with"])
+        .allow_methods(vec!["GET", "POST", "OPTIONS"]);
 
-    let make_svc = make_service_fn(move |_conn| {
-        let handler = Arc::clone(&handler);
-        async move {
-            Ok::<_, Infallible>(service_fn(move |req| {
-                let handler = Arc::clone(&handler);
-                handle_request(req, handler)
-            }))
-        }
+    // Health check endpoint
+    let health = warp::path("health").and(warp::get()).map(|| {
+        warp::reply::json(&serde_json::json!({
+            "status": "ok",
+            "service": "notebud-websocket"
+        }))
     });
 
-    let server = Server::bind(&addr).serve(make_svc);
-    log::info!(
-        "Combined HTTP/WebSocket server listening on {}",
-        bind_address
-    );
+    // Root endpoint
+    let root = warp::path::end().and(warp::get()).map(move || {
+        let port_str = port.to_string();
+        warp::reply::json(&serde_json::json!({
+            "status": "ok",
+            "service": "notebud-websocket",
+            "port": port_str,
+            "websocket": "Available on same URL with WebSocket protocol"
+        }))
+    });
 
-    if let Err(e) = server.await {
-        log::error!("Server error: {}", e);
-    }
+    // WebSocket route
+    let message_handler_filter = warp::any().map(move || Arc::clone(&message_handler));
+
+    let websocket = warp::path::end()
+        .and(warp::ws())
+        .and(message_handler_filter)
+        .map(|ws: warp::ws::Ws, message_handler| {
+            ws.on_upgrade(move |socket| handle_websocket(socket, message_handler))
+        });
+
+    let routes = health
+        .or(root)
+        .or(websocket)
+        .with(cors)
+        .with(warp::log("notebud_websocket"));
+
+    log::info!("WebSocket server listening on 0.0.0.0:{}", port);
+
+    warp::serve(routes).run(([0, 0, 0, 0], port)).await;
 
     Ok(())
 }
 
-async fn handle_request(
-    mut req: Request<Body>,
-    message_handler: Arc<Mutex<MessageHandler>>,
-) -> Result<Response<Body>, Infallible> {
-    // Check if this is a WebSocket upgrade request
-    if is_websocket_upgrade(&req) {
-        log::info!("WebSocket upgrade request received");
+async fn handle_websocket(ws: WebSocket, message_handler: Arc<Mutex<MessageHandler>>) {
+    log::info!("New WebSocket connection established");
 
-        match hyper::upgrade::on(&mut req).await {
-            Ok(upgraded) => {
-                // Spawn WebSocket handler
-                tokio::spawn(async move {
-                    // Convert upgraded connection to WebSocket
-                    let ws_stream = WebSocketStream::from_raw_socket(
-                        upgraded,
-                        tokio_tungstenite::tungstenite::protocol::Role::Server,
-                        None,
-                    )
-                    .await;
-
-                    handle_websocket_stream(ws_stream, message_handler).await;
-                });
-
-                // Return WebSocket upgrade response
-                let response = Response::builder()
-                    .status(StatusCode::SWITCHING_PROTOCOLS)
-                    .header("upgrade", "websocket")
-                    .header("connection", "Upgrade")
-                    .header("sec-websocket-accept", compute_websocket_accept(&req))
-                    .body(Body::empty())
-                    .unwrap();
-
-                Ok(response)
-            }
-            Err(e) => {
-                log::error!("Failed to upgrade connection: {}", e);
-                Ok(Response::builder()
-                    .status(StatusCode::BAD_REQUEST)
-                    .body(Body::from("Failed to upgrade to WebSocket"))
-                    .unwrap())
-            }
-        }
-    } else {
-        // Handle regular HTTP requests
-        handle_http_request(req).await
-    }
-}
-
-fn is_websocket_upgrade(req: &Request<Body>) -> bool {
-    req.headers()
-        .get("upgrade")
-        .and_then(|h| h.to_str().ok())
-        .map(|h| h.to_lowercase() == "websocket")
-        .unwrap_or(false)
-        && req
-            .headers()
-            .get("connection")
-            .and_then(|h| h.to_str().ok())
-            .map(|h| h.to_lowercase().contains("upgrade"))
-            .unwrap_or(false)
-        && req.headers().get("sec-websocket-key").is_some()
-        && req.method() == Method::GET
-}
-
-fn compute_websocket_accept(req: &Request<Body>) -> String {
-    use sha1::{Digest, Sha1};
-
-    const WEBSOCKET_MAGIC: &str = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
-
-    if let Some(key) = req.headers().get("sec-websocket-key") {
-        if let Ok(key_str) = key.to_str() {
-            let mut hasher = Sha1::new();
-            hasher.update(key_str.as_bytes());
-            hasher.update(WEBSOCKET_MAGIC.as_bytes());
-            let hash = hasher.finalize();
-            return base64::encode(hash);
-        }
-    }
-
-    String::new()
-}
-
-async fn handle_websocket_stream(
-    ws_stream: WebSocketStream<hyper::upgrade::Upgraded>,
-    message_handler: Arc<Mutex<MessageHandler>>,
-) {
-    log::info!("WebSocket connection established");
-
-    let (mut ws_sender, mut ws_receiver) = ws_stream.split();
-    let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel::<Message>();
+    let (mut ws_tx, mut ws_rx) = ws.split();
+    let (tx, mut rx) = mpsc::unbounded_channel();
 
     // Register client
     let client_id = {
@@ -186,37 +123,39 @@ async fn handle_websocket_stream(
     // Spawn task to forward messages to WebSocket
     let ws_sender_task = tokio::spawn(async move {
         while let Some(message) = rx.recv().await {
-            if ws_sender.send(message).await.is_err() {
+            if ws_tx.send(message).await.is_err() {
+                log::debug!("WebSocket send failed, client likely disconnected");
                 break;
             }
         }
     });
 
     // Handle incoming messages
-    while let Some(msg) = ws_receiver.next().await {
-        match msg {
-            Ok(Message::Text(text)) => {
-                log::debug!("Received message from {}: {}", client_id, text);
+    while let Some(result) = ws_rx.next().await {
+        match result {
+            Ok(msg) => {
+                if msg.is_text() {
+                    if let Ok(text) = msg.to_str() {
+                        log::debug!("Received message from {}: {}", client_id, text);
 
-                // Parse incoming message
-                match serde_json::from_str::<IncomingMessage>(&text) {
-                    Ok(parsed_msg) => {
-                        let mut handler = message_handler.lock().await;
-                        if let Err(e) = handler.handle_message(client_id, parsed_msg).await {
-                            log::error!("Error handling message from {}: {}", client_id, e);
+                        // Parse incoming message
+                        match serde_json::from_str::<IncomingMessage>(text) {
+                            Ok(parsed_msg) => {
+                                let mut handler = message_handler.lock().await;
+                                if let Err(e) = handler.handle_message(client_id, parsed_msg).await
+                                {
+                                    log::error!("Error handling message from {}: {}", client_id, e);
+                                }
+                            }
+                            Err(e) => {
+                                log::warn!("Failed to parse message from {}: {}", client_id, e);
+                            }
                         }
                     }
-                    Err(e) => {
-                        log::warn!("Failed to parse message from {}: {}", client_id, e);
-                    }
+                } else if msg.is_close() {
+                    log::info!("WebSocket client {} disconnected", client_id);
+                    break;
                 }
-            }
-            Ok(Message::Close(_)) => {
-                log::info!("WebSocket client {} disconnected", client_id);
-                break;
-            }
-            Ok(_) => {
-                // Handle other message types if needed
             }
             Err(e) => {
                 log::error!("WebSocket error for client {}: {}", client_id, e);
@@ -230,45 +169,6 @@ async fn handle_websocket_stream(
     let mut handler = message_handler.lock().await;
     handler.remove_client(client_id).await;
     log::info!("WebSocket client {} cleaned up", client_id);
-}
-
-async fn handle_http_request(req: Request<Body>) -> Result<Response<Body>, Infallible> {
-    match (req.method(), req.uri().path()) {
-        // Health check endpoint
-        (&Method::GET, "/health") => {
-            log::debug!("Health check requested");
-            Ok(Response::builder()
-                .status(StatusCode::OK)
-                .header("Content-Type", "application/json")
-                .body(Body::from(
-                    r#"{"status":"ok","service":"notebud-websocket"}"#,
-                ))
-                .unwrap())
-        }
-
-        // Root endpoint with service info
-        (&Method::GET, "/") => {
-            let port = env::var("PORT").unwrap_or_else(|_| "8080".to_string());
-
-            let response_body = format!(
-                r#"{{"status":"ok","service":"notebud-websocket","port":"{}","websocket":"Available on same URL with WebSocket protocol"}}"#,
-                port
-            );
-
-            Ok(Response::builder()
-                .status(StatusCode::OK)
-                .header("Content-Type", "application/json")
-                .body(Body::from(response_body))
-                .unwrap())
-        }
-
-        // 404 for all other paths
-        _ => Ok(Response::builder()
-            .status(StatusCode::NOT_FOUND)
-            .header("Content-Type", "application/json")
-            .body(Body::from(r#"{"error":"Not Found"}"#))
-            .unwrap()),
-    }
 }
 
 /// Build MongoDB connection string using the same priority logic as PHP db.php

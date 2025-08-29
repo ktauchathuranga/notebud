@@ -2,7 +2,7 @@ use anyhow::Result;
 use serde_json;
 use std::collections::HashMap;
 use tokio::sync::mpsc::UnboundedSender;
-use tokio_tungstenite::tungstenite::Message;
+use warp::ws::Message;
 
 use crate::auth::JwtValidator;
 use crate::database::DatabaseManager;
@@ -173,7 +173,7 @@ impl MessageHandler {
     ) -> Result<()> {
         if let Some(client) = self.clients.get(&client_id) {
             let json = serde_json::to_string(&message)?;
-            let ws_message = Message::Text(json);
+            let ws_message = Message::text(json);
 
             if client.sender.send(ws_message).is_err() {
                 log::error!("Failed to send message to client {}", client_id);
@@ -440,4 +440,3 @@ impl MessageHandler {
             .ok_or_else(|| anyhow::anyhow!("Client not authenticated"))
     }
 }
-
