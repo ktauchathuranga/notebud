@@ -18,3 +18,5 @@ log = "0.4"
 dotenv = "0.15"
 urlencoding = "2.1"
 hyper = { version = "0.14", features = ["full"] }
+sha1 = "0.10"
+base64 = "0.21"
