@@ -33,8 +33,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let jwt_secret = env::var("JWT_SECRET").expect("JWT_SECRET environment variable is required");
 
-    // Build MongoDB connection string
-    let connection_string = build_connection_string_from_parts(&db_name);
+    // Build MongoDB connection string using the same logic as PHP
+    let connection_string = build_mongodb_connection_string(&db_name);
 
     log::info!("Starting notebud WebSocket server on {}", bind_address);
     log::info!("Connecting to MongoDB...");
@@ -65,36 +65,47 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-fn build_connection_string_from_parts(db_name: &str) -> String {
+/// Build MongoDB connection string using the same priority logic as PHP db.php
+fn build_mongodb_connection_string(db_name: &str) -> String {
+    // First priority: Check for MONGODB_URI (for Atlas/cloud)
+    if let Ok(mongodb_uri) = env::var("MONGODB_URI") {
+        if !mongodb_uri.trim().is_empty() {
+            log::info!("Using MONGODB_URI for cloud/Atlas connection");
+            return mongodb_uri;
+        }
+    }
+
+    // Second priority: Build from individual components (for local Docker)
+    log::info!("Building connection string from individual components");
+
     let db_host = env::var("DB_HOST").unwrap_or_else(|_| "mongo".to_string());
     let db_port = env::var("DB_PORT").unwrap_or_else(|_| "27017".to_string());
-
-    // Try DB_USER/DB_PASS first
     let db_user = env::var("DB_USER").unwrap_or_default();
     let db_pass = env::var("DB_PASS").unwrap_or_default();
 
+    let mut uri = "mongodb://".to_string();
+
+    // Add authentication if provided
     if !db_user.trim().is_empty() && !db_pass.trim().is_empty() {
-        return format!(
-            "mongodb://{}:{}@{}:{}/{}?authSource=admin",
-            db_user, db_pass, db_host, db_port, db_name
-        );
+        uri.push_str(&format!(
+            "{}:{}@",
+            urlencoding::encode(&db_user),
+            urlencoding::encode(&db_pass)
+        ));
     }
 
-    // Fallback to root credentials
-    let root_user = env::var("MONGO_INITDB_ROOT_USERNAME").unwrap_or_default();
-    let root_pass = env::var("MONGO_INITDB_ROOT_PASSWORD").unwrap_or_default();
+    // Add host, port, and database
+    uri.push_str(&format!("{}:{}/{}", db_host, db_port, db_name));
 
-    if !root_user.trim().is_empty() && !root_pass.trim().is_empty() {
-        format!(
-            "mongodb://{}:{}@{}:{}/{}?authSource=admin",
-            root_user, root_pass, db_host, db_port, db_name
-        )
-    } else {
-        // No authentication
-        format!("mongodb://{}:{}/{}", db_host, db_port, db_name)
+    // Add auth source if we have credentials
+    if !db_user.trim().is_empty() && !db_pass.trim().is_empty() {
+        uri.push_str("?authSource=admin");
     }
+
+    uri
 }
 
+/// Remove sensitive information from connection string for logging
 fn mask_password(connection_string: &str) -> String {
     if let Some(at_pos) = connection_string.find('@') {
         if let Some(colon_pos) = connection_string[..at_pos].rfind(':') {
@@ -185,4 +196,3 @@ async fn handle_connection(
     handler.remove_client(client_id).await;
     log::info!("Client {} cleaned up", client_id);
 }
-
