@@ -24,11 +24,11 @@ function getWebSocketUrl() {
         window.location.hostname === "localhost" ||
         window.location.hostname === "127.0.0.1"
     ) {
-        return "ws://localhost:8092";
+        return "ws://localhost:8092/ws";
     }
 
     // Production (Render): use your Render websocket URL
-    return "wss://notebud-websocket.onrender.com";
+    return "wss://notebud-websocket.onrender.com/ws";
 }
 
 // Initialize chat

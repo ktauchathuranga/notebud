@@ -27,8 +27,7 @@ services:
       context: .
       dockerfile: docker/websocket/Dockerfile
     ports:
-      - "8091:8080"   # HTTP server
-      - "8092:8081"   # WebSocket server
+      - "8092:10000"
     environment:
       - DB_HOST=${DB_HOST}
       - DB_PORT=${DB_PORT}
