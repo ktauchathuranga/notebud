@@ -75,37 +75,14 @@
       <h1>notebud</h1>
       <p class="subtitle">Wanna take a quick note?</p>
       <form id="loginForm">
-        <input 
-          name="username" 
-          placeholder="Username" 
-          required 
-          autocomplete="username"
-          spellcheck="false"
-        />
-        <input 
-          name="password" 
-          type="password" 
-          placeholder="Password" 
-          required 
-          autocomplete="current-password"
-        />
+        <input name="username" placeholder="Username" required autocomplete="username" spellcheck="false" />
+        <input name="password" type="password" placeholder="Password" required autocomplete="current-password" />
         <div class="remember-option">
           <input type="checkbox" id="permanentLogin" name="permanent" />
           <label for="permanentLogin">Keep me signed in permanently</label>
         </div>
-        <div id="sessionInfo" class="session-info" style="display: none;">
-          <div class="temporary">
-            <strong>Temporary session:</strong> Your session will expire after 4 hours for security.
-          </div>
-          <div class="permanent" style="display: none;">
-            <strong>Permanent session:</strong> You'll stay signed in until you manually logout. You can also logout all temporary sessions from the main app.
-          </div>
-        </div>
-        <!-- reCAPTCHA widget -->
         <div class="g-recaptcha" data-sitekey="6Ldy9LcrAAAAAAyVewti3cS2K_T6oz8ZY8dk4RHF"></div>
-        <button type="submit" id="loginBtn">
-          <span>Login</span>
-        </button>
+        <button type="submit" id="loginBtn"><span>Login</span></button>
       </form>
       <div class="auth-links">
         <p>Don't have an account? <a href="/register">Create one</a></p>
@@ -115,31 +92,12 @@
     </div>
   </main>
   <script>
-    document.getElementById('permanentLogin').addEventListener('change', function() {
-      const sessionInfo = document.getElementById('sessionInfo');
-      const tempInfo = sessionInfo.querySelector('.temporary');
-      const permInfo = sessionInfo.querySelector('.permanent');
-      if (this.checked) {
-        sessionInfo.style.display = 'block';
-        sessionInfo.classList.add('permanent');
-        tempInfo.style.display = 'none';
-        permInfo.style.display = 'block';
-      } else {
-        sessionInfo.style.display = 'block';
-        sessionInfo.classList.remove('permanent');
-        tempInfo.style.display = 'block';
-        permInfo.style.display = 'none';
-      }
-    });
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const form = e.target;
       const loginBtn = document.getElementById('loginBtn');
       const msg = document.getElementById('msg');
-      msg.className = 'msg';
-      msg.textContent = '';
-      msg.style.display = 'none';
-      // Check reCAPTCHA
+      msg.className = 'msg'; msg.textContent = ''; msg.style.display = 'none';
       const captchaResponse = grecaptcha.getResponse();
       if (!captchaResponse) {
         msg.className = 'msg error show';
@@ -158,17 +116,16 @@
           body: new URLSearchParams(formData)
         });
         const data = await response.json();
+        grecaptcha.reset();
         if (response.ok && data.success) {
           msg.className = 'msg success show';
           msg.textContent = 'Login successful! Redirecting...';
           msg.style.display = 'block';
-          grecaptcha.reset();
           setTimeout(() => { window.location.href = '/'; }, 900);
         } else {
           msg.className = 'msg error show';
           msg.textContent = data.error || 'Login failed';
           msg.style.display = 'block';
-          grecaptcha.reset();
           loginBtn.disabled = false;
           loginBtn.innerHTML = '<span>Login</span>';
         }
@@ -181,10 +138,8 @@
         loginBtn.innerHTML = '<span>Login</span>';
       }
     });
-    // Optional: autofocus
     document.querySelector('input[name="username"]').focus();
   </script>
   <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-  <script src="js/notes.js"></script>
 </body>
 </html>
