@@ -1,8 +1,47 @@
 <?php
 // src/api/login.php
+
+// Load .env file (same logic as db.php)
+$envPath = __DIR__ . '/../../.env';
+if (file_exists($envPath)) {
+    $lines = file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        $line = trim($line);
+        if ($line === '' || $line[0] === '#') continue;
+        if (strpos($line, '=') === false) continue;
+        [$k, $v] = explode('=', $line, 2);
+        $k = trim($k);
+        $v = trim($v);
+        if ($k !== '' && getenv($k) === false) putenv("$k=$v");
+    }
+}
+
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/auth.php';
 header('Content-Type: application/json');
+
+// reCAPTCHA verification
+$recaptchaSecret = getenv('RECAPTCHA_SECRET_KEY') ?: '';
+$recaptchaResponse = $_POST['g-recaptcha-response'] ?? '';
+if (!$recaptchaSecret) {
+    http_response_code(500);
+    echo json_encode(['error' => 'Server CAPTCHA configuration error']);
+    exit;
+}
+if (!$recaptchaResponse) {
+    http_response_code(400);
+    echo json_encode(['error' => 'Captcha is required']);
+    exit;
+}
+$verify = file_get_contents(
+    "https://www.google.com/recaptcha/api/siteverify?secret={$recaptchaSecret}&response={$recaptchaResponse}"
+);
+$captchaSuccess = json_decode($verify);
+if (!$captchaSuccess->success) {
+    http_response_code(400);
+    echo json_encode(['error' => 'Captcha verification failed']);
+    exit;
+}
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
