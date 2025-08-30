@@ -20,6 +20,46 @@ $sessionId = $payload['session_id'] ?? null;
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="A simple note-taking and chat app designed for university labs with flexible session management. Quick login without 2FA hassles, auto-cleanup, and real-time messaging.">
+    <meta name="keywords" content="notebud, note-taking, university labs, student notes, real-time chat, temporary sessions, academic collaboration, lab notes, student messaging">
+    <meta name="author" content="Ashen Chathuranga">
+
+    <!-- Facebook/Open Graph Meta Tags -->
+    <meta property="og:url" content="https://notebud.cc/">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="notebud - Simple Note-Taking & Chat for University Labs">
+    <meta property="og:description" content="Perfect for uni labs where you can't access OneDrive/Google Drive due to 2FA hassles. Choose between temporary or permanent sessions, auto-save notes, and chat with classmates in real-time.">
+    <meta property="og:image" content="https://notebud.cc/images/notebud-preview.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="notebud - University Lab Note-Taking App">
+    <meta property="og:site_name" content="notebud">
+
+    <!-- Twitter Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="twitter:domain" content="notebud.cc">
+    <meta property="twitter:url" content="https://notebud.cc/">
+    <meta name="twitter:title" content="notebud - Simple Note-Taking & Chat for University Labs">
+    <meta name="twitter:description" content="Perfect for uni labs where you can't access OneDrive/Google Drive due to 2FA hassles. Choose between temporary or permanent sessions, auto-save notes, and chat with classmates in real-time.">
+    <meta name="twitter:image" content="https://notebud.cc/images/notebud-preview.jpg">
+
+    <!-- Additional SEO and App-specific Meta Tags -->
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="English">
+    <meta name="revisit-after" content="7 days">
+    <meta name="application-name" content="notebud">
+    <meta name="theme-color" content="#1a1a1a">
+
+    <!-- Academic and Educational Context -->
+    <meta name="category" content="Education, Productivity, University Tools">
+    <meta name="coverage" content="Worldwide">
+    <meta name="distribution" content="Global">
+    <meta name="rating" content="General">
+    <meta name="target" content="University Students, Academic Researchers, Lab Users">
+
+    <!-- Privacy and Security Disclaimers (for search engines) -->
+    <meta name="disclaimer" content="Designed for temporary academic use only. Auto-deletes data after 30 days. Use responsibly.">
+
     <link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
