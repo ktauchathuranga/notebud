@@ -87,34 +87,17 @@
       <h1>Join notebud</h1>
       <p class="subtitle">Create your account for temporary note storage</p>
       <form id="registerForm">
-        <input 
-          name="username" 
-          placeholder="Choose a username" 
-          required 
-          autocomplete="username"
-          spellcheck="false"
-          minlength="3"
-        />
-        <input 
-          name="password" 
-          type="password" 
-          placeholder="Create a password" 
-          required 
-          autocomplete="new-password"
-          minlength="6"
-        />
-        <!-- reCAPTCHA widget -->
+        <input name="username" placeholder="Choose a username" required autocomplete="username" spellcheck="false" minlength="3" />
+        <input name="password" type="password" placeholder="Create a password" required autocomplete="new-password" minlength="6" />
         <div class="g-recaptcha" data-sitekey="6Ldy9LcrAAAAAAyVewti3cS2K_T6oz8ZY8dk4RHF"></div>
-        <button type="submit" id="registerBtn">
-          <span><i class="ph-user-plus"></i> Create Account</span>
-        </button>
+        <button type="submit" id="registerBtn"><span>Create Account</span></button>
       </form>
       <div id="tokenDisplay" class="token-display" style="display: none;">
         <h3>Your Password Reset Token</h3>
         <p>Save this token securely! You can use it with your username to reset your password if you forget it.</p>
         <div class="token-value" id="tokenValue"></div>
         <button type="button" class="copy-btn" onclick="copyToken()">Copy Token</button>
-        <div class="token-warning">
+        <div class="token-warning" style="font-size:0.85rem; color:#64748b; margin-top:1rem;">
           <strong>Important:</strong> This token is only shown once. Save it in a secure place like a password manager. You can use it along with your username to reset your password at any time.
         </div>
         <a href="/login" class="continue-btn">Continue to Login</a>
@@ -130,11 +113,8 @@
         const copyBtn = document.querySelector('.copy-btn');
         const originalText = copyBtn.textContent;
         copyBtn.textContent = 'Copied!';
-        setTimeout(() => {
-          copyBtn.textContent = originalText;
-        }, 2000);
+        setTimeout(() => { copyBtn.textContent = originalText; }, 2000);
       }).catch(() => {
-        // Fallback for older browsers
         const textArea = document.createElement('textarea');
         textArea.value = tokenValue;
         document.body.appendChild(textArea);
@@ -143,9 +123,7 @@
         document.body.removeChild(textArea);
         const copyBtn = document.querySelector('.copy-btn');
         copyBtn.textContent = 'Copied!';
-        setTimeout(() => {
-          copyBtn.textContent = 'Copy Token';
-        }, 2000);
+        setTimeout(() => { copyBtn.textContent = 'Copy Token'; }, 2000);
       });
     }
     document.getElementById('registerForm').addEventListener('submit', async (e) => {
@@ -155,10 +133,7 @@
       const msg = document.getElementById('msg');
       const tokenDisplay = document.getElementById('tokenDisplay');
       const loginLink = document.getElementById('loginLink');
-      msg.className = 'msg';
-      msg.textContent = '';
-      msg.style.display = 'none';
-      // Check reCAPTCHA
+      msg.className = 'msg'; msg.textContent = ''; msg.style.display = 'none';
       const captchaResponse = grecaptcha.getResponse();
       if (!captchaResponse) {
         msg.className = 'msg error show';
@@ -178,6 +153,7 @@
           body: new URLSearchParams(formData)
         });
         const data = await response.json();
+        grecaptcha.reset();
         if (response.ok && data.success) {
           msg.className = 'msg success show';
           msg.textContent = 'Account created successfully!';
@@ -187,25 +163,23 @@
           form.style.display = 'none';
           loginLink.style.display = 'none';
           registerBtn.innerHTML = '<span>Account Created ✓</span>';
-          grecaptcha.reset();
         } else {
           msg.className = 'msg error show';
           msg.textContent = data.error || 'Registration failed';
           msg.style.display = 'block';
           registerBtn.disabled = false;
-          registerBtn.innerHTML = '<span><i class="ph-user-plus"></i> Create Account</span>';
+          registerBtn.innerHTML = '<span>Create Account</span>';
           form.classList.remove('loading');
-          grecaptcha.reset();
         }
       } catch (error) {
         msg.className = 'msg error show';
         msg.textContent = 'Network error. Please try again.';
         msg.style.display = 'block';
         registerBtn.disabled = false;
-        registerBtn.innerHTML = '<span><i class="ph-user-plus"></i> Create Account</span>';
+        registerBtn.innerHTML = '<span>Create Account</span>';
         form.classList.remove('loading');
-        grecaptcha.reset();
       }
+      grecaptcha.reset();
     });
     document.querySelector('input[name="username"]').focus();
   </script>
