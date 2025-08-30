@@ -121,6 +121,7 @@
           msg.className = 'msg success show';
           msg.textContent = 'Login successful! Redirecting...';
           msg.style.display = 'block';
+          form.style.display = 'none'; // Hides credentials and captcha fields
           setTimeout(() => { window.location.href = '/'; }, 900);
         } else {
           msg.className = 'msg error show';
