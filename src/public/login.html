@@ -17,20 +17,17 @@
       gap: 0.5rem;
       margin: 1rem 0;
     }
-    
     .remember-option input[type="checkbox"] {
       width: auto;
       margin: 0;
       transform: scale(1.1);
     }
-    
     .remember-option label {
       color: var(--text);
       font-size: 0.9rem;
       cursor: pointer;
       user-select: none;
     }
-    
     .session-info {
       background: rgba(99, 102, 241, 0.1);
       border: 1px solid rgba(99, 102, 241, 0.3);
@@ -41,32 +38,35 @@
       color: var(--text-secondary);
       line-height: 1.4;
     }
-    
     .session-info.permanent {
       background: rgba(16, 185, 129, 0.1);
       border-color: rgba(16, 185, 129, 0.3);
     }
-    
     .auth-links {
       text-align: center;
       margin: 1rem 0;
     }
-    
     .auth-links p {
       margin: 0.5rem 0;
     }
-    
     .reset-link {
       color: var(--text-secondary);
       font-size: 0.9rem;
       text-decoration: none;
       transition: color 0.3s ease;
     }
-    
     .reset-link:hover {
       color: var(--accent);
       text-decoration: underline;
     }
+    .msg {
+      margin-top: 1rem;
+      font-size: 0.95rem;
+      display: none;
+    }
+    .msg.show { display: block; }
+    .msg.error { color: #dc2626; }
+    .msg.success { color: #16a34a; }
   </style>
 </head>
 <body>
@@ -74,7 +74,6 @@
     <div class="auth-card">
       <h1>notebud</h1>
       <p class="subtitle">Wanna take a quick note?</p>
-      
       <form id="loginForm">
         <input 
           name="username" 
@@ -90,12 +89,10 @@
           required 
           autocomplete="current-password"
         />
-        
         <div class="remember-option">
           <input type="checkbox" id="permanentLogin" name="permanent" />
           <label for="permanentLogin">Keep me signed in permanently</label>
         </div>
-        
         <div id="sessionInfo" class="session-info" style="display: none;">
           <div class="temporary">
             <strong>Temporary session:</strong> Your session will expire after 4 hours for security.
@@ -104,12 +101,12 @@
             <strong>Permanent session:</strong> You'll stay signed in until you manually logout. You can also logout all temporary sessions from the main app.
           </div>
         </div>
-        
+        <!-- reCAPTCHA widget -->
+        <div class="g-recaptcha" data-sitekey="6Ldy9LcrAAAAAAyVewti3cS2K_T6oz8ZY8dk4RHF"></div>
         <button type="submit" id="loginBtn">
           <span>Login</span>
         </button>
       </form>
-      
       <div class="auth-links">
         <p>Don't have an account? <a href="/register">Create one</a></p>
         <p><a href="/reset-password" class="reset-link">Forgot your password?</a></p>
@@ -117,14 +114,11 @@
       <div id="msg" class="msg"></div>
     </div>
   </main>
-
   <script>
-    // Show session info based on checkbox state
     document.getElementById('permanentLogin').addEventListener('change', function() {
       const sessionInfo = document.getElementById('sessionInfo');
       const tempInfo = sessionInfo.querySelector('.temporary');
       const permInfo = sessionInfo.querySelector('.permanent');
-      
       if (this.checked) {
         sessionInfo.style.display = 'block';
         sessionInfo.classList.add('permanent');
@@ -137,7 +131,60 @@
         permInfo.style.display = 'none';
       }
     });
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const loginBtn = document.getElementById('loginBtn');
+      const msg = document.getElementById('msg');
+      msg.className = 'msg';
+      msg.textContent = '';
+      msg.style.display = 'none';
+      // Check reCAPTCHA
+      const captchaResponse = grecaptcha.getResponse();
+      if (!captchaResponse) {
+        msg.className = 'msg error show';
+        msg.textContent = 'Please complete the CAPTCHA!';
+        msg.style.display = 'block';
+        loginBtn.disabled = false;
+        return;
+      }
+      loginBtn.disabled = true;
+      loginBtn.innerHTML = '<span>Logging in...</span>';
+      try {
+        const formData = new FormData(form);
+        formData.append('g-recaptcha-response', captchaResponse);
+        const response = await fetch('/api/login', {
+          method: 'POST',
+          body: new URLSearchParams(formData)
+        });
+        const data = await response.json();
+        if (response.ok && data.success) {
+          msg.className = 'msg success show';
+          msg.textContent = 'Login successful! Redirecting...';
+          msg.style.display = 'block';
+          grecaptcha.reset();
+          setTimeout(() => { window.location.href = '/'; }, 900);
+        } else {
+          msg.className = 'msg error show';
+          msg.textContent = data.error || 'Login failed';
+          msg.style.display = 'block';
+          grecaptcha.reset();
+          loginBtn.disabled = false;
+          loginBtn.innerHTML = '<span>Login</span>';
+        }
+      } catch (error) {
+        msg.className = 'msg error show';
+        msg.textContent = 'Network error. Please try again.';
+        msg.style.display = 'block';
+        grecaptcha.reset();
+        loginBtn.disabled = false;
+        loginBtn.innerHTML = '<span>Login</span>';
+      }
+    });
+    // Optional: autofocus
+    document.querySelector('input[name="username"]').focus();
   </script>
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
   <script src="js/notes.js"></script>
 </body>
 </html>

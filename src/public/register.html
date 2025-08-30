@@ -4,9 +4,9 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png">
-<link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
-<link rel="manifest" href="favicon/site.webmanifest">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
+  <link rel="manifest" href="favicon/site.webmanifest">
   <link href="https://fonts.googleapis.com/css2?family=Della+Respira&display=swap" rel="stylesheet">
   <title>Register - notebud</title>
   <link rel="stylesheet" href="css/style.css" />
@@ -19,7 +19,6 @@
       margin: 1.5rem 0;
       text-align: center;
     }
-    
     .token-value {
       font-family: 'Courier New', monospace;
       font-size: 0.85rem;
@@ -32,14 +31,12 @@
       word-break: break-all;
       line-height: 1.4;
     }
-    
     .token-warning {
       font-size: 0.85rem;
       color: var(--text-secondary);
       margin-top: 1rem;
       line-height: 1.4;
     }
-    
     .copy-btn {
       background: var(--success);
       color: white;
@@ -51,15 +48,12 @@
       margin-top: 0.8rem;
       transition: background-color 0.3s ease;
     }
-    
     .copy-btn:hover {
       opacity: 0.9;
     }
-    
     .copy-btn:active {
       transform: scale(0.98);
     }
-    
     .continue-btn {
       background: var(--accent);
       color: white;
@@ -73,11 +67,18 @@
       text-decoration: none;
       display: inline-block;
     }
-    
     .continue-btn:hover {
       background: var(--accent-hover);
       transform: translateY(-1px);
     }
+    .msg {
+      margin-top: 1rem;
+      font-size: 0.95rem;
+      display: none;
+    }
+    .msg.show { display: block; }
+    .msg.error { color: #dc2626; }
+    .msg.success { color: #16a34a; }
   </style>
 </head>
 <body>
@@ -85,7 +86,6 @@
     <div class="auth-card">
       <h1>Join notebud</h1>
       <p class="subtitle">Create your account for temporary note storage</p>
-      
       <form id="registerForm">
         <input 
           name="username" 
@@ -103,11 +103,12 @@
           autocomplete="new-password"
           minlength="6"
         />
+        <!-- reCAPTCHA widget -->
+        <div class="g-recaptcha" data-sitekey="6Ldy9LcrAAAAAAyVewti3cS2K_T6oz8ZY8dk4RHF"></div>
         <button type="submit" id="registerBtn">
           <span><i class="ph-user-plus"></i> Create Account</span>
         </button>
       </form>
-      
       <div id="tokenDisplay" class="token-display" style="display: none;">
         <h3>Your Password Reset Token</h3>
         <p>Save this token securely! You can use it with your username to reset your password if you forget it.</p>
@@ -118,12 +119,10 @@
         </div>
         <a href="/login" class="continue-btn">Continue to Login</a>
       </div>
-      
       <p id="loginLink">Already have an account? <a href="/login">Sign in</a></p>
       <div id="msg" class="msg"></div>
     </div>
   </main>
-
   <script>
     function copyToken() {
       const tokenValue = document.getElementById('tokenValue').textContent;
@@ -142,7 +141,6 @@
         textArea.select();
         document.execCommand('copy');
         document.body.removeChild(textArea);
-        
         const copyBtn = document.querySelector('.copy-btn');
         copyBtn.textContent = 'Copied!';
         setTimeout(() => {
@@ -150,65 +148,67 @@
         }, 2000);
       });
     }
-
     document.getElementById('registerForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      
       const form = e.target;
       const registerBtn = document.getElementById('registerBtn');
       const msg = document.getElementById('msg');
       const tokenDisplay = document.getElementById('tokenDisplay');
       const loginLink = document.getElementById('loginLink');
-      
-      // Show loading state
+      msg.className = 'msg';
+      msg.textContent = '';
+      msg.style.display = 'none';
+      // Check reCAPTCHA
+      const captchaResponse = grecaptcha.getResponse();
+      if (!captchaResponse) {
+        msg.className = 'msg error show';
+        msg.textContent = 'Please complete the CAPTCHA!';
+        msg.style.display = 'block';
+        registerBtn.disabled = false;
+        return;
+      }
       registerBtn.disabled = true;
       registerBtn.innerHTML = '<span>Creating account...</span>';
       form.classList.add('loading');
-      msg.className = 'msg';
-      msg.textContent = '';
-      
       try {
+        const formData = new FormData(form);
+        formData.append('g-recaptcha-response', captchaResponse);
         const response = await fetch('/api/register', {
           method: 'POST',
-          body: new URLSearchParams(new FormData(form))
+          body: new URLSearchParams(formData)
         });
-        
         const data = await response.json();
-        
         if (response.ok && data.success) {
-          // Show success message
           msg.className = 'msg success show';
           msg.textContent = 'Account created successfully!';
-          
-          // Display refresh token
+          msg.style.display = 'block';
           document.getElementById('tokenValue').textContent = data.refresh_token;
           tokenDisplay.style.display = 'block';
-          
-          // Hide the form and login link
           form.style.display = 'none';
           loginLink.style.display = 'none';
-          
-          // Update button
           registerBtn.innerHTML = '<span>Account Created ✓</span>';
-          
+          grecaptcha.reset();
         } else {
           msg.className = 'msg error show';
           msg.textContent = data.error || 'Registration failed';
+          msg.style.display = 'block';
           registerBtn.disabled = false;
           registerBtn.innerHTML = '<span><i class="ph-user-plus"></i> Create Account</span>';
           form.classList.remove('loading');
+          grecaptcha.reset();
         }
       } catch (error) {
         msg.className = 'msg error show';
         msg.textContent = 'Network error. Please try again.';
+        msg.style.display = 'block';
         registerBtn.disabled = false;
         registerBtn.innerHTML = '<span><i class="ph-user-plus"></i> Create Account</span>';
         form.classList.remove('loading');
+        grecaptcha.reset();
       }
     });
-
-    // Auto-focus first input
     document.querySelector('input[name="username"]').focus();
   </script>
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </body>
 </html>
