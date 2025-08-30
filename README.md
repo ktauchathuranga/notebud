@@ -2,6 +2,9 @@
 
 A simple note-taking and chat app designed for university labs with flexible session management. Quick login with both temporary and permanent session options, automatic cleanup, and seamless cloud or local database support.
 
+![notebud-preview](https://github.com/user-attachments/assets/a4ec8595-59ff-49d6-b2e1-1ebbee244d02)
+
+
 ## Why notebud?
 
 Perfect for uni labs where you can't access OneDrive/Google Drive due to 2FA hassles. Choose between temporary sessions (4-hour auto-logout) or permanent sessions (logout only when you want). Notes auto-clear in 30 days to keep things tidy. Connect with classmates through real-time chat.
