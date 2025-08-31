@@ -19,3 +19,9 @@ tokio = { version = "1.0", features = ["full"] }
 tokio-tungstenite = "0.20"
 urlencoding = "2.1"
 uuid = { version = "1.6", features = ["v4"] }
+
+# Date/time handling for health checks
+chrono = { version = "0.4", features = ["serde"] }
+
+# Static initialization for server start time
+lazy_static = "1.4"
