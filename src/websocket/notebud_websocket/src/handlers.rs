@@ -53,6 +53,22 @@ impl MessageHandler {
         }
     }
 
+    // Health check methods
+    pub fn get_active_connection_count(&self) -> usize {
+        self.clients.len()
+    }
+
+    pub fn get_authenticated_connection_count(&self) -> usize {
+        self.clients
+            .values()
+            .filter(|client| client.user_id.is_some())
+            .count()
+    }
+
+    pub async fn health_check_database(&self) -> Result<()> {
+        self.db.health_check().await
+    }
+
     pub async fn handle_message(
         &mut self,
         client_id: usize,
@@ -440,4 +456,3 @@ impl MessageHandler {
             .ok_or_else(|| anyhow::anyhow!("Client not authenticated"))
     }
 }
-

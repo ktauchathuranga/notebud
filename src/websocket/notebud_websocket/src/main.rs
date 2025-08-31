@@ -8,10 +8,12 @@ use std::env;
 use std::net::SocketAddr;
 use std::sync::Arc;
 
+use chrono::{DateTime, Utc};
 use futures_util::{SinkExt, StreamExt};
 use hyper::service::{make_service_fn, service_fn};
 use hyper::upgrade::Upgraded;
 use hyper::{Body, Method, Request, Response, Server, StatusCode, header};
+use serde_json::json;
 use tokio::sync::Mutex;
 use tokio_tungstenite::{accept_async, tungstenite::Message};
 
@@ -19,6 +21,11 @@ use crate::auth::JwtValidator;
 use crate::database::DatabaseManager;
 use crate::handlers::MessageHandler;
 use crate::types::IncomingMessage;
+
+// Track server start time for uptime calculation
+lazy_static::lazy_static! {
+    static ref SERVER_START_TIME: DateTime<Utc> = Utc::now();
+}
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -117,21 +124,89 @@ async fn handle_request(
         // Health check endpoint
         (&Method::GET, "/health") => {
             log::debug!("Health check requested");
-            Ok(Response::builder()
-                .status(StatusCode::OK)
-                .header("Content-Type", "application/json")
-                .body(Body::from(r#"{"status":"ok","service":"notebud-websocket","timestamp":"2025-08-30T00:00:00Z"}"#))
-                .unwrap())
+
+            // Get query parameter for detailed health check
+            let detailed = req
+                .uri()
+                .query()
+                .and_then(|q| {
+                    q.split('&')
+                        .find(|param| param.starts_with("detailed="))
+                        .and_then(|param| param.split('=').nth(1))
+                        .map(|v| v == "true")
+                })
+                .unwrap_or(false);
+
+            if detailed {
+                match detailed_health_check(Arc::clone(&message_handler)).await {
+                    Ok(health_response) => {
+                        let status_code = if health_response["status"] == "ok" {
+                            StatusCode::OK
+                        } else {
+                            StatusCode::SERVICE_UNAVAILABLE
+                        };
+
+                        Ok(Response::builder()
+                            .status(status_code)
+                            .header("Content-Type", "application/json")
+                            .body(Body::from(health_response.to_string()))
+                            .unwrap())
+                    }
+                    Err(e) => {
+                        log::error!("Health check failed: {}", e);
+                        let error_response = json!({
+                            "status": "error",
+                            "service": "notebud-websocket",
+                            "timestamp": Utc::now().to_rfc3339(),
+                            "error": e.to_string()
+                        });
+
+                        Ok(Response::builder()
+                            .status(StatusCode::SERVICE_UNAVAILABLE)
+                            .header("Content-Type", "application/json")
+                            .body(Body::from(error_response.to_string()))
+                            .unwrap())
+                    }
+                }
+            } else {
+                // Basic health check
+                let now = Utc::now();
+                let uptime = now.signed_duration_since(*SERVER_START_TIME);
+
+                let response = json!({
+                    "status": "ok",
+                    "service": "notebud-websocket",
+                    "timestamp": now.to_rfc3339(),
+                    "uptime_seconds": uptime.num_seconds(),
+                    "version": env!("CARGO_PKG_VERSION")
+                });
+
+                Ok(Response::builder()
+                    .status(StatusCode::OK)
+                    .header("Content-Type", "application/json")
+                    .body(Body::from(response.to_string()))
+                    .unwrap())
+            }
         }
 
         // Root endpoint with service info
         (&Method::GET, "/") => {
-            let response_body = r#"{"status":"ok","service":"notebud-websocket","endpoints":{"/health":"Health check","/ws":"WebSocket endpoint","/":"Service info"}}"#;
+            let response_body = json!({
+                "status": "ok",
+                "service": "notebud-websocket",
+                "version": env!("CARGO_PKG_VERSION"),
+                "timestamp": Utc::now().to_rfc3339(),
+                "endpoints": {
+                    "/health": "Health check (add ?detailed=true for comprehensive check)",
+                    "/ws": "WebSocket endpoint",
+                    "/": "Service info"
+                }
+            });
 
             Ok(Response::builder()
                 .status(StatusCode::OK)
                 .header("Content-Type", "application/json")
-                .body(Body::from(response_body))
+                .body(Body::from(response_body.to_string()))
                 .unwrap())
         }
 
@@ -146,6 +221,81 @@ async fn handle_request(
                 ))
                 .unwrap())
         }
+    }
+}
+
+async fn detailed_health_check(
+    message_handler: Arc<Mutex<MessageHandler>>,
+) -> Result<serde_json::Value, Box<dyn std::error::Error + Send + Sync>> {
+    let now = Utc::now();
+    let uptime = now.signed_duration_since(*SERVER_START_TIME);
+    let mut status = "ok";
+    let mut checks = json!({});
+
+    // Check database connectivity
+    {
+        let handler = message_handler.lock().await;
+        match handler.health_check_database().await {
+            Ok(_) => {
+                checks["database"] = json!({
+                    "status": "ok",
+                    "message": "Connected and responsive"
+                });
+            }
+            Err(e) => {
+                status = "degraded";
+                checks["database"] = json!({
+                    "status": "error",
+                    "message": format!("Database error: {}", e)
+                });
+            }
+        }
+    }
+
+    // Check active connections
+    {
+        let handler = message_handler.lock().await;
+        let active_connections = handler.get_active_connection_count();
+        let authenticated_connections = handler.get_authenticated_connection_count();
+
+        checks["websocket_connections"] = json!({
+            "status": "ok",
+            "total_connections": active_connections,
+            "authenticated_connections": authenticated_connections
+        });
+    }
+
+    // Memory usage (basic check)
+    checks["system"] = json!({
+        "status": "ok",
+        "uptime_seconds": uptime.num_seconds(),
+        "uptime_human": format_duration(uptime.num_seconds())
+    });
+
+    Ok(json!({
+        "status": status,
+        "service": "notebud-websocket",
+        "timestamp": now.to_rfc3339(),
+        "version": env!("CARGO_PKG_VERSION"),
+        "uptime_seconds": uptime.num_seconds(),
+        "checks": checks
+    }))
+}
+
+fn format_duration(seconds: i64) -> String {
+    let days = seconds / 86400;
+    let hours = (seconds % 86400) / 3600;
+    let mins = (seconds % 3600) / 60;
+    let secs = seconds % 60;
+
+    if days > 0 {
+        format!("{}d {}h {}m {}s", days, hours, mins, secs)
+    } else if hours > 0 {
+        format!("{}h {}m {}s", hours, mins, secs)
+    } else if mins > 0 {
+        format!("{}m {}s", mins, secs)
+    } else {
+        format!("{}s", secs)
     }
 }
 
