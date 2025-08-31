@@ -9,7 +9,9 @@ A simple note-taking and chat app designed for university labs with flexible ses
 
 Perfect for uni labs where you can't access OneDrive/Google Drive due to 2FA hassles. Choose between temporary sessions (4-hour auto-logout) or permanent sessions (logout only when you want). Notes auto-clear in 30 days to keep things tidy. Connect with classmates through real-time chat.
 
-Visit us at [https://notebud.cc](https://notebud.cc) to start taking notes and chatting!
+> [!TIP]
+> - **Visit us at**: [notebud.cc](https://notebud.cc)
+> - Alternative Domain: [notebud-t6u9.onrender.com](https://notebud-t6u9.onrender.com/)
 
 ## ⚠️ Important User Responsibility
 
@@ -313,15 +315,18 @@ We welcome contributions to notebud! Please follow these guidelines:
    ```bash
    git checkout -b feature/your-feature-name
    ```
+### Environment File Handling
 
-### Development Guidelines
+This repository contains `.env.local` and `.env.cloud` files as **templates only**.
+- Do **not** commit real passwords or API keys.
+- Treat these files as "locked" — changes should not be pushed.
 
-#### Code Style
-- **PHP**: Follow PSR-12 coding standards
-- **JavaScript**: Use modern ES6+ features, maintain consistent indentation
-- **Rust**: Follow standard Rust conventions, use `cargo fmt`
-- **CSS**: Use BEM methodology for class naming
-- **HTML**: Semantic markup, accessibility considerations
+To prevent accidental commits, run the following after cloning:
+
+```bash
+git update-index --skip-worktree .env.local
+git update-index --skip-worktree .env.cloud
+```
 
 #### Commit Messages
 Use conventional commit format:
