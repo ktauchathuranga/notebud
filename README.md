@@ -37,6 +37,7 @@ By using notebud, you acknowledge these limitations and agree to use the platfor
 - **Edit notes** - Click to modify existing notes
 - **Search functionality** - Quick search through your notes
 - **Character counter** - Track note length with warnings
+- **Share notes** - You can share notes using usernames
 
 ### Chat Features
 - **Real-time messaging** - WebSocket-powered instant communication
