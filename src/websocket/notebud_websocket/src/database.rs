@@ -80,6 +80,13 @@ impl DatabaseManager {
         })
     }
 
+    // Health check method
+    pub async fn health_check(&self) -> Result<()> {
+        // Simple ping to verify database connectivity and responsiveness
+        self.db.run_command(doc! { "ping": 1 }, None).await?;
+        Ok(())
+    }
+
     // Find user by MongoDB ObjectId (which is what PHP uses as user identifier)
     pub async fn find_user_by_id(&self, user_id: &str) -> Result<Option<User>> {
         // Parse the string as ObjectId
