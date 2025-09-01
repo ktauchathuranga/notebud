@@ -126,6 +126,20 @@ Your notes auto-delete after 30 days."
             </div>
         </section>
     </main>
+    <div id="noteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle"></h3>
+                <button id="closeModal" class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <pre id="modalContent"></pre>
+            </div>
+            <div class="modal-footer">
+                <small id="modalDate"></small>
+            </div>
+        </div>
+    </div>
 
     <script src="js/notes.js"></script>
 </body>

@@ -69,7 +69,12 @@ const DOM = {
   get saveMsg() { return document.getElementById('saveMsg'); },
   get editor() { return document.querySelector('.editor'); },
   get notesList() { return document.querySelector('.notes-list'); },
-  get userInfo() { return document.getElementById('userInfo'); }
+  get userInfo() { return document.getElementById('userInfo'); },
+  get noteModal() { return document.getElementById('noteModal'); },
+  get modalTitle() { return document.getElementById('modalTitle'); },
+  get modalContent() { return document.getElementById('modalContent'); },
+  get modalDate() { return document.getElementById('modalDate'); },
+  get closeModal() { return document.getElementById('closeModal'); }
 };
 
 // Utility functions
@@ -221,6 +226,11 @@ const NotesDisplay = {
     const noteEl = Utils.createElement('div', CSS_CLASSES.note);
     noteEl.style.animationDelay = `${index * 0.1}s`;
     
+    // Add click event to show full note in modal
+    noteEl.addEventListener('click', () => {
+      NoteModal.show(note);
+    });
+    
     // Title
     const title = Utils.createElement('h3', '', note.title || 'Untitled Note');
     
@@ -249,14 +259,20 @@ const NotesDisplay = {
     editBtn.className = CSS_CLASSES.buttonWarning;
     editBtn.appendChild(Utils.createIcon('note'));
     editBtn.appendChild(document.createTextNode(' Edit'));
-    editBtn.addEventListener('click', () => NoteEditor.edit(note));
+    editBtn.addEventListener('click', (e) => {
+      e.stopPropagation(); // Prevent triggering the note click event
+      NoteEditor.edit(note);
+    });
     
     // Delete button
     const deleteBtn = document.createElement('button');
     deleteBtn.className = CSS_CLASSES.buttonDanger;
     deleteBtn.appendChild(Utils.createIcon('trash-simple'));
     deleteBtn.appendChild(document.createTextNode(' Delete'));
-    deleteBtn.addEventListener('click', () => this.delete(note.id, noteElement));
+    deleteBtn.addEventListener('click', (e) => {
+      e.stopPropagation(); // Prevent triggering the note click event
+      this.delete(note.id, noteElement);
+    });
     
     controls.appendChild(editBtn);
     controls.appendChild(deleteBtn);
@@ -408,6 +424,42 @@ const NoteEditor = {
         this.save();
       }
     }, CONFIG.AUTO_SAVE_DELAY);
+  }
+};
+
+// Note modal functionality
+const NoteModal = {
+  init() {
+    // Close modal when clicking the close button
+    DOM.closeModal.addEventListener('click', () => this.hide());
+    
+    // Close modal when clicking outside the content
+    DOM.noteModal.addEventListener('click', (e) => {
+      if (e.target === DOM.noteModal) {
+        this.hide();
+      }
+    });
+    
+    // Close modal with Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && DOM.noteModal.classList.contains('show')) {
+        this.hide();
+      }
+    });
+  },
+
+  show(note) {
+    DOM.modalTitle.textContent = note.title || 'Untitled Note';
+    DOM.modalContent.textContent = note.content || '';
+    DOM.modalDate.textContent = `Created: ${Utils.formatDate(note.created_at)}`;
+    
+    DOM.noteModal.classList.add('show');
+    document.body.style.overflow = 'hidden'; // Prevent scrolling
+  },
+
+  hide() {
+    DOM.noteModal.classList.remove('show');
+    document.body.style.overflow = ''; // Re-enable scrolling
   }
 };
 
@@ -771,7 +823,7 @@ const AuthHandler = {
       }
     } catch (error) {
       MessageHandler.show(msg, 'Network error. Please try again.', 'error');
-      AuthHandler.resetLoginButton(loginBtn, form);
+        AuthHandler.resetLoginButton(loginBtn, form);
     }
   },
 
@@ -897,6 +949,7 @@ const App = {
     KeyboardShortcuts.init();
     SessionManager.init();
     LogoutHandler.init();
+    NoteModal.init(); // Initialize the note modal
     
     // Load notes and focus on content
     NotesDisplay.load();
