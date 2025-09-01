@@ -1,4 +1,4 @@
-// Enhanced notes.js with inline SVG icons and permanent login support - Complete version
+// Enhanced notes.js with inline SVG icons, permanent login support, and note sharing functionality
 
 let notes = [];
 let isLoading = false;
@@ -19,7 +19,7 @@ const ICONS = {
   
   note: '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#000000" viewBox="0 0 256 256"><path d="M227.32,73.37,182.63,28.69a16,16,0,0,0-22.63,0L36.69,152A15.86,15.86,0,0,0,32,163.31V208a16,16,0,0,0,16,16H92.69A15.86,15.86,0,0,0,104,219.31l83.67-83.66,3.48,13.9-36.8,36.79a8,8,0,0,0,11.31,11.32l40-40a8,8,0,0,0,2.11-7.6l-6.9-27.61L227.32,96A16,16,0,0,0,227.32,73.37ZM48,179.31,76.69,208H48Zm48,25.38L51.31,160,136,75.31,180.69,120Zm96-96L147.32,64l24-24L216,84.69Z"></path></svg>',
   
-  'trash-simple': '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#000000" viewBox="0 0 256 256"><path d="M213.66,82.34l-56-56A8,8,0,0,0,152,24H56A16,16,0,0,0,40,40V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V88A8,8,0,0,0,213.66,82.34ZM160,51.31,188.69,80H160ZM200,216H56V40h88V88a8,8,0,0,0,8,8h48V216Zm-42.34-82.34L139.31,152l18.35,18.34a8,8,0,0,1-11.32,11.32L128,163.31l-18.34,18.35a8,8,0,0,1-11.32-11.32L116.69,152,98.34,133.66a8,8,0,0,1,11.32-11.32L128,140.69l18.34-18.35a8,8,0,0,1,11.32,11.32Z"></path></svg>',
+  'trash-simple': '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#000000" viewBox="0 0 256 256"><path d="M213.66,82.34l-56-56A8,8,0,0,0,152,24H56A16,16,0,0,0,40,40V56H56A16,16,0,0,0,40,72V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V88A8,8,0,0,0,213.66,82.34ZM160,51.31,188.69,80H160ZM200,216H56V40h88V88a8,8,0,0,0,8,8h48V216Zm-42.34-82.34L139.31,152l18.35,18.34a8,8,0,0,1-11.32,11.32L128,163.31l-18.34,18.35a8,8,0,0,1-11.32-11.32L116.69,152,98.34,133.66a8,8,0,0,1,11.32-11.32L128,140.69l18.34-18.35a8,8,0,0,1,11.32,11.32Z"></path></svg>',
   
   'magnifying-glass': '<svg width="24" height="24" viewBox="0 0 256 256" fill="currentColor"><path d="m229.66,218.34-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"></path></svg>',
 
@@ -27,7 +27,10 @@ const ICONS = {
   clock: '<svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm64-88a8,8,0,0,1-8,8H128a8,8,0,0,1-8-8V72a8,8,0,0,1,16,0v48h48A8,8,0,0,1,192,128Z"></path></svg>',
 
   // Sign out icon for logout all
-  'sign-out': '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256"><path d="M112,216a8,8,0,0,1-8,8H48a16,16,0,0,1-16-16V48A16,16,0,0,1,48,32h56a8,8,0,0,1,0,16H48V208h56A8,8,0,0,1,112,216Zm109.66-93.66-40-40a8,8,0,0,0-11.32,11.32L188.69,112H104a8,8,0,0,0,0,16h84.69l-18.35,18.34a8,8,0,0,0,11.32,11.32l40-40A8,8,0,0,0,221.66,122.34Z"></path></svg>'
+  'sign-out': '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256"><path d="M112,216a8,8,0,0,1-8,8H48a16,16,0,0,1-16-16V48A16,16,0,0,1,48,32h56a8,8,0,0,1,0,16H48V208h56A8,8,0,0,1,112,216Zm109.66-93.66-40-40a8,8,0,0,0-11.32,11.32L188.69,112H104a8,8,0,0,0,0,16h84.69l-18.35,18.34a8,8,0,0,0,11.32,11.32l40-40A8,8,0,0,0,221.66,122.34Z"></path></svg>',
+
+  // Share icon for note sharing
+  share: '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#000000" viewBox="0 0 256 256"><path d="M229.66,109.66l-48,48a8,8,0,0,1-11.32-11.32L204.69,112H165a88,88,0,0,0-85.23,66,8,8,0,0,1-15.5-4A104.11,104.11,0,0,1,165,96h39.69L170.34,61.66a8,8,0,0,1,11.32-11.32l48,48A8,8,0,0,1,229.66,109.66ZM192,208H40V80a8,8,0,0,0-16,0V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V160a8,8,0,0,0-16,0v48Z"></path></svg>'
 };
 
 // Configuration
@@ -37,7 +40,8 @@ const CONFIG = {
   MAX_CONTENT_LENGTH: 10000,
   TRUNCATE_LENGTH: 200,
   SEARCH_THRESHOLD: 3, // Show search when more than 3 notes
-  MESSAGE_HIDE_DELAY: 5000 // 5 seconds
+  MESSAGE_HIDE_DELAY: 5000, // 5 seconds
+  SHARE_REFRESH_INTERVAL: 30000 // 30 seconds
 };
 
 // CSS Classes
@@ -57,7 +61,13 @@ const CSS_CLASSES = {
   searchIcon: 'search-icon',
   userInfo: 'user-info',
   buttonDanger: 'danger',
-  buttonWarning: 'warning'
+  buttonWarning: 'warning',
+  shareModal: 'share-modal',
+  shareForm: 'share-form',
+  shareRequests: 'share-requests',
+  shareRequestItem: 'share-request-item',
+  sharedNote: 'shared-note',
+  sharedBy: 'shared-by'
 };
 
 // DOM Elements
@@ -74,7 +84,13 @@ const DOM = {
   get modalTitle() { return document.getElementById('modalTitle'); },
   get modalContent() { return document.getElementById('modalContent'); },
   get modalDate() { return document.getElementById('modalDate'); },
-  get closeModal() { return document.getElementById('closeModal'); }
+  get closeModal() { return document.getElementById('closeModal'); },
+  get shareModal() { return document.getElementById('shareModal'); },
+  get shareUsername() { return document.getElementById('shareUsername'); },
+  get shareNoteId() { return document.getElementById('shareNoteId'); },
+  get shareForm() { return document.getElementById('shareForm'); },
+  get shareRequestsContainer() { return document.getElementById('shareRequestsContainer'); },
+  get shareRequestsSection() { return document.getElementById('shareRequestsSection'); }
 };
 
 // Utility functions
@@ -226,6 +242,13 @@ const NotesDisplay = {
     const noteEl = Utils.createElement('div', CSS_CLASSES.note);
     noteEl.style.animationDelay = `${index * 0.1}s`;
     
+    // Add shared note indicator
+    if (note.is_shared) {
+      noteEl.classList.add(CSS_CLASSES.sharedNote);
+      const sharedBy = Utils.createElement('div', CSS_CLASSES.sharedBy, `Shared by: ${note.shared_by}`);
+      noteEl.appendChild(sharedBy);
+    }
+    
     // Add click event to show full note in modal
     noteEl.addEventListener('click', () => {
       NoteModal.show(note);
@@ -264,6 +287,16 @@ const NotesDisplay = {
       NoteEditor.edit(note);
     });
     
+    // Share button
+    const shareBtn = document.createElement('button');
+    shareBtn.className = 'secondary';
+    shareBtn.appendChild(Utils.createIcon('share'));
+    shareBtn.appendChild(document.createTextNode(' Share'));
+    shareBtn.addEventListener('click', (e) => {
+      e.stopPropagation(); // Prevent triggering the note click event
+      ShareHandler.openShareModal(note);
+    });
+    
     // Delete button
     const deleteBtn = document.createElement('button');
     deleteBtn.className = CSS_CLASSES.buttonDanger;
@@ -275,6 +308,7 @@ const NotesDisplay = {
     });
     
     controls.appendChild(editBtn);
+    controls.appendChild(shareBtn);
     controls.appendChild(deleteBtn);
     
     return controls;
@@ -533,6 +567,195 @@ const SearchHandler = {
         noteEl.style.display = 'none';
       }
     });
+  }
+};
+
+// Share Handler functionality
+const ShareHandler = {
+init() {
+  // Initialize share modal
+  if (DOM.shareModal) {
+    DOM.shareForm.addEventListener('submit', this.handleShare.bind(this)); // Bind this to ShareHandler
+    document.getElementById('closeShareModal').addEventListener('click', this.closeShareModal.bind(this)); // Bind for consistency
+    DOM.shareModal.addEventListener('click', (e) => {
+      if (e.target === DOM.shareModal) this.closeShareModal();
+    });
+  }
+  
+  // Load share requests
+  this.loadShareRequests();
+  
+  // Set up periodic refresh of share requests
+  setInterval(() => {
+    this.loadShareRequests();
+  }, CONFIG.SHARE_REFRESH_INTERVAL);
+},
+
+  openShareModal(note) {
+    DOM.shareNoteId.value = note.id;
+    DOM.shareUsername.value = '';
+    DOM.shareModal.classList.add('show');
+    DOM.shareUsername.focus();
+  },
+
+  closeShareModal() {
+    DOM.shareModal.classList.remove('show');
+  },
+
+  async handleShare(e) {
+    e.preventDefault();
+    
+    const noteId = DOM.shareNoteId.value;
+    const username = DOM.shareUsername.value.trim();
+    
+    if (!username) {
+      MessageHandler.show(DOM.saveMsg, 'Please enter a username', 'error');
+      return;
+    }
+    
+    const shareBtn = document.getElementById('shareBtn');
+    shareBtn.disabled = true;
+    shareBtn.textContent = 'Sharing...';
+    
+    try {
+      const formData = new URLSearchParams();
+      formData.append('note_id', noteId);
+      formData.append('username', username);
+      
+      const response = await fetch('/api/share_note', {
+        method: 'POST',
+        body: formData
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        MessageHandler.show(DOM.saveMsg, data.message || 'Note shared successfully!', 'success');
+      } else {
+        // Handle specific error for duplicate share requests
+        const errorMessage = data.error && data.error.includes('already') 
+          ? 'This note is already shared with this user.'
+          : data.error || 'Failed to share note';
+        MessageHandler.show(DOM.saveMsg, errorMessage, 'error');
+      }
+    } catch (error) {
+      MessageHandler.show(DOM.saveMsg, 'Network error. Please try again.', 'error');
+    } finally {
+      shareBtn.disabled = false;
+      shareBtn.textContent = 'Share Note';
+      this.closeShareModal(); // Always close the modal
+    }
+  },
+
+  async loadShareRequests() {
+    try {
+      const response = await fetch('/api/get_share_requests');
+      const data = await response.json();
+      
+      if (response.ok) {
+        this.renderShareRequests(data.requests);
+      } else {
+        throw new Error(data.error || 'Failed to load share requests');
+      }
+    } catch (error) {
+      console.error('Error loading share requests:', error);
+    }
+  },
+
+  renderShareRequests(requests) {
+    const container = DOM.shareRequestsContainer;
+    
+    if (requests.length === 0) {
+      DOM.shareRequestsSection.style.display = 'none';
+      return;
+    }
+    
+    DOM.shareRequestsSection.style.display = 'block';
+    container.innerHTML = '';
+    
+    requests.forEach(request => {
+      const requestEl = Utils.createElement('div', CSS_CLASSES.shareRequestItem);
+      
+      const message = Utils.createElement('p', '', 
+        `${request.from_username} wants to share a note with you`);
+      
+      const date = Utils.createElement('small', '', 
+        `Received: ${Utils.formatDate(request.created_at)}`);
+      
+      const actions = Utils.createElement('div', CSS_CLASSES.noteControls);
+      
+      // Accept button
+      const acceptBtn = document.createElement('button');
+      acceptBtn.className = 'success';
+      acceptBtn.textContent = 'Accept';
+      acceptBtn.addEventListener('click', () => {
+        this.acceptShare(request.id);
+      });
+      
+      // Reject button
+      const rejectBtn = document.createElement('button');
+      rejectBtn.className = CSS_CLASSES.buttonDanger;
+      rejectBtn.textContent = 'Reject';
+      rejectBtn.addEventListener('click', () => {
+        this.rejectShare(request.id);
+      });
+      
+      actions.appendChild(acceptBtn);
+      actions.appendChild(rejectBtn);
+      
+      requestEl.appendChild(message);
+      requestEl.appendChild(date);
+      requestEl.appendChild(actions);
+      
+      container.appendChild(requestEl);
+    });
+  },
+
+  async acceptShare(requestId) {
+    try {
+      const formData = new URLSearchParams();
+      formData.append('request_id', requestId);
+      
+      const response = await fetch('/api/accept_share', {
+        method: 'POST',
+        body: formData
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        MessageHandler.show(DOM.saveMsg, data.message, 'success');
+        this.loadShareRequests();
+        NotesDisplay.load(); // Refresh notes list
+      } else {
+        throw new Error(data.error || 'Failed to accept share');
+      }
+    } catch (error) {
+      MessageHandler.show(DOM.saveMsg, error.message, 'error');
+    }
+  },
+
+  async rejectShare(requestId) {
+    try {
+      const formData = new URLSearchParams();
+      formData.append('request_id', requestId);
+      
+      const response = await fetch('/api/reject_share', {
+        method: 'POST',
+        body: formData
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        MessageHandler.show(DOM.saveMsg, data.message, 'success');
+        this.loadShareRequests();
+      } else {
+        throw new Error(data.error || 'Failed to reject share');
+      }
+    } catch (error) {
+      MessageHandler.show(DOM.saveMsg, error.message, 'error');
+    }
   }
 };
 
@@ -950,6 +1173,7 @@ const App = {
     SessionManager.init();
     LogoutHandler.init();
     NoteModal.init(); // Initialize the note modal
+    ShareHandler.init(); // Initialize share functionality
     
     // Load notes and focus on content
     NotesDisplay.load();
@@ -985,3 +1209,4 @@ const App = {
 document.addEventListener('DOMContentLoaded', () => {
   App.init();
 });
+

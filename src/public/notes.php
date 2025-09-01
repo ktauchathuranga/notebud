@@ -119,6 +119,10 @@ Your notes auto-delete after 30 days."
 
         <section class="notes-list">
             <h2>Your Notes</h2>
+            <div id="shareRequestsSection" style="display: none; margin-bottom: 2rem;">
+                <h3>Note Sharing Requests</h3>
+                <div id="shareRequestsContainer"></div>
+            </div>
             <div id="notesContainer">
                 <div class="empty-state">
                     <div>No notes yet. Create your first note!</div>
@@ -137,6 +141,28 @@ Your notes auto-delete after 30 days."
             </div>
             <div class="modal-footer">
                 <small id="modalDate"></small>
+            </div>
+        </div>
+    </div>
+    <div id="shareModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Share Note</h3>
+                <button id="closeShareModal" class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="shareForm" class="share-form">
+                    <input type="hidden" id="shareNoteId">
+                    <div class="form-group">
+                        <label for="shareUsername">Share with username:</label>
+                        <input
+                            type="text"
+                            id="shareUsername"
+                            placeholder="Enter username"
+                            required>
+                    </div>
+                    <button id="shareBtn" type="submit">Share Note</button>
+                </form>
             </div>
         </div>
     </div>
