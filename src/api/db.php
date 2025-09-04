@@ -424,31 +424,72 @@ function init_database()
         $manager->executeCommand($DB_NAME, $command);
 
         // ============================
-        // SHARE REQUESTS COLLECTION
+        // NOTE SHARE REQUESTS COLLECTION
         // ============================
 
         $command = new MongoDB\Driver\Command([
-            'createIndexes' => 'share_requests',
+            'createIndexes' => 'note_share_requests',
             'indexes' => [
                 [
-                    'key' => ['to_user' => 1, 'status' => 1],
-                    'name' => 'share_requests_to_user_index',
+                    'key' => ['to_user_id' => 1, 'status' => 1],
+                    'name' => 'note_share_requests_to_user_index',
                     'background' => true
                 ],
                 [
-                    'key' => ['from_user' => 1],
-                    'name' => 'share_requests_from_user_index',
+                    'key' => ['from_user_id' => 1],
+                    'name' => 'note_share_requests_from_user_index',
                     'background' => true
                 ],
                 [
                     'key' => ['note_id' => 1],
-                    'name' => 'share_requests_note_index',
+                    'name' => 'note_share_requests_note_index',
                     'background' => true
                 ],
                 [
                     'key' => ['created_at' => 1],
-                    'name' => 'share_requests_ttl',
+                    'name' => 'note_share_requests_ttl',
                     'expireAfterSeconds' => 2592000, // 30 days
+                    'background' => true
+                ],
+                [
+                    'key' => ['from_user_id' => 1, 'to_user_id' => 1, 'note_id' => 1],
+                    'name' => 'note_share_request_unique',
+                    'unique' => true,
+                    'partialFilterExpression' => ['status' => 'pending'],
+                    'background' => true
+                ]
+            ]
+        ]);
+        $manager->executeCommand($DB_NAME, $command);
+
+        // ============================
+        // FILE SHARE REQUESTS COLLECTION
+        // ============================
+
+        $command = new MongoDB\Driver\Command([
+            'createIndexes' => 'file_share_requests',
+            'indexes' => [
+                [
+                    'key' => ['to_user_id' => 1, 'status' => 1],
+                    'name' => 'file_share_requests_to_user_index',
+                    'background' => true
+                ],
+                [
+                    'key' => ['from_user_id' => 1, 'status' => 1],
+                    'name' => 'file_share_requests_from_user_index',
+                    'background' => true
+                ],
+                [
+                    'key' => ['created_at' => 1],
+                    'name' => 'file_share_requests_ttl',
+                    'expireAfterSeconds' => 2592000, // 30 days
+                    'background' => true
+                ],
+                [
+                    'key' => ['from_user_id' => 1, 'to_user_id' => 1, 'file_id' => 1],
+                    'name' => 'file_share_request_unique',
+                    'unique' => true,
+                    'partialFilterExpression' => ['status' => 'pending'],
                     'background' => true
                 ]
             ]
@@ -562,7 +603,7 @@ function get_database_stats()
         $stats = [];
 
         // Get collection stats
-        $collections = ['users', 'notes', 'sessions', 'fs.files', 'fs.chunks', 'chat_messages', 'chat_requests', 'chat_sessions'];
+        $collections = ['users', 'notes', 'sessions', 'fs.files', 'fs.chunks', 'chat_messages', 'chat_requests', 'chat_sessions', 'file_share_requests', 'note_share_requests'];
 
         foreach ($collections as $collection) {
             try {

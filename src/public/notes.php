@@ -1,18 +1,23 @@
 <?php
 // src/public/notes.php
 // Server-side protect this page by checking JWT cookie and redirecting to login if invalid
+
 require_once __DIR__ . '/../api/auth.php';
 $payload = null;
 try {
     $payload = require_auth_or_redirect();
 } catch (Exception $e) {
-    header('Location: /login.html');
+    header('Location: /login');
     exit;
 }
-// --- Add: expose JWT expiration timestamp and session info to JS ---
+
+// Expose JWT info to JS
 $exp = $payload['exp'] ?? null;
 $isPermanent = $payload['permanent'] ?? false;
 $sessionId = $payload['session_id'] ?? null;
+
+// Use the username from the payload
+$username = $payload['username'] ?? 'User';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -43,29 +48,13 @@ $sessionId = $payload['session_id'] ?? null;
     <meta name="twitter:description" content="Perfect for uni labs where you can't access OneDrive/Google Drive due to 2FA hassles. Choose between temporary or permanent sessions, auto-save notes, and chat with classmates in real-time.">
     <meta name="twitter:image" content="https://notebud.cc/images/notebud-preview.jpg">
 
-    <!-- Additional SEO and App-specific Meta Tags -->
-    <meta name="robots" content="index, follow">
-    <meta name="language" content="English">
-    <meta name="revisit-after" content="7 days">
-    <meta name="application-name" content="notebud">
-    <meta name="theme-color" content="#1a1a1a">
-
-    <!-- Academic and Educational Context -->
-    <meta name="category" content="Education, Productivity, University Tools">
-    <meta name="coverage" content="Worldwide">
-    <meta name="distribution" content="Global">
-    <meta name="rating" content="General">
-    <meta name="target" content="University Students, Academic Researchers, Lab Users">
-
-    <!-- Privacy and Security Disclaimers (for search engines) -->
-    <meta name="disclaimer" content="Designed for temporary academic use only. Auto-deletes data after 30 days. Use responsibly.">
-
     <link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
     <link rel="manifest" href="favicon/site.webmanifest">
-    <title>notebud - Your Notes</title>
+    <title>Notes - notebud</title>
     <link rel="stylesheet" href="css/style.css" />
+
     <!-- Expose session info to JS -->
     <script>
         window.JWT_EXP = <?= $exp ? intval($exp) : 'null' ?>;
@@ -78,101 +67,101 @@ $sessionId = $payload['session_id'] ?? null;
     <header class="topbar">
         <h1>notebud</h1>
         <div class="session-controls">
-            <div id="sessionStatus" class="session-status">
-                <span class="indicator"></span>
-                <span class="text"></span>
+            <div class="session-status <?= $isPermanent ? 'permanent' : '' ?>">
+                <div class="indicator"></div>
+                <span class="text"><?= $isPermanent ? 'Permanent Session' : 'Temporary Session (4h)' ?></span>
             </div>
+            <div id="userInfo" class="user-info"></div>
             <a href="/chat" class="chat-link">💬 Chat</a>
-            <button id="logoutAllBtn" class="logout-all-btn" style="display: none;">
-                Logout All Temp Sessions
-            </button>
+            <?php if ($isPermanent): ?>
+                <button id="logoutAllBtn" class="logout-all-btn" style="display:none;">Logout All Temp Sessions</button>
+            <?php endif; ?>
             <button id="logoutBtn" class="logout-btn">Logout</button>
-            <span id="userInfo"></span>
         </div>
     </header>
 
     <main class="container">
-        <section class="editor">
-            <h2>Write Note</h2>
-            <input
-                id="title"
-                placeholder="Note title (optional)"
-                spellcheck="false" />
-            <textarea
-                id="content"
-                maxlength="10000"
-                placeholder="Start typing your note here...
-
-Perfect for:
-• Quick reminders
-• Code snippets  
-• Lab instructions
-• Temporary data
-
-Your notes auto-delete after 30 days."
-                spellcheck="false"></textarea>
-            <button id="saveBtn">
-                <span>Save Note</span>
-            </button>
-            <div id="saveMsg" class="msg"></div>
-        </section>
+        <div class="left-panel">
+            <section class="editor">
+                <h2>Write Note</h2>
+                <input type="text" id="title" placeholder="Note title (optional)" />
+                <textarea id="content" placeholder="Start writing your note..."></textarea>
+                <button id="saveBtn">Save Note</button>
+                <div id="saveMsg" class="msg"></div>
+            </section>
+        </div>
 
         <div class="right-panel">
             <section class="notes-list">
                 <h2>Your Notes</h2>
-                <div id="shareRequestsSection" style="display: none; margin-bottom: 2rem;">
-                    <h3>Note Sharing Requests</h3>
-                    <div id="shareRequestsContainer"></div>
-                </div>
                 <div id="notesContainer">
                     <div class="empty-state">
-                        <div>No notes yet. Create your first note!</div>
+                        <div>Loading notes...</div>
                     </div>
                 </div>
             </section>
 
             <section class="files-section">
-                <h2>Your Files</h2>
+                <h2>📎 Files</h2>
+
+                <!-- File Upload Area -->
                 <div class="file-upload">
-                    <input type="file" id="fileInput" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.jpg,.jpeg,.png,.gif,.webp" multiple style="display: none;">
+                    <input type="file" id="fileInput" multiple style="display: none;"
+                        accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.jpg,.jpeg,.png,.gif,.webp,.svg">
                     <button id="uploadBtn" class="upload-btn">
                         <span>📎 Upload Files</span>
                     </button>
-                    <div class="storage-info">
-                        <div id="storageUsage" class="storage-usage">
-                            <div class="storage-bar">
-                                <div class="storage-fill" style="width: 0%"></div>
-                            </div>
-                            <small>0 B / 20 MB used</small>
+                    <p style="margin-top: 0.5rem; color: var(--text-muted); font-size: 0.85rem; text-align: center;">
+                        PDF, Office docs, images, text files
+                    </p>
+                </div>
+
+                <!-- Upload Progress -->
+                <div class="upload-progress" style="display: none;">
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 0%;"></div>
+                    </div>
+                    <div class="progress-text">Uploading...</div>
+                </div>
+
+                <!-- Storage Usage -->
+                <div id="storageUsage" class="storage-info">
+                    <div class="storage-usage">
+                        <div class="storage-bar">
+                            <div class="storage-fill" style="width: 0%;"></div>
                         </div>
+                        <small>Loading storage info...</small>
                     </div>
                 </div>
-                <div id="filesContainer">
+
+                <!-- Files List -->
+                <div id="filesContainer" class="files-list">
                     <div class="empty-state">
-                        <div>No files uploaded yet.</div>
+                        <div>Loading files...</div>
                     </div>
                 </div>
             </section>
         </div>
     </main>
 
-    <!-- Existing modals -->
+    <!-- Note Modal -->
     <div id="noteModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 id="modalTitle"></h3>
+                <h3 id="modalTitle">Note Title</h3>
                 <button id="closeModal" class="modal-close">&times;</button>
             </div>
             <div class="modal-body">
-                <pre id="modalContent"></pre>
+                <pre id="modalContent">Note content...</pre>
             </div>
             <div class="modal-footer">
-                <small id="modalDate"></small>
+                <small id="modalDate">Created: ...</small>
             </div>
         </div>
     </div>
 
-    <div id="shareModal" class="modal">
+    <!-- Share Modal -->
+    <div id="shareModal" class="modal share-modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Share Note</h3>
@@ -180,19 +169,21 @@ Your notes auto-delete after 30 days."
             </div>
             <div class="modal-body">
                 <form id="shareForm" class="share-form">
-                    <input type="hidden" id="shareNoteId">
+                    <input type="hidden" id="shareNoteId" />
                     <div class="form-group">
-                        <label for="shareUsername">Share with username:</label>
-                        <input
-                            type="text"
-                            id="shareUsername"
-                            placeholder="Enter username"
-                            required>
+                        <label for="shareUsername">Username:</label>
+                        <input type="text" id="shareUsername" placeholder="Enter username to share with..." required />
                     </div>
-                    <button id="shareBtn" type="submit">Share Note</button>
+                    <button type="submit" id="shareBtn">Share Note</button>
                 </form>
             </div>
         </div>
+    </div>
+
+    <!-- Share Requests Section -->
+    <div id="shareRequestsSection" class="share-requests" style="display: none;">
+        <h3>📨 Share Requests</h3>
+        <div id="shareRequestsContainer"></div>
     </div>
 
     <script src="js/notes.js"></script>

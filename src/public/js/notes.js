@@ -1174,6 +1174,7 @@ const App = {
     LogoutHandler.init();
     NoteModal.init(); // Initialize the note modal
     ShareHandler.init(); // Initialize share functionality
+    FileShareHandler.init();
     
     // Load notes and focus on content
     NotesDisplay.load();
@@ -1210,7 +1211,6 @@ document.addEventListener('DOMContentLoaded', () => {
   App.init();
 });
 
-// Add to existing notes.js file
 
 // File management variables
 let filesData = [];
@@ -1450,24 +1450,58 @@ function renderFiles() {
     filesData.forEach(file => {
         const fileDiv = document.createElement('div');
         fileDiv.className = 'file-item';
-        fileDiv.innerHTML = `
-            <div class="file-icon">${getFileIcon(file.mime_type)}</div>
-            <div class="file-info">
-                <div class="file-name">${escapeHtml(file.filename)}</div>
-                <div class="file-meta">
-                    <span>${formatBytes(file.size)}</span>
-                    <span>${formatDate(file.uploaded_at)}</span>
-                </div>
-            </div>
-            <div class="file-actions">
-                <button class="download-btn" onclick="downloadFile('${file.file_id}', '${escapeHtml(file.filename)}')">
-                    ⬇️ Download
-                </button>
-                <button class="delete-file-btn" onclick="deleteFile('${file.file_id}', '${escapeHtml(file.filename)}')">
-                    🗑️ Delete
-                </button>
+        
+        // Create elements properly
+        const fileIcon = document.createElement('div');
+        fileIcon.className = 'file-icon';
+        fileIcon.textContent = getFileIcon(file.mime_type);
+        
+        const fileInfo = document.createElement('div');
+        fileInfo.className = 'file-info';
+        fileInfo.innerHTML = `
+            <div class="file-name">${escapeHtml(file.filename)}</div>
+            <div class="file-meta">
+                <span>${formatBytes(file.size)}</span>
+                <span>${formatDate(file.uploaded_at)}</span>
             </div>
         `;
+        
+        const fileActions = document.createElement('div');
+        fileActions.className = 'file-actions';
+        
+        // Download button
+        const downloadBtn = document.createElement('button');
+        downloadBtn.className = 'download-btn';
+        downloadBtn.innerHTML = '⬇️ Download';
+        downloadBtn.addEventListener('click', () => {
+            downloadFile(file.file_id, file.filename);
+        });
+        
+        // Share button
+        const shareBtn = document.createElement('button');
+        shareBtn.className = 'secondary';
+        shareBtn.innerHTML = '📤 Share';
+        shareBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            FileShareHandler.openFileShareModal(file.file_id, file.filename);
+        });
+        
+        // Delete button
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'delete-file-btn';
+        deleteBtn.innerHTML = '🗑️ Delete';
+        deleteBtn.addEventListener('click', () => {
+            deleteFile(file.file_id, file.filename);
+        });
+        
+        fileActions.appendChild(downloadBtn);
+        fileActions.appendChild(shareBtn);
+        fileActions.appendChild(deleteBtn);
+        
+        fileDiv.appendChild(fileIcon);
+        fileDiv.appendChild(fileInfo);
+        fileDiv.appendChild(fileActions);
         
         container.appendChild(fileDiv);
     });
@@ -1683,4 +1717,288 @@ if (!document.querySelector('#notification-styles')) {
     styleElement.id = 'notification-styles';
     styleElement.textContent = notificationStyles;
     document.head.appendChild(styleElement);
+}
+
+// Add this to your notes.js file
+const FileShareHandler = {
+    init() {
+        this.loadFileShareRequests();
+        
+        // Set up periodic refresh
+        setInterval(() => {
+            this.loadFileShareRequests();
+        }, 30000); // 30 seconds
+    },
+
+    openFileShareModal(fileId, filename) {
+        console.log('Opening share modal for file:', filename, 'ID:', fileId);
+        
+        // Remove existing modal if any
+        const existingModal = document.querySelector('.file-share-modal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+        
+        // Create modal
+        const modal = document.createElement('div');
+        modal.className = 'modal file-share-modal';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Share File: ${escapeHtml(filename)}</h3>
+                    <button class="modal-close" type="button">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="share-form">
+                        <div class="form-group">
+                            <label>Username:</label>
+                            <input type="text" id="shareFileUsername" placeholder="Enter username to share with..." required />
+                        </div>
+                        <button type="button" id="shareFileBtn">Share File</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        modal.classList.add('show');
+        
+        // Focus on username input
+        const usernameInput = modal.querySelector('#shareFileUsername');
+        usernameInput.focus();
+        
+        // Handle share button click
+        const shareBtn = modal.querySelector('#shareFileBtn');
+        shareBtn.addEventListener('click', async () => {
+            const username = usernameInput.value.trim();
+            
+            if (!username) {
+                showMessage('Please enter a username', 'error');
+                return;
+            }
+            
+            shareBtn.disabled = true;
+            shareBtn.textContent = 'Sharing...';
+            
+            try {
+                console.log('Sharing file:', fileId, 'with user:', username);
+                
+                const response = await fetch('/api/share_file.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        file_id: fileId,
+                        username: username
+                    })
+                });
+                
+                console.log('Share response status:', response.status);
+                
+                const result = await response.json();
+                console.log('Share response data:', result);
+                
+                if (result.success) {
+                    showMessage(result.message || 'File shared successfully!', 'success');
+                    modal.remove();
+                } else {
+                    showMessage(result.error || 'Failed to share file', 'error');
+                    shareBtn.disabled = false;
+                    shareBtn.textContent = 'Share File';
+                }
+            } catch (error) {
+                console.error('Error sharing file:', error);
+                showMessage('Network error. Please try again.', 'error');
+                shareBtn.disabled = false;
+                shareBtn.textContent = 'Share File';
+            }
+        });
+        
+        // Handle close
+        modal.querySelector('.modal-close').addEventListener('click', () => {
+            modal.remove();
+        });
+        
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.remove();
+            }
+        });
+        
+        // Handle Enter key
+        usernameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                shareBtn.click();
+            }
+        });
+    },
+
+    async loadFileShareRequests() {
+        try {
+            const response = await fetch('/api/get_file_share_requests.php');
+            const data = await response.json();
+            
+            if (data.success) {
+                this.renderFileShareRequests(data.requests);
+            } else {
+                console.error('Failed to load file share requests:', data.error);
+            }
+        } catch (error) {
+            console.error('Error loading file share requests:', error);
+        }
+    },
+
+    renderFileShareRequests(requests) {
+        let container = document.getElementById('fileShareRequestsContainer');
+        let section = document.getElementById('fileShareRequestsSection');
+        
+        // Create section if it doesn't exist
+        if (!section) {
+            section = document.createElement('div');
+            section.id = 'fileShareRequestsSection';
+            section.className = 'share-requests';
+            section.style.display = 'none';
+            section.innerHTML = `
+                <h3>📁 File Share Requests</h3>
+                <div id="fileShareRequestsContainer"></div>
+            `;
+            
+            // Add to files section or create separate section
+            const filesSection = document.querySelector('.files-section');
+            if (filesSection) {
+                filesSection.parentNode.insertBefore(section, filesSection.nextSibling);
+            } else {
+                document.querySelector('.right-panel').appendChild(section);
+            }
+            
+            container = document.getElementById('fileShareRequestsContainer');
+        }
+        
+        if (requests.length === 0) {
+            section.style.display = 'none';
+            return;
+        }
+        
+        section.style.display = 'block';
+        container.innerHTML = '';
+        
+        requests.forEach(request => {
+            const requestEl = document.createElement('div');
+            requestEl.className = 'share-request-item';
+            requestEl.innerHTML = `
+                <p><strong>${escapeHtml(request.from_username)}</strong> wants to share a file with you</p>
+                <p>📎 <strong>${escapeHtml(request.filename)}</strong> (${request.file_size_formatted})</p>
+                <small>Received: ${request.created_at_formatted}</small>
+                <div class="note-controls">
+                    <button class="success" data-request-id="${request.id}" data-action="accept">Accept</button>
+                    <button class="danger" data-request-id="${request.id}" data-action="reject">Reject</button>
+                </div>
+            `;
+            
+            // Add event listeners for buttons
+            const acceptBtn = requestEl.querySelector('[data-action="accept"]');
+            const rejectBtn = requestEl.querySelector('[data-action="reject"]');
+            
+            acceptBtn.addEventListener('click', () => {
+                this.acceptFileShare(request.id);
+            });
+            
+            rejectBtn.addEventListener('click', () => {
+                this.rejectFileShare(request.id);
+            });
+            
+            container.appendChild(requestEl);
+        });
+    },
+
+    async acceptFileShare(requestId) {
+        try {
+            const response = await fetch('/api/accept_file_share.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ request_id: requestId })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                showMessage(result.message, 'success');
+                this.loadFileShareRequests();
+                loadUserFiles(); // Refresh files list
+            } else {
+                showMessage(result.error, 'error');
+            }
+        } catch (error) {
+            console.error('Error accepting file share:', error);
+            showMessage('Network error. Please try again.', 'error');
+        }
+    },
+
+    async rejectFileShare(requestId) {
+        try {
+            const response = await fetch('/api/reject_file_share.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ request_id: requestId })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                showMessage(result.message, 'success');
+                this.loadFileShareRequests();
+            } else {
+                showMessage(result.error, 'error');
+            }
+        } catch (error) {
+            console.error('Error rejecting file share:', error);
+            showMessage('Network error. Please try again.', 'error');
+        }
+    }
+};
+
+// Update your existing renderFiles function to include share button
+function renderFiles() {
+    const container = document.getElementById('filesContainer');
+    if (!container) return;
+    
+    if (filesData.length === 0) {
+        container.innerHTML = '<div class="empty-state"><div>No files uploaded yet.</div></div>';
+        return;
+    }
+    
+    container.innerHTML = '';
+    
+    filesData.forEach(file => {
+        const fileDiv = document.createElement('div');
+        fileDiv.className = 'file-item';
+        fileDiv.innerHTML = `
+            <div class="file-icon">${getFileIcon(file.mime_type)}</div>
+            <div class="file-info">
+                <div class="file-name">${escapeHtml(file.filename)}</div>
+                <div class="file-meta">
+                    <span>${formatBytes(file.size)}</span>
+                    <span>${formatDate(file.uploaded_at)}</span>
+                </div>
+            </div>
+            <div class="file-actions">
+                <button class="download-btn" onclick="downloadFile('${file.file_id}', '${escapeHtml(file.filename)}')">
+                    ⬇️ Download
+                </button>
+                <button class="secondary" onclick="FileShareHandler.openFileShareModal('${file.file_id}', '${escapeHtml(file.filename)}')">
+                    📤 Share
+                </button>
+                <button class="delete-file-btn" onclick="deleteFile('${file.file_id}', '${escapeHtml(file.filename)}')">
+                    🗑️ Delete
+                </button>
+            </div>
+        `;
+        
+        container.appendChild(fileDiv);
+    });
 }
