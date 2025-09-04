@@ -1174,6 +1174,7 @@ const App = {
     LogoutHandler.init();
     NoteModal.init(); // Initialize the note modal
     ShareHandler.init(); // Initialize share functionality
+    FileShareHandler.init();
     
     // Load notes and focus on content
     NotesDisplay.load();
@@ -1210,3 +1211,794 @@ document.addEventListener('DOMContentLoaded', () => {
   App.init();
 });
 
+
+// File management variables
+let filesData = [];
+let storageUsage = 0;
+let storageLimit = 20 * 1024 * 1024; // 20MB
+
+// Initialize file functionality when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Existing initialization code...
+    
+    // Initialize file functionality
+    initializeFileManagement();
+});
+
+function initializeFileManagement() {
+    const uploadBtn = document.getElementById('uploadBtn');
+    const fileInput = document.getElementById('fileInput');
+    
+    if (uploadBtn && fileInput) {
+        uploadBtn.addEventListener('click', () => {
+            fileInput.click();
+        });
+        
+        fileInput.addEventListener('change', handleFileUpload);
+    }
+    
+    // Load user files
+    loadUserFiles();
+}
+
+// Update the handleFileUpload function with better error handling
+
+async function handleFileUpload(event) {
+    const files = Array.from(event.target.files);
+    if (files.length === 0) return;
+    
+    console.log('Starting file upload for files:', files.map(f => ({name: f.name, size: f.size, type: f.type})));
+    
+    const uploadBtn = document.getElementById('uploadBtn');
+    const progressDiv = document.querySelector('.upload-progress');
+    
+    // Show progress
+    if (progressDiv) {
+        progressDiv.style.display = 'block';
+    }
+    
+    // Disable upload button
+    if (uploadBtn) {
+        uploadBtn.disabled = true;
+        uploadBtn.innerHTML = '<span>⏳ Uploading...</span>';
+    }
+    
+    let successCount = 0;
+    let errorCount = 0;
+    let errors = [];
+    
+    for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        console.log(`Uploading file ${i + 1}/${files.length}: ${file.name}`);
+        
+        // Update progress
+        updateUploadProgress(i + 1, files.length, file.name);
+        
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        try {
+            console.log('Sending upload request for:', file.name);
+            const response = await fetch('/api/upload_file', {
+                method: 'POST',
+                body: formData
+            });
+            
+            console.log('Upload response status:', response.status);
+            console.log('Upload response headers:', response.headers);
+            
+            const responseText = await response.text();
+            console.log('Upload raw response:', responseText);
+            
+            // Clean the response by removing PHP error messages
+            let cleanedResponse = responseText;
+            const jsonStart = cleanedResponse.indexOf('{');
+            if (jsonStart > 0) {
+                cleanedResponse = cleanedResponse.substring(jsonStart);
+            }
+            
+            let result;
+            try {
+                result = JSON.parse(cleanedResponse);
+                console.log('Parsed upload result:', result);
+            } catch (parseError) {
+                console.error('Failed to parse upload response:', parseError);
+                console.error('Response was:', responseText);
+                errorCount++;
+                errors.push(`${file.name}: Invalid server response`);
+                continue;
+            }
+            
+            if (result.success) {
+                successCount++;
+                console.log(`Successfully uploaded: ${file.name}`);
+                showMessage(`File "${file.name}" uploaded successfully!`, 'success', 3000);
+            } else {
+                errorCount++;
+                errors.push(`${file.name}: ${result.error}`);
+                console.error(`Failed to upload ${file.name}:`, result.error);
+                showMessage(`Failed to upload "${file.name}": ${result.error}`, 'error', 5000);
+            }
+        } catch (error) {
+            errorCount++;
+            errors.push(`${file.name}: Network error`);
+            console.error(`Network error uploading ${file.name}:`, error);
+            showMessage(`Failed to upload "${file.name}": Network error`, 'error', 5000);
+        }
+    }
+    
+    // Hide progress
+    if (progressDiv) {
+        progressDiv.style.display = 'none';
+    }
+    
+    // Reset upload button
+    if (uploadBtn) {
+        uploadBtn.disabled = false;
+        uploadBtn.innerHTML = '<span>📎 Upload Files</span>';
+    }
+    
+    // Clear file input
+    event.target.value = '';
+    
+    // Reload files list
+    await loadUserFiles();
+    
+    // Show summary message
+    console.log(`Upload complete. Success: ${successCount}, Errors: ${errorCount}`);
+    if (errors.length > 0) {
+        console.log('Upload errors:', errors);
+    }
+    
+    if (successCount > 0 && errorCount === 0) {
+        showMessage(`Successfully uploaded ${successCount} file(s)!`, 'success', 3000);
+    } else if (successCount > 0 && errorCount > 0) {
+        showMessage(`Uploaded ${successCount} file(s), failed ${errorCount}`, 'warning', 5000);
+    } else if (errorCount > 0) {
+        showMessage(`Failed to upload all ${errorCount} file(s)`, 'error', 5000);
+    }
+}
+
+function updateUploadProgress(current, total, fileName) {
+    const progressDiv = document.querySelector('.upload-progress');
+    if (!progressDiv) return;
+    
+    const progressFill = progressDiv.querySelector('.progress-fill');
+    const progressText = progressDiv.querySelector('.progress-text');
+    
+    const percentage = Math.round((current / total) * 100);
+    
+    if (progressFill) {
+        progressFill.style.width = `${percentage}%`;
+    }
+    
+    if (progressText) {
+        progressText.textContent = `Uploading ${current} of ${total}: ${fileName}`;
+    }
+}
+async function loadUserFiles() {
+    try {
+        console.log('Loading user files...');
+        const response = await fetch('/api/get_files');
+        
+        console.log('Response status:', response.status);
+        
+        const responseText = await response.text();
+        console.log('Raw response:', responseText);
+        
+        // Clean the response by removing PHP error messages
+        let cleanedResponse = responseText;
+        
+        // Remove PHP warnings/errors that appear before the JSON
+        const jsonStart = cleanedResponse.indexOf('{');
+        if (jsonStart > 0) {
+            cleanedResponse = cleanedResponse.substring(jsonStart);
+            console.log('Cleaned response:', cleanedResponse);
+        }
+        
+        // Try to parse as JSON
+        let result;
+        try {
+            result = JSON.parse(cleanedResponse);
+        } catch (parseError) {
+            console.error('JSON parse error:', parseError);
+            console.error('Response was not valid JSON:', cleanedResponse);
+            showMessage('Server returned invalid response', 'error');
+            return;
+        }
+        
+        if (result.success) {
+            filesData = result.files || [];
+            storageUsage = result.storage_usage || 0;
+            storageLimit = result.storage_limit || (20 * 1024 * 1024);
+            
+            renderFiles();
+            updateStorageDisplay();
+        } else {
+            console.error('API returned error:', result.error);
+            showMessage(`Failed to load files: ${result.error}`, 'error');
+        }
+    } catch (error) {
+        console.error('Network error loading files:', error);
+        showMessage('Failed to load files: Network error', 'error');
+    }
+}
+
+function formatBytes(bytes) {
+    if (bytes === 0 || !bytes || !isFinite(bytes)) return '0 B';
+    
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    
+    if (i < 0 || i >= sizes.length) return '0 B';
+    
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+function renderFiles() {
+    const container = document.getElementById('filesContainer');
+    if (!container) return;
+    
+    if (filesData.length === 0) {
+        container.innerHTML = '<div class="empty-state"><div>No files uploaded yet.</div></div>';
+        return;
+    }
+    
+    container.innerHTML = '';
+    
+    filesData.forEach(file => {
+        const fileDiv = document.createElement('div');
+        fileDiv.className = 'file-item';
+        
+        // Create elements properly
+        const fileIcon = document.createElement('div');
+        fileIcon.className = 'file-icon';
+        fileIcon.textContent = getFileIcon(file.mime_type);
+        
+        const fileInfo = document.createElement('div');
+        fileInfo.className = 'file-info';
+        fileInfo.innerHTML = `
+            <div class="file-name">${escapeHtml(file.filename)}</div>
+            <div class="file-meta">
+                <span>${formatBytes(file.size)}</span>
+                <span>${formatDate(file.uploaded_at)}</span>
+            </div>
+        `;
+        
+        const fileActions = document.createElement('div');
+        fileActions.className = 'file-actions';
+        
+        // Download button
+        const downloadBtn = document.createElement('button');
+        downloadBtn.className = 'download-btn';
+        downloadBtn.innerHTML = '⬇️ Download';
+        downloadBtn.addEventListener('click', () => {
+            downloadFile(file.file_id, file.filename);
+        });
+        
+        // Share button
+        const shareBtn = document.createElement('button');
+        shareBtn.className = 'secondary';
+        shareBtn.innerHTML = '📤 Share';
+        shareBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            FileShareHandler.openFileShareModal(file.file_id, file.filename);
+        });
+        
+        // Delete button
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'delete-file-btn';
+        deleteBtn.innerHTML = '🗑️ Delete';
+        deleteBtn.addEventListener('click', () => {
+            deleteFile(file.file_id, file.filename);
+        });
+        
+        fileActions.appendChild(downloadBtn);
+        fileActions.appendChild(shareBtn);
+        fileActions.appendChild(deleteBtn);
+        
+        fileDiv.appendChild(fileIcon);
+        fileDiv.appendChild(fileInfo);
+        fileDiv.appendChild(fileActions);
+        
+        container.appendChild(fileDiv);
+    });
+}
+
+function updateStorageDisplay() {
+    const storageUsageDiv = document.getElementById('storageUsage');
+    if (!storageUsageDiv) return;
+    
+    const percentage = Math.round((storageUsage / storageLimit) * 100);
+    const storageBar = storageUsageDiv.querySelector('.storage-fill');
+    const storageText = storageUsageDiv.querySelector('small');
+    
+    if (storageBar) {
+        storageBar.style.width = `${percentage}%`;
+        
+        // Update color based on usage
+        storageBar.className = 'storage-fill';
+        if (percentage >= 90) {
+            storageBar.classList.add('full');
+        } else if (percentage >= 75) {
+            storageBar.classList.add('warning');
+        }
+    }
+    
+    if (storageText) {
+        storageText.textContent = `${formatBytes(storageUsage)} / ${formatBytes(storageLimit)} used (${percentage}%)`;
+    }
+}
+
+async function downloadFile(fileId, filename) {
+    try {
+        const response = await fetch(`/api/download_file?file_id=${encodeURIComponent(fileId)}`);
+        
+        if (response.ok) {
+            // Create a blob from the response
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            
+            // Create a temporary link and click it to download
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            // Clean up the URL object
+            window.URL.revokeObjectURL(url);
+            
+            showMessage(`File "${filename}" downloaded successfully!`, 'success');
+        } else {
+            const result = await response.json();
+            showMessage(`Failed to download file: ${result.error}`, 'error');
+        }
+    } catch (error) {
+        console.error('Download error:', error);
+        showMessage('Failed to download file: Network error', 'error');
+    }
+}
+
+async function deleteFile(fileId, filename) {
+    if (!confirm(`Are you sure you want to delete "${filename}"? This action cannot be undone.`)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/delete_file', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                file_id: fileId
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showMessage(`File "${filename}" deleted successfully!`, 'success');
+            await loadUserFiles(); // Reload files list
+        } else {
+            showMessage(`Failed to delete file: ${result.error}`, 'error');
+        }
+    } catch (error) {
+        console.error('Delete error:', error);
+        showMessage('Failed to delete file: Network error', 'error');
+    }
+}
+
+function getFileIcon(mimeType) {
+    const icons = {
+        'application/pdf': '📄',
+        'application/msword': '📝',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '📝',
+        'application/vnd.ms-excel': '📊',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': '📊',
+        'application/vnd.ms-powerpoint': '📽️',
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation': '📽️',
+        'text/plain': '📄',
+        'text/csv': '📊',
+        'image/jpeg': '🖼️',
+        'image/png': '🖼️',
+        'image/gif': '🖼️',
+        'image/webp': '🖼️'
+    };
+    
+    return icons[mimeType] || '📎';
+}
+
+function formatBytes(bytes) {
+    if (bytes === 0) return '0 B';
+    
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInMs = now - date;
+    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+    
+    if (diffInDays === 0) {
+        return 'Today';
+    } else if (diffInDays === 1) {
+        return 'Yesterday';
+    } else if (diffInDays < 7) {
+        return `${diffInDays} days ago`;
+    } else {
+        return date.toLocaleDateString();
+    }
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Add to existing showMessage function or create if it doesn't exist
+function showMessage(message, type = 'info', duration = 5000) {
+    // Remove existing messages
+    const existingMessages = document.querySelectorAll('.notification');
+    existingMessages.forEach(msg => msg.remove());
+    
+    // Create notification
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    
+    // Add to page
+    document.body.appendChild(notification);
+    
+    // Auto-remove after duration
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.remove();
+        }
+    }, duration);
+}
+
+// Update the existing CSS notification styles or add them
+const notificationStyles = `
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--card);
+    color: var(--text);
+    padding: 1rem 1.5rem;
+    border-radius: var(--radius);
+    z-index: 1000;
+    box-shadow: var(--shadow-lg);
+    border-left: 4px solid var(--primary);
+    min-width: 300px;
+    max-width: 500px;
+    animation: slideIn 0.3s ease;
+    font-weight: 500;
+    word-wrap: break-word;
+}
+
+.notification.success {
+    border-left-color: var(--success);
+    background: var(--success-light);
+    color: var(--success);
+}
+
+.notification.error {
+    border-left-color: var(--danger);
+    background: var(--danger-light);
+    color: var(--danger);
+}
+
+@media (max-width: 767px) {
+    .notification {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        min-width: auto;
+        max-width: none;
+    }
+}
+`;
+
+// Add styles if they don't exist
+if (!document.querySelector('#notification-styles')) {
+    const styleElement = document.createElement('style');
+    styleElement.id = 'notification-styles';
+    styleElement.textContent = notificationStyles;
+    document.head.appendChild(styleElement);
+}
+
+// Add this to your notes.js file
+const FileShareHandler = {
+    init() {
+        this.loadFileShareRequests();
+        
+        // Set up periodic refresh
+        setInterval(() => {
+            this.loadFileShareRequests();
+        }, 30000); // 30 seconds
+    },
+
+    openFileShareModal(fileId, filename) {
+        console.log('Opening share modal for file:', filename, 'ID:', fileId);
+        
+        // Remove existing modal if any
+        const existingModal = document.querySelector('.file-share-modal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+        
+        // Create modal
+        const modal = document.createElement('div');
+        modal.className = 'modal file-share-modal';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Share File: ${escapeHtml(filename)}</h3>
+                    <button class="modal-close" type="button">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="share-form">
+                        <div class="form-group">
+                            <label>Username:</label>
+                            <input type="text" id="shareFileUsername" placeholder="Enter username to share with..." required />
+                        </div>
+                        <button type="button" id="shareFileBtn">Share File</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        modal.classList.add('show');
+        
+        // Focus on username input
+        const usernameInput = modal.querySelector('#shareFileUsername');
+        usernameInput.focus();
+        
+        // Handle share button click
+        const shareBtn = modal.querySelector('#shareFileBtn');
+        shareBtn.addEventListener('click', async () => {
+            const username = usernameInput.value.trim();
+            
+            if (!username) {
+                showMessage('Please enter a username', 'error');
+                return;
+            }
+            
+            shareBtn.disabled = true;
+            shareBtn.textContent = 'Sharing...';
+            
+            try {
+                console.log('Sharing file:', fileId, 'with user:', username);
+                
+                const response = await fetch('/api/share_file.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        file_id: fileId,
+                        username: username
+                    })
+                });
+                
+                console.log('Share response status:', response.status);
+                
+                const result = await response.json();
+                console.log('Share response data:', result);
+                
+                if (result.success) {
+                    showMessage(result.message || 'File shared successfully!', 'success');
+                    modal.remove();
+                } else {
+                    showMessage(result.error || 'Failed to share file', 'error');
+                    shareBtn.disabled = false;
+                    shareBtn.textContent = 'Share File';
+                }
+            } catch (error) {
+                console.error('Error sharing file:', error);
+                showMessage('Network error. Please try again.', 'error');
+                shareBtn.disabled = false;
+                shareBtn.textContent = 'Share File';
+            }
+        });
+        
+        // Handle close
+        modal.querySelector('.modal-close').addEventListener('click', () => {
+            modal.remove();
+        });
+        
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.remove();
+            }
+        });
+        
+        // Handle Enter key
+        usernameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                shareBtn.click();
+            }
+        });
+    },
+
+    async loadFileShareRequests() {
+        try {
+            const response = await fetch('/api/get_file_share_requests.php');
+            const data = await response.json();
+            
+            if (data.success) {
+                this.renderFileShareRequests(data.requests);
+            } else {
+                console.error('Failed to load file share requests:', data.error);
+            }
+        } catch (error) {
+            console.error('Error loading file share requests:', error);
+        }
+    },
+
+    renderFileShareRequests(requests) {
+        let container = document.getElementById('fileShareRequestsContainer');
+        let section = document.getElementById('fileShareRequestsSection');
+        
+        // Create section if it doesn't exist
+        if (!section) {
+            section = document.createElement('div');
+            section.id = 'fileShareRequestsSection';
+            section.className = 'share-requests';
+            section.style.display = 'none';
+            section.innerHTML = `
+                <h3>📁 File Share Requests</h3>
+                <div id="fileShareRequestsContainer"></div>
+            `;
+            
+            // Add to files section or create separate section
+            const filesSection = document.querySelector('.files-section');
+            if (filesSection) {
+                filesSection.parentNode.insertBefore(section, filesSection.nextSibling);
+            } else {
+                document.querySelector('.right-panel').appendChild(section);
+            }
+            
+            container = document.getElementById('fileShareRequestsContainer');
+        }
+        
+        if (requests.length === 0) {
+            section.style.display = 'none';
+            return;
+        }
+        
+        section.style.display = 'block';
+        container.innerHTML = '';
+        
+        requests.forEach(request => {
+            const requestEl = document.createElement('div');
+            requestEl.className = 'share-request-item';
+            requestEl.innerHTML = `
+                <p><strong>${escapeHtml(request.from_username)}</strong> wants to share a file with you</p>
+                <p>📎 <strong>${escapeHtml(request.filename)}</strong> (${request.file_size_formatted})</p>
+                <small>Received: ${request.created_at_formatted}</small>
+                <div class="note-controls">
+                    <button class="success" data-request-id="${request.id}" data-action="accept">Accept</button>
+                    <button class="danger" data-request-id="${request.id}" data-action="reject">Reject</button>
+                </div>
+            `;
+            
+            // Add event listeners for buttons
+            const acceptBtn = requestEl.querySelector('[data-action="accept"]');
+            const rejectBtn = requestEl.querySelector('[data-action="reject"]');
+            
+            acceptBtn.addEventListener('click', () => {
+                this.acceptFileShare(request.id);
+            });
+            
+            rejectBtn.addEventListener('click', () => {
+                this.rejectFileShare(request.id);
+            });
+            
+            container.appendChild(requestEl);
+        });
+    },
+
+    async acceptFileShare(requestId) {
+        try {
+            const response = await fetch('/api/accept_file_share.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ request_id: requestId })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                showMessage(result.message, 'success');
+                this.loadFileShareRequests();
+                loadUserFiles(); // Refresh files list
+            } else {
+                showMessage(result.error, 'error');
+            }
+        } catch (error) {
+            console.error('Error accepting file share:', error);
+            showMessage('Network error. Please try again.', 'error');
+        }
+    },
+
+    async rejectFileShare(requestId) {
+        try {
+            const response = await fetch('/api/reject_file_share.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ request_id: requestId })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                showMessage(result.message, 'success');
+                this.loadFileShareRequests();
+            } else {
+                showMessage(result.error, 'error');
+            }
+        } catch (error) {
+            console.error('Error rejecting file share:', error);
+            showMessage('Network error. Please try again.', 'error');
+        }
+    }
+};
+
+// Update your existing renderFiles function to include share button
+function renderFiles() {
+    const container = document.getElementById('filesContainer');
+    if (!container) return;
+    
+    if (filesData.length === 0) {
+        container.innerHTML = '<div class="empty-state"><div>No files uploaded yet.</div></div>';
+        return;
+    }
+    
+    container.innerHTML = '';
+    
+    filesData.forEach(file => {
+        const fileDiv = document.createElement('div');
+        fileDiv.className = 'file-item';
+        fileDiv.innerHTML = `
+            <div class="file-icon">${getFileIcon(file.mime_type)}</div>
+            <div class="file-info">
+                <div class="file-name">${escapeHtml(file.filename)}</div>
+                <div class="file-meta">
+                    <span>${formatBytes(file.size)}</span>
+                    <span>${formatDate(file.uploaded_at)}</span>
+                </div>
+            </div>
+            <div class="file-actions">
+                <button class="download-btn" onclick="downloadFile('${file.file_id}', '${escapeHtml(file.filename)}')">
+                    ⬇️ Download
+                </button>
+                <button class="secondary" onclick="FileShareHandler.openFileShareModal('${file.file_id}', '${escapeHtml(file.filename)}')">
+                    📤 Share
+                </button>
+                <button class="delete-file-btn" onclick="deleteFile('${file.file_id}', '${escapeHtml(file.filename)}')">
+                    🗑️ Delete
+                </button>
+            </div>
+        `;
+        
+        container.appendChild(fileDiv);
+    });
+}
