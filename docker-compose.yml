@@ -3,9 +3,6 @@ services:
     build: 
       context: .
       dockerfile: docker/php/Dockerfile
-    # Remove fixed port for scaling
-    # ports:
-    #   - "8090:80"
     expose:
       - "80"
     volumes:
@@ -21,19 +18,19 @@ services:
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
       - COOKIE_SECURE=${COOKIE_SECURE}
+      - MAX_USER_STORAGE=${MAX_USER_STORAGE}
+      - MAX_FILE_SIZE=${MAX_FILE_SIZE}
+      - MAX_FILES_PER_USER=${MAX_FILES_PER_USER}
     depends_on:
       - mongo
     restart: unless-stopped
     deploy:
-      replicas: 5  # Scale web service to 5 instances
+      replicas: 5
 
   websocket:
     build: 
       context: .
       dockerfile: docker/websocket/Dockerfile
-    # Remove fixed port mapping for scaling
-    # ports:
-    #   - "8092:10000"  # Can't use fixed ports with multiple instances
     expose:
       - "10000"
     environment:
@@ -52,14 +49,13 @@ services:
       - mongo
     restart: unless-stopped
     deploy:
-      replicas: 5  # This creates 5 instances
+      replicas: 5
 
-  # Load balancer to distribute traffic across websocket instances
   nginx:
     image: nginx:alpine
     ports:
-      - "8090:8090"  # PHP web application
-      - "8092:8092"  # WebSocket service
+      - "8090:8090"
+      - "8092:8092"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:

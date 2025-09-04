@@ -117,19 +117,46 @@ Your notes auto-delete after 30 days."
             <div id="saveMsg" class="msg"></div>
         </section>
 
-        <section class="notes-list">
-            <h2>Your Notes</h2>
-            <div id="shareRequestsSection" style="display: none; margin-bottom: 2rem;">
-                <h3>Note Sharing Requests</h3>
-                <div id="shareRequestsContainer"></div>
-            </div>
-            <div id="notesContainer">
-                <div class="empty-state">
-                    <div>No notes yet. Create your first note!</div>
+        <div class="right-panel">
+            <section class="notes-list">
+                <h2>Your Notes</h2>
+                <div id="shareRequestsSection" style="display: none; margin-bottom: 2rem;">
+                    <h3>Note Sharing Requests</h3>
+                    <div id="shareRequestsContainer"></div>
                 </div>
-            </div>
-        </section>
+                <div id="notesContainer">
+                    <div class="empty-state">
+                        <div>No notes yet. Create your first note!</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="files-section">
+                <h2>Your Files</h2>
+                <div class="file-upload">
+                    <input type="file" id="fileInput" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.jpg,.jpeg,.png,.gif,.webp" multiple style="display: none;">
+                    <button id="uploadBtn" class="upload-btn">
+                        <span>📎 Upload Files</span>
+                    </button>
+                    <div class="storage-info">
+                        <div id="storageUsage" class="storage-usage">
+                            <div class="storage-bar">
+                                <div class="storage-fill" style="width: 0%"></div>
+                            </div>
+                            <small>0 B / 20 MB used</small>
+                        </div>
+                    </div>
+                </div>
+                <div id="filesContainer">
+                    <div class="empty-state">
+                        <div>No files uploaded yet.</div>
+                    </div>
+                </div>
+            </section>
+        </div>
     </main>
+
+    <!-- Existing modals -->
     <div id="noteModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -144,6 +171,7 @@ Your notes auto-delete after 30 days."
             </div>
         </div>
     </div>
+
     <div id="shareModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">

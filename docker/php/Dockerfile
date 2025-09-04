@@ -1,14 +1,30 @@
 FROM php:8.2-apache
 
-# Install dependencies and the MongoDB extension
+# Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libssl-dev pkg-config git unzip ca-certificates \
-  && pecl install mongodb \
-  && docker-php-ext-enable mongodb \
-  && a2enmod rewrite \
-  && rm -rf /var/lib/apt/lists/*
+    libssl-dev \
+    pkg-config \
+    git \
+    unzip \
+    ca-certificates \
+    libzip-dev \
+    zip \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy custom Apache vhost that sets DocumentRoot to /var/www/html/public
+# Install PHP extensions
+RUN docker-php-ext-install zip
+
+# Install MongoDB extension
+RUN pecl install mongodb \
+    && docker-php-ext-enable mongodb
+
+# Copy custom PHP configuration
+COPY docker/php/php-custom.ini /usr/local/etc/php/conf.d/custom.ini
+
+# Enable Apache modules
+RUN a2enmod rewrite
+
+# Copy custom Apache vhost
 COPY docker/php/000-default.conf /etc/apache2/sites-available/000-default.conf
 
 # Copy application files
