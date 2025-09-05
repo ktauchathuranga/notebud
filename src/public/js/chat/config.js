@@ -2,8 +2,7 @@ export const CHAT_CONFIG = {
   MAX_RECONNECT_ATTEMPTS: 5,
   RECONNECT_DELAY: 3000,
   MESSAGE_BUFFER_SIZE: 100,
-  NOTIFICATION_DURATION: 5000,
-  TYPING_INDICATOR_DELAY: 1000
+  NOTIFICATION_DURATION: 5000
 };
 
 export const WEBSOCKET_TYPES = {
@@ -34,81 +33,52 @@ export const CONNECTION_STATUS = {
   DISCONNECTED: 'disconnected'
 };
 
-export const CHAT_CSS_CLASSES = {
-  connectionStatus: 'connection-status',
-  requestItem: 'request-item',
-  chatListItem: 'chat-list-item',
-  messageGroup: 'message-group',
-  message: 'message',
-  messageInfo: 'message-info',
-  chatAvatar: 'chat-avatar',
-  loadingPlaceholder: 'loading-placeholder',
-  notification: 'notification',
-  active: 'active',
-  online: 'online',
-  offline: 'offline',
-  own: 'own',
-  other: 'other'
-};
-
-// Add notification styles to the page
+// Add notification styles immediately
 const notificationStyles = `
 .notification {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  background: var(--card, #fff);
-  color: var(--text, #000);
-  padding: 1rem 1.5rem;
-  border-radius: 8px;
-  z-index: 1000;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-  border-left: 4px solid #3b82f6;
-  min-width: 300px;
-  max-width: 500px;
-  animation: slideInRight 0.3s ease;
-  font-weight: 500;
-  word-wrap: break-word;
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--card, #fff);
+    color: var(--text, #333);
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    z-index: 1000;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    border-left: 4px solid #3b82f6;
+    min-width: 300px;
+    max-width: 500px;
+    font-weight: 500;
+    word-wrap: break-word;
 }
 
 .notification.success {
-  border-left-color: #10b981;
-  background: #f0fdf4;
-  color: #166534;
+    border-left-color: #10b981;
+    background: #f0fdf4;
+    color: #166534;
 }
 
 .notification.error {
-  border-left-color: #ef4444;
-  background: #fef2f2;
-  color: #dc2626;
-}
-
-@keyframes slideInRight {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
+    border-left-color: #ef4444;
+    background: #fef2f2;
+    color: #dc2626;
 }
 
 @media (max-width: 767px) {
-  .notification {
-    top: 10px;
-    right: 10px;
-    left: 10px;
-    min-width: auto;
-    max-width: none;
-  }
+    .notification {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        min-width: auto;
+        max-width: none;
+    }
 }
 `;
 
-// Add styles if they don't exist
+// Add styles immediately when module loads
 if (!document.querySelector('#chat-notification-styles')) {
-  const styleElement = document.createElement('style');
-  styleElement.id = 'chat-notification-styles';
-  styleElement.textContent = notificationStyles;
-  document.head.appendChild(styleElement);
+    const styleElement = document.createElement('style');
+    styleElement.id = 'chat-notification-styles';
+    styleElement.textContent = notificationStyles;
+    document.head.appendChild(styleElement);
 }

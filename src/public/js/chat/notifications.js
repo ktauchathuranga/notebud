@@ -1,13 +1,4 @@
-import { CHAT_CONFIG } from './config.js';
-
-/**
- * Chat notification system
- */
-export const ChatNotifications = {
-  /**
-   * Show notification message
-   */
-  show(message, type = 'success') {
+export function showNotification(message, type = 'success') {
     console.log('Notification:', message, 'Type:', type);
     
     // Remove existing notifications
@@ -21,9 +12,8 @@ export const ChatNotifications = {
     document.body.appendChild(notification);
     
     setTimeout(() => {
-      if (notification.parentNode) {
-        notification.remove();
-      }
-    }, CHAT_CONFIG.NOTIFICATION_DURATION);
-  }
-};
+        if (notification.parentNode) {
+            notification.remove();
+        }
+    }, 5000);
+}
