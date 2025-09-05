@@ -186,7 +186,7 @@ $username = $payload['username'] ?? 'User';
         <div id="shareRequestsContainer"></div>
     </div>
 
-    <script src="js/notes.js"></script>
+    <script type="module" src="js/app.js"></script>
 </body>
 
 </html>

@@ -280,7 +280,7 @@ $jwtToken = $_COOKIE['token'] ?? null;
         });
     </script>
 
-    <script src="js/chat.js"></script>
+    <script type="module" src="js/chat.js"></script>
 </body>
 
 </html>
