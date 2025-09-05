@@ -1719,15 +1719,12 @@ if (!document.querySelector('#notification-styles')) {
     document.head.appendChild(styleElement);
 }
 
-// Add this to your notes.js file
 const FileShareHandler = {
     init() {
         this.loadFileShareRequests();
-        
-        // Set up periodic refresh
         setInterval(() => {
             this.loadFileShareRequests();
-        }, 30000); // 30 seconds
+        }, 30000);
     },
 
     openFileShareModal(fileId, filename) {
@@ -1783,6 +1780,7 @@ const FileShareHandler = {
             try {
                 console.log('Sharing file:', fileId, 'with user:', username);
                 
+                // Use relative URL with .php extension (browser will use same protocol)
                 const response = await fetch('/api/share_file.php', {
                     method: 'POST',
                     headers: {
@@ -1795,6 +1793,10 @@ const FileShareHandler = {
                 });
                 
                 console.log('Share response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
                 
                 const result = await response.json();
                 console.log('Share response data:', result);
@@ -1836,7 +1838,13 @@ const FileShareHandler = {
 
     async loadFileShareRequests() {
         try {
+            // Use relative URL with .php extension
             const response = await fetch('/api/get_file_share_requests.php');
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
             const data = await response.json();
             
             if (data.success) {
@@ -1922,6 +1930,10 @@ const FileShareHandler = {
                 body: JSON.stringify({ request_id: requestId })
             });
             
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
             const result = await response.json();
             
             if (result.success) {
@@ -1946,6 +1958,10 @@ const FileShareHandler = {
                 },
                 body: JSON.stringify({ request_id: requestId })
             });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
             
             const result = await response.json();
             
