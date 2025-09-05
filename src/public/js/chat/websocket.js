@@ -1,140 +1,85 @@
-import { CHAT_CONFIG, WEBSOCKET_TYPES, CONNECTION_STATUS, CHAT_CSS_CLASSES } from './config.js';
-import { ChatNotifications } from './notifications.js';
+import { CHAT_CONFIG, WEBSOCKET_TYPES, CONNECTION_STATUS } from './config.js';
+import { showNotification } from './notifications.js';
+import { getWebSocketUrl } from './utils.js';
 
-/**
- * WebSocket connection manager for chat functionality
- */
-export class ChatWebSocket {
-  constructor() {
-    this.socket = null;
-    this.isConnected = false;
-    this.reconnectAttempts = 0;
-    this.messageHandlers = new Map();
-  }
+let socket = null;
+let isConnected = false;
+let reconnectAttempts = 0;
 
-  /**
-   * Get WebSocket URL based on environment
-   */
-  getWebSocketUrl() {
-    if (window.WS_URL) return window.WS_URL;
+export function getSocket() {
+    return socket;
+}
 
-    if (
-      window.location.hostname === "localhost" ||
-      window.location.hostname === "127.0.0.1"
-    ) {
-      return "ws://localhost:8092/ws";
-    }
+export function getIsConnected() {
+    return isConnected;
+}
 
-    return "wss://notebud-websocket.onrender.com/ws";
-  }
-
-  /**
-   * Initialize WebSocket connection
-   */
-  connect() {
+export function initializeWebSocket(messageHandler) {
     const token = window.JWT_TOKEN;
-    
+    console.log('Using JWT token from PHP for WebSocket auth');
+
     if (!token) {
-      console.error('No JWT token available for WebSocket authentication');
-      ChatNotifications.show('Authentication error. Please refresh the page.', 'error');
-      return;
+        console.error('No JWT token available for WebSocket authentication');
+        showNotification('Authentication error. Please refresh the page.', 'error');
+        return;
     }
 
-    this.updateConnectionStatus(CONNECTION_STATUS.CONNECTING);
-    const wsUrl = this.getWebSocketUrl();
+    updateConnectionStatus(CONNECTION_STATUS.CONNECTING);
+    const wsUrl = getWebSocketUrl();
     console.log('Attempting to connect to WebSocket server at ' + wsUrl);
 
     try {
-      this.socket = new WebSocket(wsUrl);
-      this.setupEventListeners(token);
+        socket = new WebSocket(wsUrl);
+
+        socket.onopen = function() {
+            console.log('WebSocket connected successfully');
+            reconnectAttempts = 0;
+            updateConnectionStatus(CONNECTION_STATUS.CONNECTED);
+
+            socket.send(JSON.stringify({
+                type: WEBSOCKET_TYPES.AUTH,
+                token: token
+            }));
+        };
+
+        socket.onmessage = function(event) {
+            console.log('WebSocket message received:', event.data);
+            try {
+                const data = JSON.parse(event.data);
+                messageHandler(data);
+            } catch (e) {
+                console.error('Error parsing WebSocket message:', e, 'Raw data:', event.data);
+            }
+        };
+
+        socket.onclose = function(event) {
+            console.log('WebSocket disconnected. Code:', event.code, 'Reason:', event.reason);
+            isConnected = false;
+            updateConnectionStatus(CONNECTION_STATUS.DISCONNECTED);
+
+            if (reconnectAttempts < CHAT_CONFIG.MAX_RECONNECT_ATTEMPTS) {
+                reconnectAttempts++;
+                console.log(`Reconnection attempt ${reconnectAttempts}/${CHAT_CONFIG.MAX_RECONNECT_ATTEMPTS} in 3 seconds...`);
+                setTimeout(() => initializeWebSocket(messageHandler), CHAT_CONFIG.RECONNECT_DELAY);
+            } else {
+                console.error('Max reconnection attempts reached');
+                showNotification('Unable to connect to chat server. Please refresh the page.', 'error');
+            }
+        };
+
+        socket.onerror = function(error) {
+            console.error('WebSocket error:', error);
+            updateConnectionStatus(CONNECTION_STATUS.DISCONNECTED);
+            showNotification('Connection error. Check if the chat server is running.', 'error');
+        };
     } catch (error) {
-      console.error('Failed to create WebSocket connection:', error);
-      this.updateConnectionStatus(CONNECTION_STATUS.DISCONNECTED);
-      ChatNotifications.show('Failed to connect to chat server', 'error');
+        console.error('Failed to create WebSocket connection:', error);
+        updateConnectionStatus(CONNECTION_STATUS.DISCONNECTED);
+        showNotification('Failed to connect to chat server', 'error');
     }
-  }
+}
 
-  /**
-   * Setup WebSocket event listeners
-   */
-  setupEventListeners(token) {
-    this.socket.onopen = () => {
-      console.log('WebSocket connected successfully');
-      this.reconnectAttempts = 0;
-      this.updateConnectionStatus(CONNECTION_STATUS.CONNECTED);
-
-      this.send({
-        type: WEBSOCKET_TYPES.AUTH,
-        token: token
-      });
-    };
-
-    this.socket.onmessage = (event) => {
-      console.log('WebSocket message received:', event.data);
-      try {
-        const data = JSON.parse(event.data);
-        this.handleMessage(data);
-      } catch (e) {
-        console.error('Error parsing WebSocket message:', e, 'Raw data:', event.data);
-      }
-    };
-
-    this.socket.onclose = (event) => {
-      console.log('WebSocket disconnected. Code:', event.code, 'Reason:', event.reason);
-      this.isConnected = false;
-      this.updateConnectionStatus(CONNECTION_STATUS.DISCONNECTED);
-
-      if (this.reconnectAttempts < CHAT_CONFIG.MAX_RECONNECT_ATTEMPTS) {
-        this.reconnectAttempts++;
-        console.log(`Reconnection attempt ${this.reconnectAttempts}/${CHAT_CONFIG.MAX_RECONNECT_ATTEMPTS} in 3 seconds...`);
-        setTimeout(() => this.connect(), CHAT_CONFIG.RECONNECT_DELAY);
-      } else {
-        console.error('Max reconnection attempts reached');
-        ChatNotifications.show('Unable to connect to chat server. Please refresh the page.', 'error');
-      }
-    };
-
-    this.socket.onerror = (error) => {
-      console.error('WebSocket error:', error);
-      this.updateConnectionStatus(CONNECTION_STATUS.DISCONNECTED);
-      ChatNotifications.show('Connection error. Check if the chat server is running.', 'error');
-    };
-  }
-
-  /**
-   * Handle incoming WebSocket messages
-   */
-  handleMessage(data) {
-    const handler = this.messageHandlers.get(data.type);
-    if (handler) {
-      handler(data);
-    } else {
-      console.log('Unknown WebSocket message type:', data.type, 'Full data:', data);
-    }
-  }
-
-  /**
-   * Register message handler
-   */
-  onMessage(type, handler) {
-    this.messageHandlers.set(type, handler);
-  }
-
-  /**
-   * Send message through WebSocket
-   */
-  send(data) {
-    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-      this.socket.send(JSON.stringify(data));
-      return true;
-    }
-    return false;
-  }
-
-  /**
-   * Update connection status
-   */
-  updateConnectionStatus(status) {
+export function updateConnectionStatus(status) {
     console.log('Connection status update:', status);
     const statusElement = document.getElementById('connectionStatus');
     const sendRequestBtn = document.getElementById('sendRequestBtn');
@@ -146,42 +91,46 @@ export class ChatWebSocket {
     statusElement.className = `connection-status ${status}`;
     
     switch (status) {
-      case CONNECTION_STATUS.CONNECTED:
-        statusElement.innerHTML = 'Connected to chat server';
-        this.isConnected = true;
-        if (sendRequestBtn) sendRequestBtn.disabled = false;
-        if (messageInput) messageInput.disabled = false;
-        if (sendMessageBtn) sendMessageBtn.disabled = false;
-        break;
-      case CONNECTION_STATUS.CONNECTING:
-        statusElement.innerHTML = 'Connecting to chat server...';
-        this.isConnected = false;
-        if (sendRequestBtn) sendRequestBtn.disabled = true;
-        if (messageInput) messageInput.disabled = true;
-        if (sendMessageBtn) sendMessageBtn.disabled = true;
-        break;
-      case CONNECTION_STATUS.DISCONNECTED:
-        if (this.reconnectAttempts < CHAT_CONFIG.MAX_RECONNECT_ATTEMPTS) {
-          statusElement.innerHTML = `Reconnecting... (${this.reconnectAttempts}/${CHAT_CONFIG.MAX_RECONNECT_ATTEMPTS})`;
-        } else {
-          statusElement.innerHTML = 'Disconnected from chat server';
-        }
-        this.isConnected = false;
-        if (sendRequestBtn) sendRequestBtn.disabled = true;
-        if (messageInput) messageInput.disabled = true;
-        if (sendMessageBtn) sendMessageBtn.disabled = true;
-        break;
+        case CONNECTION_STATUS.CONNECTED:
+            statusElement.innerHTML = 'Connected to chat server';
+            isConnected = true;
+            if (sendRequestBtn) sendRequestBtn.disabled = false;
+            if (messageInput) messageInput.disabled = false;
+            if (sendMessageBtn) sendMessageBtn.disabled = false;
+            break;
+        case CONNECTION_STATUS.CONNECTING:
+            statusElement.innerHTML = 'Connecting to chat server...';
+            isConnected = false;
+            if (sendRequestBtn) sendRequestBtn.disabled = true;
+            if (messageInput) messageInput.disabled = true;
+            if (sendMessageBtn) sendMessageBtn.disabled = true;
+            break;
+        case CONNECTION_STATUS.DISCONNECTED:
+            if (reconnectAttempts < CHAT_CONFIG.MAX_RECONNECT_ATTEMPTS) {
+                statusElement.innerHTML = `Reconnecting... (${reconnectAttempts}/${CHAT_CONFIG.MAX_RECONNECT_ATTEMPTS})`;
+            } else {
+                statusElement.innerHTML = 'Disconnected from chat server';
+            }
+            isConnected = false;
+            if (sendRequestBtn) sendRequestBtn.disabled = true;
+            if (messageInput) messageInput.disabled = true;
+            if (sendMessageBtn) sendMessageBtn.disabled = true;
+            break;
     }
-  }
+}
 
-  /**
-   * Close WebSocket connection
-   */
-  disconnect() {
-    if (this.socket) {
-      this.socket.close();
-      this.socket = null;
+export function sendWebSocketMessage(message) {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify(message));
+        return true;
     }
-    this.isConnected = false;
-  }
+    return false;
+}
+
+export function requestChatRequests() {
+    sendWebSocketMessage({ type: WEBSOCKET_TYPES.GET_CHAT_REQUESTS });
+}
+
+export function requestActiveChats() {
+    sendWebSocketMessage({ type: WEBSOCKET_TYPES.GET_ACTIVE_CHATS });
 }
