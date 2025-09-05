@@ -1781,7 +1781,7 @@ const FileShareHandler = {
                 console.log('Sharing file:', fileId, 'with user:', username);
                 
                 // Use relative URL with .php extension (browser will use same protocol)
-                const response = await fetch('/api/share_file.php', {
+                const response = await fetch('/api/share_file', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -1839,7 +1839,7 @@ const FileShareHandler = {
     async loadFileShareRequests() {
         try {
             // Use relative URL with .php extension
-            const response = await fetch('/api/get_file_share_requests.php');
+            const response = await fetch('/api/get_file_share_requests');
             
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -1922,7 +1922,7 @@ const FileShareHandler = {
 
     async acceptFileShare(requestId) {
         try {
-            const response = await fetch('/api/accept_file_share.php', {
+            const response = await fetch('/api/accept_file_share', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -1951,7 +1951,7 @@ const FileShareHandler = {
 
     async rejectFileShare(requestId) {
         try {
-            const response = await fetch('/api/reject_file_share.php', {
+            const response = await fetch('/api/reject_file_share', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
