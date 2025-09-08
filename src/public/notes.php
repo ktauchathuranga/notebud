@@ -104,20 +104,32 @@ $username = $payload['username'] ?? 'User';
             <section class="files-section">
                 <h2>📎 Files</h2>
 
-                <!-- File Upload Area -->
-                <div class="file-upload">
+                <!-- File Upload Area with Drag & Drop -->
+                <div class="file-upload" id="fileUploadArea">
                     <input type="file" id="fileInput" multiple style="display: none;"
-                        accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.jpg,.jpeg,.png,.gif,.webp,.svg">
-                    <button id="uploadBtn" class="upload-btn">
-                        <span>📎 Upload Files</span>
-                    </button>
-                    <p style="margin-top: 0.5rem; color: var(--text-muted); font-size: 0.85rem; text-align: center;">
-                        PDF, Office docs, images, text files
-                    </p>
+                        accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.jpg,.jpeg,.png,.gif,.webp,.svg,.zip,.rar,.7z">
+
+                    <div class="upload-zone" id="uploadZone">
+                        <div class="upload-icon">📎</div>
+                        <div class="upload-text">
+                            <strong>Drop files here</strong> or
+                            <p>click to browse</p>
+                        </div>
+                        <div class="upload-hint">
+                            PDF, Office docs, images, text files, and archives (ZIP, RAR, 7Z)
+                        </div>
+                    </div>
+
+                    <div class="drag-overlay" id="dragOverlay">
+                        <div class="drag-content">
+                            <div class="drag-icon">📁</div>
+                            <div class="drag-text">Drop files to upload</div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Upload Progress -->
-                <div class="upload-progress" style="display: none;">
+                <div class="upload-progress" id="uploadProgress" style="display: none;">
                     <div class="progress-bar">
                         <div class="progress-fill" style="width: 0%;"></div>
                     </div>
