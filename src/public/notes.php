@@ -107,12 +107,12 @@ $username = $payload['username'] ?? 'User';
                 <!-- File Upload Area -->
                 <div class="file-upload">
                     <input type="file" id="fileInput" multiple style="display: none;"
-                        accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.jpg,.jpeg,.png,.gif,.webp,.svg">
+                        accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.jpg,.jpeg,.png,.gif,.webp,.svg,.zip,.rar,.7z">
                     <button id="uploadBtn" class="upload-btn">
                         <span>📎 Upload Files</span>
                     </button>
                     <p style="margin-top: 0.5rem; color: var(--text-muted); font-size: 0.85rem; text-align: center;">
-                        PDF, Office docs, images, text files
+                        PDF, Office docs, images, text files, and archives (ZIP, RAR, 7Z)
                     </p>
                 </div>
 

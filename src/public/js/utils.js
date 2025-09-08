@@ -155,7 +155,11 @@ export function getFileIcon(mimeType) {
     'image/jpeg': '🖼️',
     'image/png': '🖼️',
     'image/gif': '🖼️',
-    'image/webp': '🖼️'
+    'image/webp': '🖼️',
+    'image/svg+xml': '🖼️',
+    'application/zip': '📦',
+    'application/x-zip-compressed': '📦',
+    'application/x-zip': '📦'
   };
   
   return icons[mimeType] || '📎';

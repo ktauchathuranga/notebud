@@ -21,7 +21,16 @@ const ALLOWED_MIME_TYPES = [
     'image/png',
     'image/gif',
     'image/webp',
-    'image/svg+xml'
+    'image/svg+xml',
+    // Archive formats
+    'application/zip',
+    'application/x-zip-compressed',
+    'application/x-zip',
+    'application/x-rar-compressed',
+    'application/x-7z-compressed',
+    'application/x-tar',
+    'application/gzip',
+    'application/x-bzip2'
 ];
 
 function get_user_storage_usage($user_id)
