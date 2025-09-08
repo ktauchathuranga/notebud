@@ -11,7 +11,7 @@ Perfect for uni labs where you can't access OneDrive/Google Drive due to 2FA has
 
 > [!TIP]
 > - **Visit us at**: [notebud.cc](https://notebud.cc)
-> - Alternative Domain: [notebud-t6u9.onrender.com](https://notebud-t6u9.onrender.com/)
+> - Alternative Domain: [notebud-3x6z.onrender.com](https://notebud-3x6z.onrender.com/)
 
 ## ⚠️ Important User Responsibility
 
@@ -38,6 +38,8 @@ By using notebud, you acknowledge these limitations and agree to use the platfor
 - **Search functionality** - Quick search through your notes
 - **Character counter** - Track note length with warnings
 - **Share notes** - You can share notes using usernames
+- **20Mb storage** - You can store documets and zip files total size of 20Mb's
+- **Share files** - You can share files as well with other users
 
 ### Chat Features
 - **Real-time messaging** - WebSocket-powered instant communication
