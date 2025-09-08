@@ -12,6 +12,7 @@ let storageLimit = 20 * 1024 * 1024; // 20MB
 export const FileManager = {
   init() {
     this.initializeFileUpload();
+    this.initializeDragAndDrop();
     this.loadUserFiles();
     FileShareHandler.init();
   },
@@ -19,19 +20,221 @@ export const FileManager = {
   initializeFileUpload() {
     const uploadBtn = document.getElementById('uploadBtn');
     const fileInput = document.getElementById('fileInput');
+    const uploadZone = document.getElementById('uploadZone');
     
     if (uploadBtn && fileInput) {
-      uploadBtn.addEventListener('click', () => {
+      uploadBtn.addEventListener('click', (e) => {
+        e.preventDefault();
         fileInput.click();
       });
       
       fileInput.addEventListener('change', this.handleFileUpload.bind(this));
     }
+
+    if (uploadZone) {
+      uploadZone.addEventListener('click', () => {
+        fileInput.click();
+      });
+    }
+  },
+
+  initializeDragAndDrop() {
+    const uploadArea = document.getElementById('fileUploadArea');
+    const uploadZone = document.getElementById('uploadZone');
+    const dragOverlay = document.getElementById('dragOverlay');
+    const fileInput = document.getElementById('fileInput');
+
+    if (!uploadArea || !uploadZone || !dragOverlay || !fileInput) return;
+
+    let dragCounter = 0;
+
+    // Prevent default drag behaviors on the entire document
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+      document.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      });
+    });
+
+    // Handle drag enter
+    uploadArea.addEventListener('dragenter', (e) => {
+      e.preventDefault();
+      dragCounter++;
+      uploadZone.classList.add('drag-over');
+      dragOverlay.classList.add('show');
+    });
+
+    // Handle drag over
+    uploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+    });
+
+    // Handle drag leave
+    uploadArea.addEventListener('dragleave', (e) => {
+      e.preventDefault();
+      dragCounter--;
+      
+      if (dragCounter === 0) {
+        uploadZone.classList.remove('drag-over');
+        dragOverlay.classList.remove('show');
+      }
+    });
+
+    // Handle drop
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dragCounter = 0;
+      uploadZone.classList.remove('drag-over');
+      dragOverlay.classList.remove('show');
+
+      const files = Array.from(e.dataTransfer.files);
+      if (files.length > 0) {
+        // Create a fake event object to simulate file input change
+        const fakeEvent = {
+          target: {
+            files: files,
+            value: ''
+          }
+        };
+        this.handleFileUpload(fakeEvent);
+      }
+    });
+
+    // Also handle global drag events to prevent browser default behavior
+    document.addEventListener('dragover', (e) => {
+      e.preventDefault();
+    });
+
+    document.addEventListener('drop', (e) => {
+      e.preventDefault();
+    });
+  },
+
+  /**
+   * Validate file before upload
+   * @param {File} file - File to validate
+   * @returns {Object} Validation result
+   */
+  validateFile(file) {
+    const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+    const MAX_ZIP_SIZE = 100 * 1024 * 1024; // 100MB for ZIP files
+    
+    const allowedTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-powerpoint',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      'text/plain',
+      'text/csv',
+      'image/jpeg',
+      'image/png',
+      'image/gif',
+      'image/webp',
+      'image/svg+xml',
+      'application/zip',
+      'application/x-zip-compressed',
+      'application/x-zip',
+      'application/x-rar-compressed',
+      'application/x-7z-compressed'
+    ];
+
+    // Check file type
+    if (!allowedTypes.includes(file.type)) {
+      // Check by extension as fallback
+      const extension = file.name.toLowerCase().split('.').pop();
+      const allowedExtensions = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 
+                                'txt', 'csv', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'svg',
+                                'zip', 'rar', '7z'];
+      
+      if (!allowedExtensions.includes(extension)) {
+        return {
+          valid: false,
+          error: `File type not supported: ${file.type || extension}`
+        };
+      }
+    }
+
+    // Check file size
+    const isArchive = ['application/zip', 'application/x-zip-compressed', 'application/x-zip', 
+                      'application/x-rar-compressed', 'application/x-7z-compressed'].includes(file.type) ||
+                      ['zip', 'rar', '7z'].includes(file.name.toLowerCase().split('.').pop());
+    
+    const sizeLimit = isArchive ? MAX_ZIP_SIZE : MAX_FILE_SIZE;
+    
+    if (file.size > sizeLimit) {
+      return {
+        valid: false,
+        error: `File too large: ${formatBytes(file.size)}. Maximum size: ${formatBytes(sizeLimit)}`
+      };
+    }
+
+    return { valid: true };
+  },
+
+  /**
+   * Get user-friendly file type description
+   * @param {File} file - File object
+   * @returns {string} File type description
+   */
+  getFileTypeDescription(file) {
+    const extension = file.name.toLowerCase().split('.').pop();
+    const descriptions = {
+      'zip': 'Archive',
+      'rar': 'Archive', 
+      '7z': 'Archive',
+      'pdf': 'Document',
+      'doc': 'Document',
+      'docx': 'Document',
+      'xls': 'Spreadsheet',
+      'xlsx': 'Spreadsheet',
+      'ppt': 'Presentation',
+      'pptx': 'Presentation',
+      'txt': 'Text file',
+      'csv': 'CSV file',
+      'jpg': 'Image',
+      'jpeg': 'Image',
+      'png': 'Image',
+      'gif': 'Image',
+      'webp': 'Image',
+      'svg': 'Image'
+    };
+    
+    return descriptions[extension] || 'File';
   },
 
   async handleFileUpload(event) {
-    const files = Array.from(event.target.files);
+    const files = Array.from(event.target.files || event.target);
     if (files.length === 0) return;
+    
+    // Validate all files first
+    const validationErrors = [];
+    const validFiles = [];
+    
+    files.forEach(file => {
+      const validation = this.validateFile(file);
+      if (validation.valid) {
+        validFiles.push(file);
+      } else {
+        validationErrors.push(`${file.name}: ${validation.error}`);
+      }
+    });
+    
+    // Show validation errors
+    if (validationErrors.length > 0) {
+      validationErrors.forEach(error => {
+        showNotification(error, 'error', 7000);
+      });
+    }
+    
+    if (validFiles.length === 0) {
+      if (event.target.value !== undefined) {
+        event.target.value = '';
+      }
+      return;
+    }
     
     const uploadBtn = document.getElementById('uploadBtn');
     const progressDiv = document.querySelector('.upload-progress');
@@ -49,16 +252,17 @@ export const FileManager = {
     let errorCount = 0;
     let errors = [];
     
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      this.updateUploadProgress(i + 1, files.length, file.name);
+    for (let i = 0; i < validFiles.length; i++) {
+      const file = validFiles[i];
+      this.updateUploadProgress(i + 1, validFiles.length, file.name);
       
       try {
         const result = await FilesAPI.uploadFile(file);
         
         if (result.success) {
           successCount++;
-          showNotification(`File "${file.name}" uploaded successfully!`, 'success', 3000);
+          const fileType = this.getFileTypeDescription(file);
+          showNotification(`${fileType} "${file.name}" uploaded successfully!`, 'success', 3000);
         } else {
           errorCount++;
           errors.push(`${file.name}: ${result.error}`);
@@ -80,7 +284,9 @@ export const FileManager = {
       uploadBtn.innerHTML = '<span>📎 Upload Files</span>';
     }
     
-    event.target.value = '';
+    if (event.target.value !== undefined) {
+      event.target.value = '';
+    }
     
     await this.loadUserFiles();
     
@@ -145,6 +351,12 @@ export const FileManager = {
     filesData.forEach(file => {
       const fileDiv = document.createElement('div');
       fileDiv.className = 'file-item';
+      
+      // Add data attribute for file type
+      const extension = file.filename.toLowerCase().split('.').pop();
+      if (['zip', 'rar', '7z'].includes(extension)) {
+        fileDiv.setAttribute('data-type', 'archive');
+      }
       
       const fileIcon = document.createElement('div');
       fileIcon.className = 'file-icon';
