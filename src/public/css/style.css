@@ -521,6 +521,15 @@ button:disabled {
   box-shadow: none;
 }
 
+button.primary {
+    background: var(--primary);
+    color: white;
+}
+
+button.primary:hover {
+    background: var(--primary-dark);
+}
+
 button.secondary {
   background: var(--bg);
   border: 1px solid var(--border);
@@ -2466,28 +2475,6 @@ button.success:hover {
     box-shadow: var(--shadow-xs);
     flex-grow: 1; /* Allow buttons to grow */
     max-width: 120px; /* Prevent buttons from becoming too wide */
-}
-
-.download-btn {
-    background: var(--primary);
-    color: white;
-}
-
-.download-btn:hover {
-    background: var(--primary-dark);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-sm);
-}
-
-.delete-file-btn {
-    background: var(--danger);
-    color: white;
-}
-
-.delete-file-btn:hover {
-    background: #b91c1c;
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-sm);
 }
 
 /* File upload progress */

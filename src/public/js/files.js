@@ -1,6 +1,6 @@
 import { FilesAPI } from './api.js';
 import { showNotification } from './notifications.js';
-import { formatBytes, formatDate, escapeHtml, getFileIcon, createElement, CSS_CLASSES } from './utils.js';
+import { formatBytes, formatDate, escapeHtml, getFileIcon, createElement, createIcon, CSS_CLASSES } from './utils.js';
 import { ShareHandler } from './sharing.js'; // Import ShareHandler to update indicator
 
 let filesData = [];
@@ -221,18 +221,27 @@ export const FileManager = {
         </div>
       `;
       
-      const fileActions = createElement('div', 'file-actions');
+      const fileActions = createElement('div', CSS_CLASSES.noteControls); // Use same class as notes
       
-      const downloadBtn = createElement('button', 'download-btn', '⬇️ Download');
+      const downloadBtn = document.createElement('button');
+      downloadBtn.className = 'primary'; // Primary action color
+      downloadBtn.appendChild(createIcon('download'));
+      downloadBtn.appendChild(document.createTextNode(' Download'));
       downloadBtn.addEventListener('click', () => this.downloadFile(file.file_id, file.filename));
       
-      const shareBtn = createElement('button', 'secondary', '📤 Share');
+      const shareBtn = document.createElement('button');
+      shareBtn.className = 'secondary';
+      shareBtn.appendChild(createIcon('share'));
+      shareBtn.appendChild(document.createTextNode(' Share'));
       shareBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         FileShareHandler.openFileShareModal(file.file_id, file.filename);
       });
       
-      const deleteBtn = createElement('button', 'delete-file-btn', '🗑️ Delete');
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = CSS_CLASSES.buttonDanger;
+      deleteBtn.appendChild(createIcon('trash-simple'));
+      deleteBtn.appendChild(document.createTextNode(' Delete'));
       deleteBtn.addEventListener('click', () => this.deleteFile(file.file_id, file.filename));
       
       fileActions.appendChild(downloadBtn);
