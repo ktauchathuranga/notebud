@@ -14,18 +14,25 @@ export const HeaderIcons = {
     }
 
     // Update section headers with inline SVGs
-    const editorHeader = document.querySelector('.editor h2');
+    const editorHeader = document.querySelector('.editor-panel h2');
     if (editorHeader) {
       editorHeader.innerHTML = '';
       editorHeader.appendChild(createIcon('pencil'));
       editorHeader.appendChild(document.createTextNode('Write Note'));
     }
 
-    const notesHeader = document.querySelector('.notes-list h2');
+    const notesHeader = document.querySelector('.notes-list-panel h2');
     if (notesHeader) {
       notesHeader.innerHTML = '';
       notesHeader.appendChild(createIcon('files'));
       notesHeader.appendChild(document.createTextNode('Your Notes'));
+    }
+    
+    const filesHeader = document.querySelector('.files-panel h2');
+    if (filesHeader) {
+        filesHeader.innerHTML = '';
+        filesHeader.appendChild(createIcon('share')); // Using 'share' as a placeholder for a file icon
+        filesHeader.appendChild(document.createTextNode(' Files'));
     }
 
     // Update logout all button with inline SVG if it exists

@@ -71,6 +71,27 @@ $username = $payload['username'] ?? 'User';
                 <div class="indicator"></div>
                 <span class="text"><?= $isPermanent ? 'Permanent Session' : 'Temporary Session (4h)' ?></span>
             </div>
+
+            <!-- Requests Button and Popup -->
+            <div class="requests-wrapper">
+                <button id="requestsBtn" class="requests-btn">
+                    Inbox
+                    <span id="requestsIndicator" class="indicator" style="display: none;"></span>
+                </button>
+                <div id="requestsPopup" class="requests-popup">
+                    <div class="popup-header">
+                        <h3>Inbox</h3>
+                    </div>
+                    <div class="popup-body">
+                        <div id="noteShareRequests"></div>
+                        <div id="fileShareRequests"></div>
+                        <div id="noRequestsMessage" class="empty-state" style="display: none;">
+                            <div>No new requests.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div id="userInfo" class="user-info"></div>
             <a href="/chat" class="chat-link">💬 Chat</a>
             <?php if ($isPermanent): ?>
@@ -80,30 +101,39 @@ $username = $payload['username'] ?? 'User';
         </div>
     </header>
 
-    <main class="container">
-        <div class="left-panel">
-            <section class="editor">
-                <h2>Write Note</h2>
-                <input type="text" id="title" placeholder="Note title (optional)" />
-                <textarea id="content" placeholder="Start writing your note..."></textarea>
-                <button id="saveBtn">Save Note</button>
-                <div id="saveMsg" class="msg"></div>
-            </section>
-        </div>
-
-        <div class="right-panel">
-            <section class="notes-list">
+    <main class="container-new">
+        <!-- Notes List Panel -->
+        <aside class="notes-list-panel">
+            <div class="panel-header">
                 <h2>Your Notes</h2>
+            </div>
+            <div class="panel-body">
                 <div id="notesContainer">
                     <div class="empty-state">
                         <div>Loading notes...</div>
                     </div>
                 </div>
-            </section>
+            </div>
+        </aside>
 
-            <section class="files-section">
+        <!-- Editor Panel -->
+        <section class="editor-panel">
+            <div class="panel-header">
+                <h2>Write Note</h2>
+            </div>
+            <div class="panel-body">
+                <input type="text" id="title" placeholder="Note title (optional)" />
+                <textarea id="content" placeholder="Start writing your note..."></textarea>
+                <button id="saveBtn">Save Note</button>
+            </div>
+        </section>
+
+        <!-- Files Panel -->
+        <aside class="files-panel">
+            <div class="panel-header">
                 <h2>📎 Files</h2>
-
+            </div>
+            <div class="panel-body">
                 <!-- File Upload Area with Drag & Drop -->
                 <div class="file-upload" id="fileUploadArea">
                     <input type="file" id="fileInput" multiple style="display: none;"
@@ -152,8 +182,8 @@ $username = $payload['username'] ?? 'User';
                         <div>Loading files...</div>
                     </div>
                 </div>
-            </section>
-        </div>
+            </div>
+        </aside>
     </main>
 
     <!-- Note Modal -->
@@ -190,12 +220,6 @@ $username = $payload['username'] ?? 'User';
                 </form>
             </div>
         </div>
-    </div>
-
-    <!-- Share Requests Section -->
-    <div id="shareRequestsSection" class="share-requests" style="display: none;">
-        <h3>📨 Share Requests</h3>
-        <div id="shareRequestsContainer"></div>
     </div>
 
     <script type="module" src="js/app.js"></script>
