@@ -1,6 +1,6 @@
 import { NotesAPI } from './api.js';
 import { DOM } from './dom.js';
-import { MessageHandler, showNotification } from './notifications.js';
+import { showNotification } from './notifications.js';
 import { formatDate, truncateText, createElement, createIcon, CSS_CLASSES, CONFIG } from './utils.js';
 import { NoteModal } from './modal.js';
 import { ShareHandler } from './sharing.js';
@@ -20,6 +20,7 @@ export const NotesDisplay = {
       notes = await NotesAPI.fetch();
       this.render();
     } catch (error) {
+      console.error("Error loading notes:", error);
       this.showError('Failed to load notes. Please refresh the page.');
     }
   },
@@ -30,12 +31,21 @@ export const NotesDisplay = {
   render() {
     const container = DOM.notesContainer;
     
+    if (!container) return;
+
     if (notes.length === 0) {
       this.showEmpty();
       return;
     }
     
     container.innerHTML = '';
+    
+    // Add search functionality if needed
+    if (notes.length > CONFIG.SEARCH_THRESHOLD) {
+      SearchHandler.add();
+    } else {
+      SearchHandler.remove();
+    }
     
     // Sort notes by creation date (newest first)
     const sortedNotes = [...notes].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
@@ -44,11 +54,6 @@ export const NotesDisplay = {
       const noteEl = this.createNoteElement(note, index);
       container.appendChild(noteEl);
     });
-
-    // Add search functionality if needed
-    if (notes.length > CONFIG.SEARCH_THRESHOLD) {
-      SearchHandler.add();
-    }
   },
 
   /**
@@ -178,6 +183,7 @@ export const NotesDisplay = {
       const success = await NotesAPI.delete(noteId);
       
       if (success) {
+        showNotification('Note deleted successfully!', 'success');
         noteElement.classList.add(CSS_CLASSES.slideOut);
         setTimeout(() => {
           this.load();
@@ -188,7 +194,7 @@ export const NotesDisplay = {
     } catch (error) {
       console.error('Error deleting note:', error);
       noteElement.classList.remove(CSS_CLASSES.deleting);
-      alert('Failed to delete note. Please try again.');
+      showNotification('Failed to delete note. Please try again.', 'error');
     }
   }
 };
@@ -220,13 +226,9 @@ export const NoteEditor = {
     DOM.titleInput.value = note.title || '';
     DOM.contentInput.value = note.content || '';
     
-    // Scroll to editor
     DOM.editor.scrollIntoView({ behavior: 'smooth' });
-    
-    // Focus on title field
     DOM.titleInput.focus();
     
-    // Show edit indicator
     DOM.saveBtn.innerHTML = '';
     DOM.saveBtn.appendChild(createIcon('floppy-disk'));
     DOM.saveBtn.appendChild(document.createTextNode(' Update Note'));
@@ -241,12 +243,11 @@ export const NoteEditor = {
     const content = DOM.contentInput.value.trim();
     
     if (!content) {
-      MessageHandler.show(DOM.saveMsg, 'Please enter some content for your note.', 'error');
+      showNotification('Please enter some content for your note.', 'error');
       DOM.contentInput.focus();
       return;
     }
     
-    // Show loading state
     DOM.saveBtn.disabled = true;
     const isEditing = DOM.saveBtn.dataset.editingId;
     DOM.saveBtn.textContent = isEditing ? 'Updating...' : 'Saving...';
@@ -261,19 +262,18 @@ export const NoteEditor = {
       
       if (result.success) {
         this.reset();
-        MessageHandler.show(DOM.saveMsg, 
+        showNotification(
           isEditing ? 'Note updated successfully!' : 'Note saved successfully!', 
-          'success');
-        
-        NotesDisplay.load();
-        
+          'success'
+        );
+        NotesDisplay.load(); // This will now run correctly.
         setTimeout(() => DOM.contentInput.focus(), 100);
       } else {
         throw new Error(result.error || 'Save failed');
       }
     } catch (error) {
       console.error('Error saving note:', error);
-      MessageHandler.show(DOM.saveMsg, error.message || 'Failed to save note. Please try again.', 'error');
+      showNotification(error.message || 'Failed to save note. Please try again.', 'error');
     } finally {
       DOM.saveBtn.disabled = false;
       if (!DOM.saveBtn.innerHTML.includes('Save Note')) {
@@ -364,6 +364,7 @@ export const AutoResize = {
  */
 export const SearchHandler = {
   isAdded: false,
+  searchWrapper: null,
 
   /**
    * Add search functionality
@@ -371,7 +372,7 @@ export const SearchHandler = {
   add() {
     if (this.isAdded) return;
     
-    const searchWrapper = createElement('div', CSS_CLASSES.searchWrapper);
+    this.searchWrapper = createElement('div', CSS_CLASSES.searchWrapper);
     
     const searchIcon = createIcon('magnifying-glass');
     searchIcon.classList.add(CSS_CLASSES.searchIcon);
@@ -380,13 +381,26 @@ export const SearchHandler = {
     searchInput.placeholder = 'Search notes...';
     searchInput.addEventListener('input', (e) => this.filter(e.target.value));
     
-    searchWrapper.appendChild(searchIcon);
-    searchWrapper.appendChild(searchInput);
+    this.searchWrapper.appendChild(searchIcon);
+    this.searchWrapper.appendChild(searchInput);
     
-    const h2 = DOM.notesList.querySelector('h2');
-    DOM.notesList.insertBefore(searchWrapper, h2.nextSibling);
+    const panelBody = DOM.notesList.querySelector('.panel-body');
+    if (panelBody) {
+        panelBody.insertBefore(this.searchWrapper, panelBody.firstChild);
+    }
     
     this.isAdded = true;
+  },
+
+  /**
+   * Remove search functionality
+   */
+  remove() {
+      if (this.isAdded && this.searchWrapper) {
+          this.searchWrapper.remove();
+          this.searchWrapper = null;
+          this.isAdded = false;
+      }
   },
 
   /**

@@ -1,27 +1,43 @@
 import { CONFIG } from './utils.js';
 import { DOM } from './dom.js';
-import { MessageHandler } from './notifications.js';
+import { showNotification } from './notifications.js';
 import { formatDate, createElement, CSS_CLASSES } from './utils.js';
 import { NotesDisplay } from './notes.js';
+
+let noteRequests = [];
 
 /**
  * Share Handler functionality
  */
 export const ShareHandler = {
   init() {
+    // Initialize main share modal
     if (DOM.shareModal) {
-      DOM.shareForm.addEventListener('submit', this.handleShare.bind(this));
+      DOM.shareForm.addEventListener('submit', this.handleShareNote.bind(this));
       document.getElementById('closeShareModal').addEventListener('click', this.closeShareModal.bind(this));
       DOM.shareModal.addEventListener('click', (e) => {
         if (e.target === DOM.shareModal) this.closeShareModal();
       });
     }
+
+    // Initialize requests popup
+    if (DOM.requestsBtn) {
+        DOM.requestsBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            DOM.requestsPopup.classList.toggle('show');
+        });
+
+        // Close popup if clicking outside
+        document.addEventListener('click', (e) => {
+            if (!DOM.requestsPopup.contains(e.target) && !DOM.requestsBtn.contains(e.target)) {
+                DOM.requestsPopup.classList.remove('show');
+            }
+        });
+    }
     
+    // Load note requests periodically
     this.loadShareRequests();
-    
-    setInterval(() => {
-      this.loadShareRequests();
-    }, CONFIG.SHARE_REFRESH_INTERVAL);
+    setInterval(() => this.loadShareRequests(), CONFIG.SHARE_REFRESH_INTERVAL);
   },
 
   openShareModal(note) {
@@ -35,14 +51,12 @@ export const ShareHandler = {
     DOM.shareModal.classList.remove('show');
   },
 
-  async handleShare(e) {
+  async handleShareNote(e) {
     e.preventDefault();
-    
     const noteId = DOM.shareNoteId.value;
     const username = DOM.shareUsername.value.trim();
-    
     if (!username) {
-      MessageHandler.show(DOM.saveMsg, 'Please enter a username', 'error');
+      showNotification('Please enter a username', 'error');
       return;
     }
     
@@ -51,27 +65,18 @@ export const ShareHandler = {
     shareBtn.textContent = 'Sharing...';
     
     try {
-      const formData = new URLSearchParams();
-      formData.append('note_id', noteId);
-      formData.append('username', username);
-      
-      const response = await fetch('/api/share_note', {
-        method: 'POST',
-        body: formData
-      });
-      
+      const formData = new URLSearchParams({ note_id: noteId, username });
+      const response = await fetch('/api/share_note', { method: 'POST', body: formData });
       const data = await response.json();
       
       if (response.ok && data.success) {
-        MessageHandler.show(DOM.saveMsg, data.message || 'Note shared successfully!', 'success');
+        showNotification(data.message || 'Note shared successfully!', 'success');
       } else {
-        const errorMessage = data.error && data.error.includes('already') 
-          ? 'This note is already shared with this user.'
-          : data.error || 'Failed to share note';
-        MessageHandler.show(DOM.saveMsg, errorMessage, 'error');
+        const errorMessage = data.error?.includes('already') ? 'This note is already shared with this user.' : data.error || 'Failed to share note';
+        showNotification(errorMessage, 'error');
       }
     } catch (error) {
-      MessageHandler.show(DOM.saveMsg, 'Network error. Please try again.', 'error');
+      showNotification('Network error. Please try again.', 'error');
     } finally {
       shareBtn.disabled = false;
       shareBtn.textContent = 'Share Note';
@@ -83,108 +88,82 @@ export const ShareHandler = {
     try {
       const response = await fetch('/api/get_share_requests');
       const data = await response.json();
-      
-      if (response.ok) {
-        this.renderShareRequests(data.requests);
-      } else {
-        throw new Error(data.error || 'Failed to load share requests');
-      }
+      noteRequests = response.ok ? (data.requests || []) : [];
     } catch (error) {
-      console.error('Error loading share requests:', error);
+      console.error('Error loading note share requests:', error);
+      noteRequests = [];
+    } finally {
+        this.renderShareRequests();
     }
   },
 
-  renderShareRequests(requests) {
-    const container = DOM.shareRequestsContainer;
-    
-    if (requests.length === 0) {
-      DOM.shareRequestsSection.style.display = 'none';
-      return;
-    }
-    
-    DOM.shareRequestsSection.style.display = 'block';
+  renderShareRequests() {
+    const container = DOM.noteShareRequestsContainer;
+    if (!container) return;
     container.innerHTML = '';
     
-    requests.forEach(request => {
+    noteRequests.forEach(request => {
       const requestEl = createElement('div', CSS_CLASSES.shareRequestItem);
-      
-      const message = createElement('p', '', 
-        `${request.from_username} wants to share a note with you`);
-      
-      const date = createElement('small', '', 
-        `Received: ${formatDate(request.created_at)}`);
+      requestEl.innerHTML = `
+        <p>📝 <strong>${request.from_username}</strong> wants to share a note</p>
+        <small>Received: ${formatDate(request.created_at)}</small>
+      `;
       
       const actions = createElement('div', CSS_CLASSES.noteControls);
+      const acceptBtn = createElement('button', 'success', 'Accept');
+      acceptBtn.addEventListener('click', () => this.acceptShare(request.id));
       
-      const acceptBtn = document.createElement('button');
-      acceptBtn.className = 'success';
-      acceptBtn.textContent = 'Accept';
-      acceptBtn.addEventListener('click', () => {
-        this.acceptShare(request.id);
-      });
-      
-      const rejectBtn = document.createElement('button');
-      rejectBtn.className = CSS_CLASSES.buttonDanger;
-      rejectBtn.textContent = 'Reject';
-      rejectBtn.addEventListener('click', () => {
-        this.rejectShare(request.id);
-      });
+      const rejectBtn = createElement('button', CSS_CLASSES.buttonDanger, 'Reject');
+      rejectBtn.addEventListener('click', () => this.rejectShare(request.id));
       
       actions.appendChild(acceptBtn);
       actions.appendChild(rejectBtn);
-      
-      requestEl.appendChild(message);
-      requestEl.appendChild(date);
       requestEl.appendChild(actions);
-      
       container.appendChild(requestEl);
     });
+
+    this.updateRequestsIndicator();
   },
 
-  async acceptShare(requestId) {
-    try {
-      const formData = new URLSearchParams();
-      formData.append('request_id', requestId);
-      
-      const response = await fetch('/api/accept_share', {
-        method: 'POST',
-        body: formData
-      });
-      
-      const data = await response.json();
-      
-      if (response.ok && data.success) {
-        MessageHandler.show(DOM.saveMsg, data.message, 'success');
-        this.loadShareRequests();
-        NotesDisplay.load();
-      } else {
-        throw new Error(data.error || 'Failed to accept share');
-      }
-    } catch (error) {
-      MessageHandler.show(DOM.saveMsg, error.message, 'error');
+  updateRequestsIndicator() {
+    const noteRequestCount = noteRequests.length;
+    const fileRequestCount = DOM.fileShareRequestsContainer?.childElementCount || 0;
+    const totalRequests = noteRequestCount + fileRequestCount;
+
+    if (DOM.requestsIndicator) {
+      DOM.requestsIndicator.style.display = totalRequests > 0 ? 'block' : 'none';
+      DOM.requestsIndicator.textContent = totalRequests;
+    }
+    if (DOM.noRequestsMessage) {
+        DOM.noRequestsMessage.style.display = totalRequests === 0 ? 'block' : 'none';
     }
   },
 
-  async rejectShare(requestId) {
+  async handleShareResponse(action, requestId) {
     try {
-      const formData = new URLSearchParams();
-      formData.append('request_id', requestId);
-      
-      const response = await fetch('/api/reject_share', {
+      const response = await fetch(`/api/${action}_share`, {
         method: 'POST',
-        body: formData
+        body: new URLSearchParams({ request_id: requestId })
       });
-      
       const data = await response.json();
       
       if (response.ok && data.success) {
-        MessageHandler.show(DOM.saveMsg, data.message, 'success');
+        showNotification(data.message, 'success');
         this.loadShareRequests();
+        if (action === 'accept') NotesDisplay.load();
       } else {
-        throw new Error(data.error || 'Failed to reject share');
+        throw new Error(data.error || `Failed to ${action} share`);
       }
     } catch (error) {
-      MessageHandler.show(DOM.saveMsg, error.message, 'error');
+      showNotification(error.message, 'error');
     }
+  },
+
+  acceptShare(requestId) {
+    this.handleShareResponse('accept', requestId);
+  },
+
+  rejectShare(requestId) {
+    this.handleShareResponse('reject', requestId);
   }
 };

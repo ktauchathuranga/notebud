@@ -4,9 +4,8 @@ export const DOM = {
   get titleInput() { return document.getElementById('title'); },
   get contentInput() { return document.getElementById('content'); },
   get saveBtn() { return document.getElementById('saveBtn'); },
-  get saveMsg() { return document.getElementById('saveMsg'); },
-  get editor() { return document.querySelector('.editor'); },
-  get notesList() { return document.querySelector('.notes-list'); },
+  get editor() { return document.querySelector('.editor-panel'); },
+  get notesList() { return document.querySelector('.notes-list-panel'); },
   get userInfo() { return document.getElementById('userInfo'); },
   get noteModal() { return document.getElementById('noteModal'); },
   get modalTitle() { return document.getElementById('modalTitle'); },
@@ -17,6 +16,10 @@ export const DOM = {
   get shareUsername() { return document.getElementById('shareUsername'); },
   get shareNoteId() { return document.getElementById('shareNoteId'); },
   get shareForm() { return document.getElementById('shareForm'); },
-  get shareRequestsContainer() { return document.getElementById('shareRequestsContainer'); },
-  get shareRequestsSection() { return document.getElementById('shareRequestsSection'); }
+  get requestsBtn() { return document.getElementById('requestsBtn'); },
+  get requestsIndicator() { return document.getElementById('requestsIndicator'); },
+  get requestsPopup() { return document.getElementById('requestsPopup'); },
+  get noteShareRequestsContainer() { return document.getElementById('noteShareRequests'); },
+  get fileShareRequestsContainer() { return document.getElementById('fileShareRequests'); },
+  get noRequestsMessage() { return document.getElementById('noRequestsMessage'); }
 };

@@ -160,7 +160,105 @@ body.chat-page {
   gap: 0.5rem;
 }
 
-/* Container */
+/* Requests Button & Popup */
+.requests-wrapper {
+    position: relative;
+}
+
+.requests-btn {
+    background: var(--bg);
+    color: var(--primary);
+    border: 1px solid var(--border);
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    box-shadow: var(--shadow-xs);
+    width: auto;
+}
+
+.requests-btn:hover {
+    background: var(--primary);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.requests-btn .indicator {
+    background-color: var(--danger);
+    color: white;
+    font-size: 0.7rem;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+}
+
+.requests-popup {
+    display: none;
+    position: absolute;
+    top: 120%;
+    right: 0;
+    width: 350px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    z-index: 110;
+    overflow: hidden;
+}
+
+.requests-popup.show {
+    display: block;
+}
+
+.requests-popup .popup-header {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.requests-popup .popup-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.requests-popup .popup-body {
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 0.5rem;
+}
+
+.share-request-item {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+    padding: 1rem;
+    margin: 0.5rem;
+}
+
+.share-request-item p {
+    margin: 0 0 0.5rem 0;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.share-request-item small {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.share-request-item .note-controls {
+    margin-top: 0.75rem;
+}
+
+/* Old Container - Kept for compatibility */
 .container {
   max-width: 1200px;
   margin: 0 auto;
@@ -169,6 +267,56 @@ body.chat-page {
   grid-template-columns: 1fr 1fr;
   gap: 2rem;
   min-height: calc(100vh - 120px);
+}
+
+/* New Modern Layout Container */
+.container-new {
+    display: grid;
+    grid-template-columns: 320px 1fr 320px;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    height: calc(100vh - 70px); /* Full height minus topbar */
+}
+
+.notes-list-panel,
+.editor-panel,
+.files-panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.panel-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+}
+
+.panel-header h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0;
+}
+
+.panel-body {
+    padding: 1.5rem;
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+.editor-panel .panel-body {
+    display: flex;
+    flex-direction: column;
+}
+
+.editor-panel textarea {
+    flex-grow: 1;
+    min-height: 200px;
 }
 
 /* Auth forms */
@@ -221,7 +369,7 @@ body.chat-page {
   font-weight: 400;
 }
 
-/* Editor section */
+/* Old editor section styles (for reference, may be obsolete) */
 .editor {
   background: var(--card);
   border: 1px solid var(--border);
@@ -233,12 +381,10 @@ body.chat-page {
   position: sticky;
   top: 120px;
 }
-
 .editor:hover {
   border-color: var(--primary-light);
   box-shadow: var(--shadow-md);
 }
-
 .editor h2 {
   font-size: 1.25rem;
   font-weight: 600;
@@ -249,7 +395,7 @@ body.chat-page {
   gap: 0.5rem;
 }
 
-/* Notes list */
+/* Old notes list styles (for reference, may be obsolete) */
 .notes-list {
   background: var(--card);
   border: 1px solid var(--border);
@@ -259,7 +405,6 @@ body.chat-page {
   max-height: calc(100vh - 160px);
   overflow-y: auto;
 }
-
 .notes-list h2 {
   font-size: 1.25rem;
   font-weight: 600;
@@ -376,6 +521,15 @@ button:disabled {
   box-shadow: none;
 }
 
+button.primary {
+    background: var(--primary);
+    color: white;
+}
+
+button.primary:hover {
+    background: var(--primary-dark);
+}
+
 button.secondary {
   background: var(--bg);
   border: 1px solid var(--border);
@@ -421,7 +575,7 @@ button.secondary:hover {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 1.5rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   transition: all 0.2s ease;
   position: relative;
   box-shadow: var(--shadow-xs);
@@ -473,6 +627,7 @@ button.secondary:hover {
   display: flex;
   gap: 0.75rem;
   margin-top: 1rem;
+  flex-wrap: wrap; /* Added this line */
 }
 
 .note-controls button {
@@ -482,6 +637,7 @@ button.secondary:hover {
   height: auto;
   min-height: auto;
   width: auto;
+  flex-grow: 1; /* Added for better distribution */
 }
 
 /* Messages */
@@ -1461,22 +1617,32 @@ button.secondary:hover {
 .notification {
   position: fixed;
   top: 20px;
-  right: 20px;
-  background: var(--white);
-  color: var(--gray-900);
-  padding: 16px 20px;
-  border-radius: var(--border-radius);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--card);
+  color: var(--text);
+  padding: 1rem 1.5rem;
+  border-radius: var(--radius);
   z-index: 1000;
-  box-shadow: var(--shadow-xl);
-  border-left: 4px solid var(--success-color);
-  min-width: 320px;
+  box-shadow: var(--shadow-lg);
+  border-left: 4px solid var(--primary);
+  min-width: 300px;
+  max-width: 500px;
   animation: slideIn 0.3s ease;
   font-weight: 500;
-  border: 1px solid var(--border);
+  word-wrap: break-word;
+}
+
+.notification.success {
+  border-left-color: var(--success);
+  background: var(--success-light);
+  color: var(--success);
 }
 
 .notification.error {
-  border-left-color: var(--error-color);
+  border-left-color: var(--danger);
+  background: var(--danger-light);
+  color: var(--danger);
 }
 
 /* Chat area visibility */
@@ -1502,24 +1668,28 @@ button.secondary:hover {
 
 /* Custom Scrollbar */
 .chat-messages::-webkit-scrollbar,
-.sidebar-body::-webkit-scrollbar {
+.sidebar-body::-webkit-scrollbar,
+.panel-body::-webkit-scrollbar {
   width: 6px;
 }
 
 .chat-messages::-webkit-scrollbar-track,
-.sidebar-body::-webkit-scrollbar-track {
+.sidebar-body::-webkit-scrollbar-track,
+.panel-body::-webkit-scrollbar-track {
   background: var(--gray-100);
   border-radius: 3px;
 }
 
 .chat-messages::-webkit-scrollbar-thumb,
-.sidebar-body::-webkit-scrollbar-thumb {
+.sidebar-body::-webkit-scrollbar-thumb,
+.panel-body::-webkit-scrollbar-thumb {
   background: var(--gray-300);
   border-radius: 3px;
 }
 
 .chat-messages::-webkit-scrollbar-thumb:hover,
-.sidebar-body::-webkit-scrollbar-thumb:hover {
+.sidebar-body::-webkit-scrollbar-thumb:hover,
+.panel-body::-webkit-scrollbar-thumb:hover {
   background: var(--gray-400);
 }
 
@@ -1527,11 +1697,11 @@ button.secondary:hover {
 @keyframes slideIn {
   from {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateY(-10px) translateX(-50%);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) translateX(-50%);
   }
 }
 
@@ -1623,57 +1793,53 @@ h2 .icon {
 /* RESPONSIVE DESIGN */
 
 /* Large screens (1200px+) - Already optimized */
-
-/* Medium-large screens (968px - 1199px) */
-@media (max-width: 1199px) {
-  .chat-container {
-    grid-template-columns: 320px 1fr;
-    margin: 16px;
-    height: calc(100vh - 32px);
-  }
-  
-  .container {
-    max-width: 100%;
-  }
+@media (max-width: 1200px) {
+    .container-new {
+        grid-template-columns: 280px 1fr 280px;
+        gap: 1rem;
+        padding: 1rem;
+    }
 }
 
-/* Medium screens (768px - 967px) */
-@media (max-width: 967px) {
-  .container {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-    padding: 1.5rem;
-  }
-
-  .editor {
-    position: static;
-    top: auto;
-  }
-
-  .notes-list {
-    max-height: none;
-  }
-  
-  .chat-container {
-    grid-template-columns: 280px 1fr;
-    height: calc(100vh - 32px);
-  }
-  
-  .sidebar-header {
-    padding: 20px;
-  }
-  
-  .sidebar-body {
-    padding: 16px;
-  }
-  
-  .new-chat-form {
-    padding: 16px;
-  }
+/* Medium screens (768px - 992px) */
+@media (max-width: 992px) {
+    .container-new {
+        grid-template-columns: 1fr 1fr;
+        height: auto;
+    }
+    .notes-list-panel {
+        grid-column: 1 / 2;
+    }
+    .editor-panel {
+        grid-column: 2 / 3;
+        grid-row: 1 / 2;
+    }
+    .files-panel {
+        grid-column: 1 / 3;
+        grid-row: 2 / 3;
+    }
 }
 
-/* Small screens (480px - 767px) */
+
+/* Small screens (less than 768px) */
 @media (max-width: 767px) {
+    .container-new {
+        grid-template-columns: 1fr;
+        height: auto;
+        padding: 1rem;
+        gap: 1rem;
+    }
+    .notes-list-panel, .editor-panel, .files-panel {
+        grid-column: auto;
+        grid-row: auto;
+    }
+    .panel-body {
+        padding: 1rem;
+    }
+    .panel-header {
+        padding: 1rem;
+    }
+
   body {
     padding: 0;
   }
@@ -1802,10 +1968,7 @@ h2 .icon {
   }
 
   .notification {
-    top: 10px;
-    right: 10px;
-    left: 10px;
-    min-width: auto;
+    width: 90%;
   }
 
   #mobileSidebarBtn {
@@ -1861,6 +2024,11 @@ h2 .icon {
   .container {
     padding: 1rem;
     gap: 1rem;
+  }
+  
+  .container-new {
+      padding: 0.5rem;
+      gap: 0.5rem;
   }
 
   .editor, .notes-list {
@@ -1918,7 +2086,7 @@ h2 .icon {
     display: none !important;
   }
 
-  .container,
+  .container, .container-new,
   .chat-container {
     grid-template-columns: 1fr;
     margin: 0;
@@ -2076,26 +2244,6 @@ h2 .icon {
     margin-bottom: 0.5rem;
     font-weight: 600;
     color: var(--text);
-}
-
-.share-request-item {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1.5rem;
-    margin-bottom: 1rem;
-    box-shadow: var(--shadow-xs);
-}
-
-.share-request-item p {
-    margin-bottom: 0.75rem;
-    font-weight: 500;
-}
-
-.share-request-item small {
-    color: var(--text-muted);
-    display: block;
-    margin-bottom: 1rem;
 }
 
 .share-request-item .note-controls {
@@ -2271,6 +2419,7 @@ button.success:hover {
     align-items: center;
     gap: 1rem;
     box-shadow: var(--shadow-xs);
+    flex-wrap: wrap; /* Fix: Allow items to wrap */
 }
 
 .file-item:hover {
@@ -2287,7 +2436,7 @@ button.success:hover {
 
 .file-info {
     flex: 1;
-    min-width: 0;
+    min-width: 150px; /* Fix: Give it a minimum width */
 }
 
 .file-name {
@@ -2308,7 +2457,9 @@ button.success:hover {
 .file-actions {
     display: flex;
     gap: 0.5rem;
-    flex-shrink: 0;
+    flex-wrap: wrap; /* Fix: Allow buttons to wrap */
+    flex-basis: 100%; /* Fix: Make it take full width on wrap */
+    justify-content: flex-end; /* Fix: Align buttons to the right */
 }
 
 .file-actions button {
@@ -2322,28 +2473,8 @@ button.success:hover {
     width: auto;
     min-height: auto;
     box-shadow: var(--shadow-xs);
-}
-
-.download-btn {
-    background: var(--primary);
-    color: white;
-}
-
-.download-btn:hover {
-    background: var(--primary-dark);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-sm);
-}
-
-.delete-file-btn {
-    background: var(--danger);
-    color: white;
-}
-
-.delete-file-btn:hover {
-    background: #b91c1c;
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-sm);
+    flex-grow: 1; /* Allow buttons to grow */
+    max-width: 120px; /* Prevent buttons from becoming too wide */
 }
 
 /* File upload progress */
@@ -2398,7 +2529,7 @@ button.success:hover {
     
     .file-actions {
         width: 100%;
-        justify-content: flex-end;
+        justify-content: flex-start; /* Align to start on mobile */
     }
     
     .file-meta {
@@ -2412,10 +2543,10 @@ button.success:hover {
 
 /* Grid layout update for container */
 @media (min-width: 968px) {
-    .container {
-        grid-template-columns: 1fr 1fr;
-        gap: 2rem;
-    }
+  .container {
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+  }
 }
 
 /* Drag and Drop File Upload Styles */
