@@ -60,6 +60,7 @@ $username = $payload['username'] ?? 'User';
         window.JWT_EXP = <?= $exp ? intval($exp) : 'null' ?>;
         window.IS_PERMANENT = <?= json_encode($isPermanent) ?>;
         window.SESSION_ID = <?= json_encode($sessionId) ?>;
+        window.USERNAME = <?= json_encode($username) ?>;
     </script>
 </head>
 

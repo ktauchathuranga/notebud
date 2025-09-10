@@ -1,131 +1,132 @@
-import { CONFIG, CSS_CLASSES, createIcon } from './utils.js';
-import { DOM } from './dom.js';
-import { MessageHandler } from './notifications.js';
-import { NotesDisplay } from './notes.js';
+import { showNotification } from './notifications.js';
 
-let isLoading = false;
+let sessionTimer;
 
 /**
- * Session management with permanent login support
+ * Session management functionality
  */
 export const SessionManager = {
+  /**
+   * Initialize session management
+   */
   init() {
-    this.displaySessionStatus();
-    
-    if (DOM.userInfo && window.JWT_EXP) {
-      this.displaySessionInfo();
-      if (!window.IS_PERMANENT) {
-        this.scheduleWarning();
-      }
-    }
-    
-    this.initLogoutAllButton();
-    
-    if (!window.IS_PERMANENT) {
-      setInterval(() => {
-        if (!isLoading && document.visibilityState === 'visible') {
-          NotesDisplay.load();
-        }
-      }, CONFIG.REFRESH_INTERVAL);
-    }
-  },
-
-  displaySessionStatus() {
-    const statusElement = document.getElementById('sessionStatus');
-    if (!statusElement) return;
-    
-    const textElement = statusElement.querySelector('.text');
+    this.setupLogout();
     
     if (window.IS_PERMANENT) {
-      statusElement.classList.add('permanent');
-      textElement.textContent = 'Permanent Session';
+      this.setupPermanentSessionControls();
     } else {
-      statusElement.classList.remove('permanent');
-      textElement.textContent = 'Temporary Session (4h)';
+      this.startSessionTimer();
     }
-  },
-
-  displaySessionInfo() {
-    if (!window.IS_PERMANENT && window.JWT_EXP) {
-      const sessionEnd = new Date(window.JWT_EXP * 1000);
-      DOM.userInfo.className = CSS_CLASSES.userInfo;
-      
-      DOM.userInfo.innerHTML = '';
-      const clockIcon = createIcon('clock');
-      DOM.userInfo.appendChild(clockIcon);
-      DOM.userInfo.appendChild(document.createTextNode(` Expires: ${sessionEnd.toLocaleTimeString()}`));
-    } else if (window.IS_PERMANENT) {
-      DOM.userInfo.className = CSS_CLASSES.userInfo;
-      DOM.userInfo.innerHTML = '';
-      const clockIcon = createIcon('clock');
-      DOM.userInfo.appendChild(clockIcon);
-      DOM.userInfo.appendChild(document.createTextNode(' No expiration'));
-    }
-  },
-
-  initLogoutAllButton() {
-    const logoutAllBtn = document.getElementById('logoutAllBtn');
-    if (!logoutAllBtn) return;
     
-    if (window.IS_PERMANENT) {
-      logoutAllBtn.style.display = 'inline-block';
+    this.displayUserInfo();
+  },
+  
+  /**
+   * Set up logout button
+   */
+  setupLogout() {
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', this.logout);
+    }
+  },
+  
+  /**
+   * Set up controls specific to permanent sessions
+   */
+  setupPermanentSessionControls() {
+    const logoutAllBtn = document.getElementById('logoutAllBtn');
+    if (logoutAllBtn) {
+      logoutAllBtn.style.display = 'inline-flex';
       logoutAllBtn.addEventListener('click', this.logoutAllTempSessions);
     }
   },
 
-  async logoutAllTempSessions() {
-    const btn = document.getElementById('logoutAllBtn');
-    if (!confirm('This will logout all your temporary sessions on other devices. Continue?')) {
-      return;
+  /**
+   * Start the session timer for temporary sessions
+   */
+  startSessionTimer() {
+    if (window.JWT_EXP) {
+      const expiresIn = (window.JWT_EXP * 1000) - Date.now();
+      
+      if (expiresIn > 0) {
+        sessionTimer = setTimeout(() => {
+          alert('Your session has expired. You will be logged out.');
+          this.logout();
+        }, expiresIn);
+      } else {
+        this.logout();
+      }
     }
-    
-    btn.disabled = true;
-    btn.textContent = 'Logging out...';
-    
+  },
+  
+  /**
+   * Display user info
+   */
+  displayUserInfo() {
+    const userInfoDiv = document.getElementById('userInfo');
+    if (userInfoDiv && window.USERNAME) {
+      userInfoDiv.textContent = `👤 ${window.USERNAME}`;
+    }
+  },
+  
+  /**
+   * Logout the current user
+   */
+  async logout() {
     try {
-      const response = await fetch('/api/logout_all_temp', { 
-        method: 'POST' 
-      });
+      const response = await fetch('/api/logout', { method: 'POST' });
       const data = await response.json();
       
-      if (response.ok && data.success) {
-        btn.textContent = 'Success!';
-        setTimeout(() => {
-          btn.textContent = 'Logout All Temp Sessions';
-          btn.disabled = false;
-        }, 2000);
-        
-        MessageHandler.show(document.getElementById('saveMsg'), 
-          data.message || 'All temporary sessions logged out successfully!', 
-          'success');
+      if (data.success) {
+        window.location.href = '/login';
       } else {
-        throw new Error(data.error || 'Failed to logout sessions');
+        console.error('Logout failed:', data.error);
+        // Fallback logout
+        document.cookie = "jwt=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        window.location.href = '/login';
+      }
+    } catch (error) {
+      console.error('Error during logout:', error);
+      // Fallback logout
+      document.cookie = "jwt=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      window.location.href = '/login';
+    }
+  },
+  
+  /**
+   * Logout all temporary sessions for the current user
+   */
+  async logoutAllTempSessions() {
+    if (!confirm('Are you sure you want to log out all other temporary sessions?')) {
+      return;
+    }
+
+    const btn = document.getElementById('logoutAllBtn');
+    if(btn) {
+        btn.disabled = true;
+        btn.textContent = 'Logging out...';
+    }
+
+    try {
+      const response = await fetch('/api/logout_all_temp', {
+        method: 'POST'
+      });
+      const result = await response.json();
+      
+      if (result.success) {
+        showNotification(result.message || 'All temporary sessions have been logged out.', 'success');
+      } else {
+        showNotification(result.error || 'Failed to log out sessions.', 'error');
       }
     } catch (error) {
       console.error('Error logging out sessions:', error);
-      btn.textContent = 'Failed';
-      setTimeout(() => {
-        btn.textContent = 'Logout All Temp Sessions';
-        btn.disabled = false;
-      }, 2000);
-      
-      MessageHandler.show(document.getElementById('saveMsg'), 
-        'Failed to logout sessions. Please try again.', 
-        'error');
-    }
-  },
-
-  scheduleWarning() {
-    const now = Date.now();
-    const timeUntilExpiry = window.JWT_EXP * 1000 - now;
-    const warningTime = timeUntilExpiry - (30 * 60 * 1000);
-
-    if (warningTime > 0) {
-      setTimeout(() => {
-        if (confirm('Your session will expire in 30 minutes. Click OK to extend your session.')) {
-          location.reload();
+      showNotification('A network error occurred. Please try again.', 'error');
+    } finally {
+        if(btn) {
+            btn.disabled = false;
+            btn.textContent = 'Logout All Temp Sessions';
         }
-      }, warningTime);
     }
   }
 };
