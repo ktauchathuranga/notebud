@@ -55,6 +55,8 @@ $username = $payload['username'] ?? 'User';
     <title>Notes - notebud</title>
     <link rel="stylesheet" href="css/style.css" />
 
+    <script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js"></script>
+
     <!-- Expose session info to JS -->
     <script>
         window.JWT_EXP = <?= $exp ? intval($exp) : 'null' ?>;
@@ -188,17 +190,33 @@ $username = $payload['username'] ?? 'User';
     </main>
 
     <!-- Note Modal -->
-    <div id="noteModal" class="modal">
-        <div class="modal-content">
+    <div id="noteModal" class="modal" tabindex="-1" role="dialog" aria-labelledby="modalTitle" aria-hidden="true">
+        <div class="modal-content" role="document">
             <div class="modal-header">
                 <h3 id="modalTitle">Note Title</h3>
-                <button id="closeModal" class="modal-close">&times;</button>
+                <div class="modal-header-actions">
+                    <button id="fullscreenBtn" class="fullscreen-btn" title="Toggle fullscreen (F11)" aria-label="Toggle fullscreen">
+                        <span class="fullscreen-icon">⛶</span>
+                        <span class="fullscreen-text">Fullscreen</span>
+                    </button>
+                    <button id="toggleMarkdown" class="secondary" title="Switch view mode (Ctrl+M)" aria-label="Toggle markdown rendering">
+                        Raw
+                    </button>
+                    <button id="closeModal" class="modal-close" title="Close modal (Esc)" aria-label="Close modal">&times;</button>
+                </div>
             </div>
             <div class="modal-body">
-                <pre id="modalContent">Note content...</pre>
+                <div id="modalContent" class="modal-content-display">Note content...</div>
             </div>
             <div class="modal-footer">
                 <small id="modalDate">Created: ...</small>
+                <div class="modal-hint">
+                    <span>Press <kbd>F11</kbd> for fullscreen</span>
+                    <span>•</span>
+                    <span><kbd>Ctrl+M</kbd> to toggle view</span>
+                    <span>•</span>
+                    <span><kbd>Esc</kbd> to close</span>
+                </div>
             </div>
         </div>
     </div>
