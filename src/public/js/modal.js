@@ -2,7 +2,7 @@ import { DOM } from './dom.js';
 import { formatDate } from './utils.js';
 
 /**
- * Note modal functionality with markdown rendering, toggle, fullscreen, and auto-hide footer
+ * Note modal functionality with markdown rendering, syntax highlighting, toggle, fullscreen, and auto-hide footer
  */
 export const NoteModal = {
   currentNote: null,
@@ -272,12 +272,12 @@ export const NoteModal = {
       modalContent.style.opacity = '0.5';
       setTimeout(() => {
         modalContent.style.opacity = '1';
-      }, 100);
+      }, 150);
     }
   },
 
   /**
-   * Render the note content based on current view mode
+   * Render the note content based on current view mode with Prism.js syntax highlighting
    */
   renderContent() {
     if (!this.currentNote) return;
@@ -288,7 +288,7 @@ export const NoteModal = {
     
     if (this.isMarkdownView && typeof marked !== 'undefined' && content.trim()) {
       try {
-        // Configure marked for better rendering
+        // Configure marked for better rendering with Prism.js syntax highlighting
         if (marked.setOptions) {
           marked.setOptions({
             breaks: true,          // Convert \n to <br>
@@ -298,7 +298,49 @@ export const NoteModal = {
             sanitize: false,      // We trust our own content
             smartLists: true,     // Use smarter list behavior
             smartypants: false,   // Don't use smart quotes
-            xhtml: false          // Don't use XHTML syntax
+            xhtml: false,         // Don't use XHTML syntax
+            highlight: function(code, lang) {
+              // Use Prism.js for syntax highlighting if available
+              if (typeof Prism !== 'undefined' && lang) {
+                // Normalize language name
+                const normalizedLang = lang.toLowerCase();
+                
+                // Map some common aliases to Prism language names
+                const langMap = {
+                  'js': 'javascript',
+                  'ts': 'typescript',
+                  'py': 'python',
+                  'rb': 'ruby',
+                  'sh': 'bash',
+                  'shell': 'bash',
+                  'yml': 'yaml',
+                  'md': 'markdown',
+                  'html': 'markup',
+                  'xml': 'markup'
+                };
+                
+                const prismLang = langMap[normalizedLang] || normalizedLang;
+                
+                // Check if language is supported by Prism
+                if (Prism.languages[prismLang]) {
+                  try {
+                    return Prism.highlight(code, Prism.languages[prismLang], prismLang);
+                  } catch (err) {
+                    console.warn('Prism highlighting error for language:', prismLang, err);
+                    return code;
+                  }
+                } else {
+                  // Try to auto-load the language if autoloader is available
+                  if (typeof Prism.plugins?.autoloader !== 'undefined') {
+                    // Prism autoloader will handle this automatically
+                    return code;
+                  }
+                  console.log('Language not supported by Prism:', prismLang);
+                  return code;
+                }
+              }
+              return code;
+            }
           });
         }
         
@@ -310,8 +352,19 @@ export const NoteModal = {
         modalContent.innerHTML = htmlContent;
         modalContent.className = 'modal-content-display modal-content-markdown';
         
+        // Apply Prism syntax highlighting to any code blocks that weren't caught
+        if (typeof Prism !== 'undefined') {
+          // Use a small delay to ensure content is rendered
+          setTimeout(() => {
+            Prism.highlightAllUnder(modalContent);
+          }, 10);
+        }
+        
         // Handle task list checkboxes (make them interactive if needed)
         this.handleTaskLists();
+        
+        // Add copy buttons to code blocks
+        this.addCopyButtonsToCodeBlocks();
         
       } catch (error) {
         console.error('Error parsing markdown:', error);
@@ -321,6 +374,93 @@ export const NoteModal = {
     } else {
       this.showRawContent(content);
     }
+  },
+
+  /**
+   * Add copy buttons to code blocks for better UX
+   */
+  addCopyButtonsToCodeBlocks() {
+    const modalContent = document.getElementById('modalContent');
+    if (!modalContent) return;
+
+    const codeBlocks = modalContent.querySelectorAll('pre code');
+    codeBlocks.forEach((codeBlock, index) => {
+      const pre = codeBlock.parentElement;
+      if (!pre || pre.querySelector('.copy-btn')) return; // Skip if button already exists
+
+      // Create copy button
+      const copyBtn = document.createElement('button');
+      copyBtn.className = 'copy-btn';
+      copyBtn.innerHTML = '📋';
+      copyBtn.title = 'Copy code to clipboard';
+      copyBtn.setAttribute('aria-label', 'Copy code to clipboard');
+      
+      // Style the button
+      copyBtn.style.cssText = `
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        background: rgba(255, 255, 255, 0.8);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        border-radius: 4px;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.8rem;
+        cursor: pointer;
+        opacity: 0.7;
+        transition: opacity 0.2s ease, background-color 0.2s ease;
+        z-index: 10;
+      `;
+
+      // Add hover effects
+      copyBtn.addEventListener('mouseenter', () => {
+        copyBtn.style.opacity = '1';
+        copyBtn.style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
+      });
+
+      copyBtn.addEventListener('mouseleave', () => {
+        copyBtn.style.opacity = '0.7';
+        copyBtn.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
+      });
+
+      // Add copy functionality
+      copyBtn.addEventListener('click', async () => {
+        try {
+          const code = codeBlock.textContent || '';
+          await navigator.clipboard.writeText(code);
+          
+          // Show success feedback
+          const originalContent = copyBtn.innerHTML;
+          copyBtn.innerHTML = '✅';
+          copyBtn.style.backgroundColor = 'rgba(34, 197, 94, 0.8)';
+          
+          setTimeout(() => {
+            copyBtn.innerHTML = originalContent;
+            copyBtn.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
+          }, 1500);
+          
+        } catch (err) {
+          console.error('Failed to copy code:', err);
+          // Fallback for older browsers
+          const textArea = document.createElement('textarea');
+          textArea.value = codeBlock.textContent || '';
+          document.body.appendChild(textArea);
+          textArea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textArea);
+          
+          // Show success feedback
+          const originalContent = copyBtn.innerHTML;
+          copyBtn.innerHTML = '✅';
+          setTimeout(() => {
+            copyBtn.innerHTML = originalContent;
+          }, 1500);
+        }
+      });
+
+      // Make pre element relative positioned
+      pre.style.position = 'relative';
+      pre.appendChild(copyBtn);
+    });
   },
 
   /**
@@ -435,6 +575,14 @@ export const NoteModal = {
    */
   isMarkdownSupported() {
     return typeof marked !== 'undefined';
+  },
+
+  /**
+   * Check if Prism.js is available
+   * @returns {boolean} True if Prism library is loaded
+   */
+  isSyntaxHighlightingSupported() {
+    return typeof Prism !== 'undefined';
   },
 
   /**
