@@ -2,170 +2,95 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <meta name="description" content="A simple note-taking and chat app designed for university labs with flexible session management. Quick login without 2FA hassles, auto-cleanup, and real-time messaging.">
-    <meta name="keywords" content="notebud, note-taking, university labs, student notes, real-time chat, temporary sessions, academic collaboration, lab notes, student messaging">
-    <meta name="author" content="Ashen Chathuranga">
-    
-    <!-- Facebook/Open Graph Meta Tags -->
-    <meta property="og:url" content="https://notebud.cc/">
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="notebud - Simple Note-Taking & Chat for University Labs">
-    <meta property="og:description" content="Perfect for uni labs where you can't access OneDrive/Google Drive due to 2FA hassles. Choose between temporary or permanent sessions, auto-save notes, and chat with classmates in real-time.">
-    <meta property="og:image" content="https://notebud.cc/images/notebud-preview.jpg">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
-    <meta property="og:image:alt" content="notebud - University Lab Note-Taking App">
-    <meta property="og:site_name" content="notebud">
-    
-    <!-- Twitter Meta Tags -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta property="twitter:domain" content="notebud.cc">
-    <meta property="twitter:url" content="https://notebud.cc/">
-    <meta name="twitter:title" content="notebud - Simple Note-Taking & Chat for University Labs">
-    <meta name="twitter:description" content="Perfect for uni labs where you can't access OneDrive/Google Drive due to 2FA hassles. Choose between temporary or permanent sessions, auto-save notes, and chat with classmates in real-time.">
-    <meta name="twitter:image" content="https://notebud.cc/images/notebud-preview.jpg">
-    
-    <!-- Additional SEO and App-specific Meta Tags -->
-    <meta name="robots" content="index, follow">
-    <meta name="language" content="English">
-    <meta name="revisit-after" content="7 days">
-    <meta name="application-name" content="notebud">
-    <meta name="theme-color" content="#1a1a1a">
-    
-    <!-- Academic and Educational Context -->
-    <meta name="category" content="Education, Productivity, University Tools">
-    <meta name="coverage" content="Worldwide">
-    <meta name="distribution" content="Global">
-    <meta name="rating" content="General">
-    <meta name="target" content="University Students, Academic Researchers, Lab Users">
-    
-    <!-- Privacy and Security Disclaimers (for search engines) -->
-    <meta name="disclaimer" content="Designed for temporary academic use only. Auto-deletes data after 30 days. Use responsibly.">
-
-  <link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
-  <link rel="manifest" href="favicon/site.webmanifest">
-  <link href="https://fonts.googleapis.com/css2?family=Della+Respira&display=swap" rel="stylesheet">
   <title>Register - notebud</title>
   <link rel="stylesheet" href="css/style.css" />
   <style>
+    /* Specific retro styles for the token display box */
     .token-display {
-      background: rgba(16, 185, 129, 0.1);
-      border: 2px solid rgba(16, 185, 129, 0.3);
-      border-radius: 12px;
-      padding: 1.5rem;
-      margin: 1.5rem 0;
+      background: #e0ffe0;
+      border: 1px solid #008000;
+      padding: 10px;
+      margin: 10px 0;
+      font-family: Verdana, sans-serif;
+      font-size: 10px;
       text-align: center;
     }
     .token-value {
-      font-family: 'Courier New', monospace;
-      font-size: 0.85rem;
+      font-family: "Courier New", monospace;
       font-weight: bold;
-      color: var(--success);
-      background: rgba(0, 0, 0, 0.05);
-      padding: 1rem;
-      border-radius: 8px;
-      margin: 1rem 0;
-      word-break: break-all;
-      line-height: 1.4;
+      border: 1px inset #ccc;
+      background: #fff;
+      padding: 5px;
+      margin: 5px 0;
     }
-    .token-warning {
-      font-size: 0.85rem;
-      color: var(--text-secondary);
-      margin-top: 1rem;
-      line-height: 1.4;
-    }
-    .copy-btn {
-      background: var(--success);
-      color: white;
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.8rem;
-      margin-top: 0.8rem;
-      transition: background-color 0.3s ease;
-    }
-    .copy-btn:hover {
-      opacity: 0.9;
-    }
-    .copy-btn:active {
-      transform: scale(0.98);
-    }
-    .continue-btn {
-      background: var(--accent);
-      color: white;
-      border: none;
-      padding: 0.8rem 1.5rem;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 0.9rem;
-      margin-top: 1rem;
-      transition: all 0.3s ease;
-      text-decoration: none;
-      display: inline-block;
-    }
-    .continue-btn:hover {
-      background: var(--accent-hover);
-      transform: translateY(-1px);
-    }
-    .msg {
-      margin-top: 1rem;
-      font-size: 0.95rem;
-      display: none;
-    }
-    .msg.show { display: block; }
-    .msg.error { color: #dc2626; }
-    .msg.success { color: #16a34a; }
   </style>
 </head>
 <body>
-  <main class="auth-container">
-    <div class="auth-card">
-      <h1>Join notebud</h1>
-      <p class="subtitle">Create your account for temporary note storage</p>
-      <form id="registerForm">
-        <input name="username" placeholder="Choose a username" required autocomplete="username" spellcheck="false" minlength="3" />
-        <input name="password" type="password" placeholder="Create a password" required autocomplete="new-password" minlength="6" />
-        <div class="g-recaptcha" data-sitekey="6Ldy9LcrAAAAAAyVewti3cS2K_T6oz8ZY8dk4RHF"></div>
-        <button type="submit" id="registerBtn"><span>Create Account</span></button>
-      </form>
-      <div id="tokenDisplay" class="token-display" style="display: none;">
-        <h3>Your Password Reset Token</h3>
-        <p>Save this token securely! You can use it with your username to reset your password if you forget it.</p>
-        <div class="token-value" id="tokenValue"></div>
-        <button type="button" class="copy-btn" onclick="copyToken()">Copy Token</button>
-        <div class="token-warning" style="font-size:0.85rem; color:#64748b; margin-top:1rem;">
-          <strong>Important:</strong> This token is only shown once. Save it in a secure place like a password manager. You can use it along with your username to reset your password at any time.
-        </div>
-        <a href="/login" class="continue-btn">Continue to Login</a>
-      </div>
-      <p id="loginLink">Already have an account? <a href="/login">Sign in</a></p>
-      <div id="msg" class="msg"></div>
+  <div class="main-wrapper">
+    <div class="topbar">
+      <h1>notebud <sup>beta</sup></h1>
     </div>
-  </main>
+
+    <div class="auth-container">
+      <div class="auth-card">
+        <center>
+          <img src="https://web.archive.org/web/20091027072935/http://geocities.com/clipart/pbi/bullets/Templates/SquareBlueBullet.gif" alt="bullet">
+          <h2>New User Registration</h2>
+          <p style="font-size: 10px;">Fill out the form below to create your temporary workspace.</p>
+        </center>
+        <hr style="border: 0; border-bottom: 1px dashed #ccc; margin: 10px 0;">
+
+        <form id="registerForm">
+          <table width="100%" cellpadding="5">
+            <tr>
+              <td align="right" width="40%"><b>Username:</b></td>
+              <td><input name="username" required autocomplete="username" minlength="3" /></td>
+            </tr>
+            <tr>
+              <td align="right"><b>Password:</b></td>
+              <td><input name="password" type="password" required autocomplete="new-password" minlength="6" /></td>
+            </tr>
+            <tr>
+              <td colspan="2" align="center">
+                <div class="g-recaptcha" data-sitekey="6Ldy9LcrAAAAAAyVewti3cS2K_T6oz8ZY8dk4RHF"></div>
+                <br>
+                <button type="submit" id="registerBtn">Create Account</button>
+              </td>
+            </tr>
+          </table>
+        </form>
+
+        <div id="tokenDisplay" class="token-display" style="display: none;">
+          <b>REGISTRATION SUCCESSFUL</b>
+          <p>Please save your recovery token below. It is required for password resets.</p>
+          <div class="token-value" id="tokenValue"></div>
+          <button type="button" class="btn" onclick="copyToken()">[ Copy to Clipboard ]</button>
+          <br><br>
+          <a href="/login"><b>>> Click Here to Login <<</b></a>
+        </div>
+
+        <div id="loginLink" style="margin-top: 15px; font-size: 10px; text-align: center;">
+          Already a member? <a href="/login">Login here</a>
+        </div>
+        <div id="msg" class="msg"></div>
+      </div>
+      <br><br>
+      <center>
+        <small>Note: Accounts are subject to deletion after 30 days of inactivity.</small>
+      </center>
+    </div>
+  </div>
+
   <script>
     function copyToken() {
       const tokenValue = document.getElementById('tokenValue').textContent;
       navigator.clipboard.writeText(tokenValue).then(() => {
-        const copyBtn = document.querySelector('.copy-btn');
-        const originalText = copyBtn.textContent;
-        copyBtn.textContent = 'Copied!';
-        setTimeout(() => { copyBtn.textContent = originalText; }, 2000);
+        alert("Token copied to clipboard!");
       }).catch(() => {
-        const textArea = document.createElement('textarea');
-        textArea.value = tokenValue;
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-        const copyBtn = document.querySelector('.copy-btn');
-        copyBtn.textContent = 'Copied!';
-        setTimeout(() => { copyBtn.textContent = 'Copy Token'; }, 2000);
+        prompt("Copy this token manually:", tokenValue);
       });
     }
+
     document.getElementById('registerForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const form = e.target;
@@ -173,18 +98,20 @@
       const msg = document.getElementById('msg');
       const tokenDisplay = document.getElementById('tokenDisplay');
       const loginLink = document.getElementById('loginLink');
+      
       msg.className = 'msg'; msg.textContent = ''; msg.style.display = 'none';
       const captchaResponse = grecaptcha.getResponse();
+      
       if (!captchaResponse) {
         msg.className = 'msg error show';
-        msg.textContent = 'Please complete the CAPTCHA!';
+        msg.textContent = 'Error: Please verify CAPTCHA.';
         msg.style.display = 'block';
-        registerBtn.disabled = false;
         return;
       }
+      
       registerBtn.disabled = true;
-      registerBtn.innerHTML = '<span>Creating account...</span>';
-      form.classList.add('loading');
+      registerBtn.textContent = 'Processing...';
+      
       try {
         const formData = new FormData(form);
         formData.append('g-recaptcha-response', captchaResponse);
@@ -194,34 +121,30 @@
         });
         const data = await response.json();
         grecaptcha.reset();
+        
         if (response.ok && data.success) {
           msg.className = 'msg success show';
-          msg.textContent = 'Account created successfully!';
+          msg.textContent = 'Registration Complete.';
           msg.style.display = 'block';
           document.getElementById('tokenValue').textContent = data.refresh_token;
           tokenDisplay.style.display = 'block';
           form.style.display = 'none';
           loginLink.style.display = 'none';
-          registerBtn.innerHTML = '<span>Account Created ✓</span>';
         } else {
           msg.className = 'msg error show';
           msg.textContent = data.error || 'Registration failed';
           msg.style.display = 'block';
           registerBtn.disabled = false;
-          registerBtn.innerHTML = '<span>Create Account</span>';
-          form.classList.remove('loading');
+          registerBtn.textContent = 'Create Account';
         }
       } catch (error) {
         msg.className = 'msg error show';
-        msg.textContent = 'Network error. Please try again.';
+        msg.textContent = 'Connection Error.';
         msg.style.display = 'block';
         registerBtn.disabled = false;
-        registerBtn.innerHTML = '<span>Create Account</span>';
-        form.classList.remove('loading');
+        registerBtn.textContent = 'Create Account';
       }
-      grecaptcha.reset();
     });
-    document.querySelector('input[name="username"]').focus();
   </script>
   <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </body>
