@@ -29,6 +29,8 @@ $username = $payload['username'] ?? 'User';
     <meta name="keywords" content="notebud, note-taking, university labs, student notes, real-time chat, temporary sessions, academic collaboration, lab notes, student messaging">
     <meta name="author" content="Ashen Chathuranga">
 
+    <meta name="google-adsense-account" content="ca-pub-7512853519562840">
+
     <!-- Facebook/Open Graph Meta Tags -->
     <meta property="og:url" content="https://notebud.cc/">
     <meta property="og:type" content="website">
