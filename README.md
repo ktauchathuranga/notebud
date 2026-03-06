@@ -1,5 +1,7 @@
 # notebud
 
+admin: root
+password 🥐
 A simple note-taking and chat app designed for university labs with flexible session management. Quick login with both temporary and permanent session options, automatic cleanup, and seamless cloud or local database support.
 
 ![notebud-preview](https://github.com/user-attachments/assets/a4ec8595-59ff-49d6-b2e1-1ebbee244d02)
