@@ -1,4 +1,4 @@
-<x-layouts::app :title="__('Upload File')">
+<div>
     <div class="mx-auto w-full max-w-lg">
         <div class="mb-6 flex items-center gap-3">
             <flux:button variant="ghost" :href="route('files.index')" wire:navigate icon="arrow-left" />
@@ -15,7 +15,7 @@
                 class="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-zinc-300 dark:border-zinc-700 p-10 transition cursor-pointer"
                 x-on:click="$refs.fileInput.click()"
             >
-                <flux:icon name="cloud-upload" class="size-12 text-zinc-400" />
+                <flux:icon name="cloud-arrow-up" class="size-12 text-zinc-400" />
                 <flux:heading size="sm" class="mt-4">{{ __('Drag & drop your file here') }}</flux:heading>
                 <flux:text class="mt-1 text-sm">{{ __('or click to browse') }}</flux:text>
                 <flux:text class="mt-2 text-xs text-zinc-400">{{ __('Maximum file size: 10MB') }}</flux:text>
@@ -43,4 +43,4 @@
             </div>
         </form>
     </div>
-</x-layouts::app>
+</div>

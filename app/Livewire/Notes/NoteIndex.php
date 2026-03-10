@@ -5,10 +5,12 @@ namespace App\Livewire\Notes;
 use App\Models\Note;
 use App\Models\Share;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
+#[Layout('layouts.app')]
 #[Title('My Notes')]
 class NoteIndex extends Component
 {

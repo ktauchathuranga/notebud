@@ -5,9 +5,11 @@ namespace App\Livewire\Shares;
 use App\Models\Share;
 use App\Notifications\ShareResponseNotification;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
+#[Layout('layouts.app')]
 #[Title('Shared with me')]
 class IncomingShares extends Component
 {

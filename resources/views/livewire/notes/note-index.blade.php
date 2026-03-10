@@ -1,9 +1,9 @@
-<x-layouts::app :title="__('My Notes')">
+<div>
     <div class="flex h-full w-full flex-1 flex-col gap-6">
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <flux:heading size="xl">{{ __('My Notes') }}</flux:heading>
             <div class="flex items-center gap-3">
-                <flux:input wire:model.live.debounce.300ms="search" placeholder="Search notes..." icon="search" class="w-full sm:w-64" />
+                <flux:input wire:model.live.debounce.300ms="search" placeholder="Search notes..." icon="magnifying-glass" class="w-full sm:w-64" />
                 <flux:button variant="primary" :href="route('notes.create')" wire:navigate icon="plus">
                     {{ __('New Note') }}
                 </flux:button>
@@ -67,4 +67,4 @@
             @endif
         @endif
     </div>
-</x-layouts::app>
+</div>

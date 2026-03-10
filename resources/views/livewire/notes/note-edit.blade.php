@@ -1,4 +1,4 @@
-<x-layouts::app :title="__('Edit Note')">
+<div>
     <div class="mx-auto w-full max-w-3xl">
         <div class="mb-6 flex items-center gap-3">
             <flux:button variant="ghost" :href="route('notes.show', $note)" wire:navigate icon="arrow-left" />
@@ -34,4 +34,4 @@
             </div>
         </form>
     </div>
-</x-layouts::app>
+</div>

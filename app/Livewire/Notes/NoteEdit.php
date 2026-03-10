@@ -3,9 +3,11 @@
 namespace App\Livewire\Notes;
 
 use App\Models\Note;
+use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
+#[Layout('layouts.app')]
 #[Title('Edit Note')]
 class NoteEdit extends Component
 {

@@ -1,4 +1,4 @@
-<x-layouts::app :title="__('Shared with me')">
+<div>
     <div class="flex h-full w-full flex-1 flex-col gap-6">
         <flux:heading size="xl">{{ __('Shared with me') }}</flux:heading>
 
@@ -74,7 +74,7 @@
                                 @if($share->shareable_type === 'App\Models\Note')
                                     <flux:button variant="ghost" size="sm" :href="route('notes.show', $share->shareable_id)" wire:navigate icon="eye">{{ __('View') }}</flux:button>
                                 @else
-                                    <flux:button variant="ghost" size="sm" :href="route('files.download', $share->shareable_id)" icon="download">{{ __('Download') }}</flux:button>
+                                    <flux:button variant="ghost" size="sm" :href="route('files.download', $share->shareable_id)" icon="arrow-down-tray">{{ __('Download') }}</flux:button>
                                 @endif
                             </div>
                         </div>
@@ -86,11 +86,11 @@
         @if($pendingShares->isEmpty() && $acceptedShares->isEmpty())
             <div class="flex flex-1 items-center justify-center rounded-xl border border-dashed border-zinc-300 dark:border-zinc-700 p-12">
                 <div class="text-center">
-                    <flux:icon name="share-2" class="mx-auto size-12 text-zinc-400" />
+                    <flux:icon name="share" class="mx-auto size-12 text-zinc-400" />
                     <flux:heading size="lg" class="mt-4">{{ __('Nothing shared with you yet') }}</flux:heading>
                     <flux:text class="mt-2">{{ __('When someone shares a note or file with you, it will appear here.') }}</flux:text>
                 </div>
             </div>
         @endif
     </div>
-</x-layouts::app>
+</div>

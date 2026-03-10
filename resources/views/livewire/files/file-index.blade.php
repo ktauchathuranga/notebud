@@ -1,10 +1,10 @@
-<x-layouts::app :title="__('My Files')">
+<div>
     <div class="flex h-full w-full flex-1 flex-col gap-6">
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <flux:heading size="xl">{{ __('My Files') }}</flux:heading>
             <div class="flex items-center gap-3">
-                <flux:input wire:model.live.debounce.300ms="search" placeholder="Search files..." icon="search" class="w-full sm:w-64" />
-                <flux:button variant="primary" :href="route('files.upload')" wire:navigate icon="upload">
+                <flux:input wire:model.live.debounce.300ms="search" placeholder="Search files..." icon="magnifying-glass" class="w-full sm:w-64" />
+                <flux:button variant="primary" :href="route('files.upload')" wire:navigate icon="arrow-up-tray">
                     {{ __('Upload') }}
                 </flux:button>
             </div>
@@ -16,7 +16,7 @@
                     <flux:icon name="folder" class="mx-auto size-12 text-zinc-400" />
                     <flux:heading size="lg" class="mt-4">{{ __('No files yet') }}</flux:heading>
                     <flux:text class="mt-2">{{ __('Upload your first file to get started.') }}</flux:text>
-                    <flux:button variant="primary" :href="route('files.upload')" wire:navigate icon="upload" class="mt-4">
+                    <flux:button variant="primary" :href="route('files.upload')" wire:navigate icon="arrow-up-tray" class="mt-4">
                         {{ __('Upload File') }}
                     </flux:button>
                 </div>
@@ -46,7 +46,7 @@
                                     <td class="px-4 py-3 text-zinc-500 hidden md:table-cell">{{ $file->created_at->diffForHumans() }}</td>
                                     <td class="px-4 py-3 text-right">
                                         <div class="flex items-center justify-end gap-1">
-                                            <flux:button variant="ghost" size="sm" :href="route('files.download', $file)" icon="download" />
+                                            <flux:button variant="ghost" size="sm" :href="route('files.download', $file)" icon="arrow-down-tray" />
                                             <livewire:shares.share-modal :shareable-type="App\Models\File::class" :shareable-id="$file->id" :key="'share-file-'.$file->id" />
                                             <flux:button variant="ghost" size="sm" wire:click="deleteFile({{ $file->id }})" wire:confirm="Are you sure you want to delete this file?" icon="trash" class="!text-red-500" />
                                         </div>
@@ -85,7 +85,7 @@
                                     <td class="px-4 py-3 hidden sm:table-cell"><flux:badge size="sm" color="blue">{{ $file->user->username }}</flux:badge></td>
                                     <td class="px-4 py-3 text-zinc-500 hidden sm:table-cell">{{ $file->sizeForHumans() }}</td>
                                     <td class="px-4 py-3 text-right">
-                                        <flux:button variant="ghost" size="sm" :href="route('files.download', $file)" icon="download" />
+                                        <flux:button variant="ghost" size="sm" :href="route('files.download', $file)" icon="arrow-down-tray" />
                                     </td>
                                 </tr>
                             @endforeach
@@ -95,4 +95,4 @@
             @endif
         @endif
     </div>
-</x-layouts::app>
+</div>

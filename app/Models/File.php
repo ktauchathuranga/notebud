@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 class File extends Model
 {
     protected $fillable = [
+        'user_id',
         'original_name',
         'stored_name',
         'path',

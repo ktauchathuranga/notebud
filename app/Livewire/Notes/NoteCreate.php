@@ -4,9 +4,11 @@ namespace App\Livewire\Notes;
 
 use App\Models\Note;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
+#[Layout('layouts.app')]
 #[Title('Create Note')]
 class NoteCreate extends Component
 {

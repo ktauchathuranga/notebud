@@ -4,10 +4,12 @@ namespace App\Livewire\Files;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
+#[Layout('layouts.app')]
 #[Title('Upload File')]
 class FileUpload extends Component
 {

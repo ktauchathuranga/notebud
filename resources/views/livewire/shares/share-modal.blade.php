@@ -1,5 +1,5 @@
 <div>
-    <flux:button variant="ghost" size="sm" wire:click="open" icon="share-2" />
+    <flux:button variant="ghost" size="sm" wire:click="open" icon="share" />
 
     <flux:modal wire:model="showModal" name="share-modal" class="w-full max-w-md">
         <div class="space-y-6">

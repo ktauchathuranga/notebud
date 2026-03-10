@@ -1,4 +1,4 @@
-<x-layouts::app :title="$note->title">
+<div>
     <div class="mx-auto w-full max-w-3xl">
         <div class="mb-6 flex items-center justify-between">
             <div class="flex items-center gap-3">
@@ -26,4 +26,4 @@
              x-html="html || '<p class=\'text-zinc-400\'>This note is empty.</p>'">
         </div>
     </div>
-</x-layouts::app>
+</div>
