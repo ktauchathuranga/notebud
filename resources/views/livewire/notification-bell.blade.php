@@ -1,51 +1,37 @@
 <div wire:poll.15s>
-    <flux:dropdown position="bottom" align="end">
-        <flux:button variant="ghost" icon="bell" class="relative">
-            @if($unreadCount > 0)
-                <span class="absolute -top-1 -right-1 flex size-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
-                    {{ $unreadCount > 9 ? '9+' : $unreadCount }}
-                </span>
-            @endif
-        </flux:button>
-
-        <flux:menu class="w-80 max-h-96 overflow-y-auto">
-            <div class="flex items-center justify-between px-3 py-2">
-                <flux:heading size="sm">{{ __('Notifications') }}</flux:heading>
+    {{-- Desktop: styled like a sidebar item --}}
+    <div class="hidden lg:block">
+        <flux:dropdown position="bottom" align="start">
+            <button type="button" class="relative flex w-full items-center gap-3 rounded-lg border border-transparent px-3 py-0 h-8 text-start text-sm font-medium text-zinc-500 hover:bg-zinc-800/5 hover:text-zinc-800 dark:text-white/80 dark:hover:bg-white/[7%] dark:hover:text-white">
+                <flux:icon name="bell" class="size-4" />
+                <span class="flex-1 truncate">{{ __('Notifications') }}</span>
                 @if($unreadCount > 0)
-                    <flux:link wire:click="markAllAsRead" class="text-xs cursor-pointer">{{ __('Mark all as read') }}</flux:link>
+                    <span class="flex size-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+                        {{ $unreadCount > 9 ? '9+' : $unreadCount }}
+                    </span>
                 @endif
-            </div>
-            <flux:menu.separator />
+            </button>
 
-            @forelse($notifications as $notification)
-                <div
-                    wire:click="markAsRead('{{ $notification->id }}')"
-                    class="cursor-pointer px-3 py-2 hover:bg-zinc-50 dark:hover:bg-zinc-800 {{ !$notification->read_at ? 'bg-blue-50 dark:bg-blue-900/20' : '' }}"
-                >
-                    @if(isset($notification->data['shared_by']))
-                        <flux:text class="text-sm">
-                            <span class="font-medium">{{ $notification->data['shared_by'] }}</span>
-                            {{ __('shared a') }} {{ $notification->data['type'] }}:
-                            <span class="font-medium">{{ $notification->data['name'] }}</span>
-                        </flux:text>
-                        @if(!empty($notification->data['message']))
-                            <flux:text class="text-xs text-zinc-400 mt-0.5">"{{ $notification->data['message'] }}"</flux:text>
-                        @endif
-                    @elseif(isset($notification->data['responded_by']))
-                        <flux:text class="text-sm">
-                            <span class="font-medium">{{ $notification->data['responded_by'] }}</span>
-                            {{ $notification->data['status'] === 'accepted' ? __('accepted') : __('rejected') }}
-                            {{ __('your') }} {{ $notification->data['type'] }}:
-                            <span class="font-medium">{{ $notification->data['name'] }}</span>
-                        </flux:text>
-                    @endif
-                    <flux:text class="text-xs text-zinc-400 mt-0.5">{{ $notification->created_at->diffForHumans() }}</flux:text>
-                </div>
-            @empty
-                <div class="px-3 py-6 text-center">
-                    <flux:text class="text-sm text-zinc-400">{{ __('No notifications') }}</flux:text>
-                </div>
-            @endforelse
-        </flux:menu>
-    </flux:dropdown>
+            <flux:menu class="w-80 max-h-96 overflow-y-auto">
+                @include('livewire.partials.notification-menu')
+            </flux:menu>
+        </flux:dropdown>
+    </div>
+
+    {{-- Mobile: icon-only button in header --}}
+    <div class="lg:hidden">
+        <flux:dropdown position="bottom" align="end">
+            <flux:button variant="ghost" icon="bell" class="relative">
+                @if($unreadCount > 0)
+                    <span class="absolute -top-1 -right-1 flex size-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+                        {{ $unreadCount > 9 ? '9+' : $unreadCount }}
+                    </span>
+                @endif
+            </flux:button>
+
+            <flux:menu class="w-80 max-h-96 overflow-y-auto">
+                @include('livewire.partials.notification-menu')
+            </flux:menu>
+        </flux:dropdown>
+    </div>
 </div>
