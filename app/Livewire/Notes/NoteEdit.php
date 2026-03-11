@@ -12,7 +12,9 @@ use Livewire\Component;
 class NoteEdit extends Component
 {
     public Note $note;
+
     public string $title = '';
+
     public string $content = '';
 
     public function mount(Note $note): void

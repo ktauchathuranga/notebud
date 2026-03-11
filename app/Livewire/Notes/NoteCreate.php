@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Notes;
 
-use App\Models\Note;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -13,6 +12,7 @@ use Livewire\Component;
 class NoteCreate extends Component
 {
     public string $title = '';
+
     public string $content = '';
 
     public function save(): void

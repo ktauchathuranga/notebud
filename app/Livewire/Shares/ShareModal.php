@@ -11,9 +11,13 @@ use Livewire\Component;
 class ShareModal extends Component
 {
     public string $shareableType;
+
     public int $shareableId;
+
     public string $username = '';
+
     public string $message = '';
+
     public bool $showModal = false;
 
     public function open(): void
@@ -39,6 +43,7 @@ class ShareModal extends Component
 
         if ($recipient->id === Auth::id()) {
             $this->addError('username', 'You cannot share with yourself.');
+
             return;
         }
 
@@ -52,6 +57,7 @@ class ShareModal extends Component
 
         if ($existing) {
             $this->addError('username', 'Already shared with this user.');
+
             return;
         }
 

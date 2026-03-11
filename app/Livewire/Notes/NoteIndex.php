@@ -31,8 +31,8 @@ class NoteIndex extends Component
         $myNotes = $user->notes()
             ->when($this->search, function ($query) {
                 $query->where(function ($q) {
-                    $q->where('title', 'like', '%' . $this->search . '%')
-                      ->orWhere('content', 'like', '%' . $this->search . '%');
+                    $q->where('title', 'like', '%'.$this->search.'%')
+                        ->orWhere('content', 'like', '%'.$this->search.'%');
                 });
             })
             ->latest()
@@ -46,8 +46,8 @@ class NoteIndex extends Component
         $sharedNotes = Note::whereIn('id', $sharedNoteIds)
             ->when($this->search, function ($query) {
                 $query->where(function ($q) {
-                    $q->where('title', 'like', '%' . $this->search . '%')
-                      ->orWhere('content', 'like', '%' . $this->search . '%');
+                    $q->where('title', 'like', '%'.$this->search.'%')
+                        ->orWhere('content', 'like', '%'.$this->search.'%');
                 });
             })
             ->latest()

@@ -24,7 +24,7 @@ class FileUpload extends Component
         ]);
 
         $originalName = $this->file->getClientOriginalName();
-        $storedName = Str::uuid() . '.' . $this->file->getClientOriginalExtension();
+        $storedName = Str::uuid().'.'.$this->file->getClientOriginalExtension();
         $path = $this->file->storeAs('', $storedName, config('filesystems.uploads'));
 
         Auth::user()->files()->create([

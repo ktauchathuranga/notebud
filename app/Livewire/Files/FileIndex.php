@@ -33,7 +33,7 @@ class FileIndex extends Component
 
         $myFiles = $user->files()
             ->when($this->search, function ($query) {
-                $query->where('original_name', 'like', '%' . $this->search . '%');
+                $query->where('original_name', 'like', '%'.$this->search.'%');
             })
             ->latest()
             ->get();
@@ -45,7 +45,7 @@ class FileIndex extends Component
 
         $sharedFiles = File::whereIn('id', $sharedFileIds)
             ->when($this->search, function ($query) {
-                $query->where('original_name', 'like', '%' . $this->search . '%');
+                $query->where('original_name', 'like', '%'.$this->search.'%');
             })
             ->latest()
             ->get();
