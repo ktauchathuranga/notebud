@@ -23,7 +23,7 @@ class FileIndex extends Component
         $file = File::findOrFail($fileId);
         $this->authorize('delete', $file);
 
-        Storage::disk('uploads')->delete($file->path);
+        Storage::disk(config('filesystems.uploads'))->delete($file->path);
         $file->delete();
     }
 

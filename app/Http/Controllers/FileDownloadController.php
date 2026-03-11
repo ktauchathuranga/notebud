@@ -13,7 +13,7 @@ class FileDownloadController extends Controller
     {
         Gate::authorize('view', $file);
 
-        $disk = Storage::disk('uploads');
+        $disk = Storage::disk(config('filesystems.uploads'));
 
         return response()->streamDownload(
             function () use ($disk, $file): void {
