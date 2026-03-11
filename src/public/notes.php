@@ -77,6 +77,10 @@ $username = $payload['username'] ?? 'User';
 </head>
 
 <body>
+    <div class="breaking-banner" id="breakingBanner">
+        <span>Important Notice: notebud is being rebuilt from the ground up. All existing notes, files, and chat history will be permanently deleted in 7 days. Please back up anything you need before then. This action is irreversible.</span>
+        <button onclick="document.getElementById('breakingBanner').style.display='none'">&times;</button>
+    </div>
     <header class="topbar">
         <h1>notebud</h1>
         <div class="session-controls">
