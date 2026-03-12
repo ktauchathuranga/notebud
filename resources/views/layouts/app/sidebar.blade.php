@@ -27,7 +27,7 @@
             <flux:spacer />
 
             <flux:sidebar.nav>
-                <flux:sidebar.item icon="book-open-text" href="https://github.com/laravel/livewire-starter-kit" target="_blank">
+                <flux:sidebar.item icon="book-open-text" href="https://github.com/ktauchathuranga/notebud" target="_blank">
                     {{ __('Repository') }}
                 </flux:sidebar.item>
             </flux:sidebar.nav>
