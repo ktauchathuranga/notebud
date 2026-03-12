@@ -17,6 +17,15 @@
                 </div>
             </div>
         </div>
+        <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+        <script>
+            function onLoginSubmit(token) {
+                document.getElementById('login-form').submit();
+            }
+            function onRegisterSubmit(token) {
+                document.getElementById('register-form').submit();
+            }
+        </script>
         @fluxScripts
     </body>
 </html>

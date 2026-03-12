@@ -5,8 +5,13 @@
         <!-- Session Status -->
         <x-auth-session-status class="text-center" :status="session('status')" />
 
-        <form method="POST" action="{{ route('register.store') }}" class="flex flex-col gap-6">
+        <form id="register-form" method="POST" action="{{ route('register.store') }}" class="flex flex-col gap-6">
             @csrf
+
+            @error('g-recaptcha-response')
+                <div class="text-sm text-red-600 dark:text-red-400">{{ $message }}</div>
+            @enderror
+
             <!-- Username -->
             <flux:input
                 name="username"
@@ -42,7 +47,7 @@
             />
 
             <div class="flex items-center justify-end">
-                <flux:button type="submit" variant="primary" class="w-full" data-test="register-user-button">
+                <flux:button type="submit" variant="primary" class="w-full g-recaptcha" data-sitekey="{{ config('services.recaptcha.site_key') }}" data-callback="onRegisterSubmit" data-action="register" data-test="register-user-button">
                     {{ __('Create account') }}
                 </flux:button>
             </div>

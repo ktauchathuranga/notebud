@@ -5,8 +5,12 @@
         <!-- Session Status -->
         <x-auth-session-status class="text-center" :status="session('status')" />
 
-        <form method="POST" action="{{ route('login.store') }}" class="flex flex-col gap-6">
+        <form id="login-form" method="POST" action="{{ route('login.store') }}" class="flex flex-col gap-6">
             @csrf
+
+            @error('g-recaptcha-response')
+                <div class="text-sm text-red-600 dark:text-red-400">{{ $message }}</div>
+            @enderror
 
             <!-- Username -->
             <flux:input
@@ -35,7 +39,7 @@
             <flux:checkbox name="remember" :label="__('Remember me')" :checked="old('remember')" />
 
             <div class="flex items-center justify-end">
-                <flux:button variant="primary" type="submit" class="w-full" data-test="login-button">
+                <flux:button variant="primary" type="submit" class="w-full g-recaptcha" data-sitekey="{{ config('services.recaptcha.site_key') }}" data-callback="onLoginSubmit" data-action="login" data-test="login-button">
                     {{ __('Log in') }}
                 </flux:button>
             </div>
