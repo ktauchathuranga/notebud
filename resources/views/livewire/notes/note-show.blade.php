@@ -1,5 +1,15 @@
-<div>
+<div
+    x-data="{ flash: { show: false, type: 'success', message: '' } }"
+    x-on:share-feedback.window="flash = { show: true, type: $event.detail.type, message: $event.detail.message }; setTimeout(() => flash.show = false, 3500)"
+>
     <div class="mx-auto w-full max-w-3xl">
+        <div x-show="flash.show" x-transition x-cloak class="mb-4 rounded-lg border p-3 text-sm"
+             :class="flash.type === 'success'
+                ? 'border-green-200 bg-green-50 text-green-700 dark:border-green-900/60 dark:bg-green-900/20 dark:text-green-300'
+                : 'border-red-200 bg-red-50 text-red-700 dark:border-red-900/60 dark:bg-red-900/20 dark:text-red-300'">
+            <span x-text="flash.message"></span>
+        </div>
+
         <div class="mb-6 flex items-center justify-between">
             <div class="flex items-center gap-3">
                 <flux:button variant="ghost" :href="route('notes.index')" wire:navigate icon="arrow-left" />

@@ -6,6 +6,7 @@ use App\Models\Share;
 use App\Models\User;
 use App\Notifications\ShareRequestNotification;
 use Illuminate\Support\Facades\Auth;
+use Throwable;
 use Livewire\Component;
 
 class ShareModal extends Component
@@ -43,6 +44,7 @@ class ShareModal extends Component
 
         if ($recipient->id === Auth::id()) {
             $this->addError('username', 'You cannot share with yourself.');
+            $this->dispatch('share-feedback', type: 'error', message: 'You cannot share with yourself.');
 
             return;
         }
@@ -57,23 +59,31 @@ class ShareModal extends Component
 
         if ($existing) {
             $this->addError('username', 'Already shared with this user.');
+            $this->dispatch('share-feedback', type: 'error', message: 'Already shared with this user.');
 
             return;
         }
 
-        $share = Share::create([
-            'shared_by' => Auth::id(),
-            'shared_with' => $recipient->id,
-            'shareable_type' => $this->shareableType,
-            'shareable_id' => $this->shareableId,
-            'status' => 'pending',
-            'message' => $this->message ?: null,
-        ]);
+        try {
+            $share = Share::create([
+                'shared_by' => Auth::id(),
+                'shared_with' => $recipient->id,
+                'shareable_type' => $this->shareableType,
+                'shareable_id' => $this->shareableId,
+                'status' => 'pending',
+                'message' => $this->message ?: null,
+            ]);
 
-        $recipient->notify(new ShareRequestNotification($share));
+            $recipient->notify(new ShareRequestNotification($share));
 
-        $this->close();
-        $this->dispatch('shared');
+            $this->close();
+            $this->dispatch('share-feedback', type: 'success', message: 'Share request sent successfully.');
+            $this->dispatch('shared');
+        } catch (Throwable $e) {
+            report($e);
+            $this->addError('username', 'Failed to send share request. Please try again.');
+            $this->dispatch('share-feedback', type: 'error', message: 'Failed to send share request. Please try again.');
+        }
     }
 
     public function render()
