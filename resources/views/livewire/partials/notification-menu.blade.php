@@ -1,7 +1,14 @@
 <div class="flex items-center justify-between px-3 py-2">
     <flux:heading size="sm">{{ __('Notifications') }}</flux:heading>
-    @if($unreadCount > 0)
-        <flux:link wire:click="markAllAsRead" class="text-xs cursor-pointer">{{ __('Mark all as read') }}</flux:link>
+    @if($notifications->isNotEmpty())
+        <div class="flex items-center gap-2">
+            @if($unreadCount > 0)
+                <flux:link wire:click="markAllAsRead" class="text-xs cursor-pointer">{{ __('Mark all as read') }}</flux:link>
+            @endif
+            <flux:link wire:click="clearAll" wire:confirm="Clear all notifications?" class="text-xs cursor-pointer text-red-500">
+                {{ __('Clear all') }}
+            </flux:link>
+        </div>
     @endif
 </div>
 <flux:menu.separator />

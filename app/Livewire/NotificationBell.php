@@ -17,6 +17,11 @@ class NotificationBell extends Component
         Auth::user()->unreadNotifications->markAsRead();
     }
 
+    public function clearAll(): void
+    {
+        Auth::user()->notifications()->delete();
+    }
+
     public function render()
     {
         return view('livewire.notification-bell', [
