@@ -1,6 +1,10 @@
 <?php
 
 use App\Http\Controllers\FileDownloadController;
+use App\Livewire\Admin\Notifications\NotificationSend;
+use App\Livewire\Admin\Users\UserCreate;
+use App\Livewire\Admin\Users\UserEdit;
+use App\Livewire\Admin\Users\UserIndex;
 use App\Livewire\Files\FileIndex;
 use App\Livewire\Files\FileUpload;
 use App\Livewire\Notes\NoteCreate;
@@ -28,6 +32,15 @@ Route::middleware(['auth'])->group(function () {
 
     // Shares
     Route::livewire('shares', IncomingShares::class)->name('shares.incoming');
+
+    // Admin
+    Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
+        Route::livewire('users', UserIndex::class)->name('users.index');
+        Route::livewire('users/create', UserCreate::class)->name('users.create');
+        Route::livewire('users/{user}/edit', UserEdit::class)->name('users.edit');
+
+        Route::livewire('notifications', NotificationSend::class)->name('notifications.index');
+    });
 });
 
 require __DIR__.'/settings.php';

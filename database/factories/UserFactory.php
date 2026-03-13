@@ -24,10 +24,18 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            'username' => fake()->unique()->userName(),
+            'username' => fake()->unique()->regexify('[a-z0-9_]{10}'),
             'password' => static::$password ??= Hash::make('password'),
+            'role' => 'user',
             'remember_token' => Str::random(10),
         ];
+    }
+
+    public function admin(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'admin',
+        ]);
     }
 
     /**

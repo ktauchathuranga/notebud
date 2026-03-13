@@ -15,6 +15,7 @@ class User extends Authenticatable
     protected $fillable = [
         'username',
         'password',
+        'role',
     ];
 
     protected $hidden = [
@@ -32,6 +33,11 @@ class User extends Authenticatable
     public function initials(): string
     {
         return Str::upper(Str::substr($this->username, 0, 2));
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
     }
 
     public function notes(): HasMany

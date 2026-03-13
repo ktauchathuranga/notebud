@@ -22,6 +22,17 @@
                         {{ __('Shared with me') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>
+
+                @if(auth()->user()->isAdmin())
+                    <flux:sidebar.group :heading="__('Admin')" class="grid mt-4">
+                        <flux:sidebar.item icon="users" :href="route('admin.users.index')" :current="request()->routeIs('admin.users.*')" wire:navigate>
+                            {{ __('Users') }}
+                        </flux:sidebar.item>
+                        <flux:sidebar.item icon="bell-alert" :href="route('admin.notifications.index')" :current="request()->routeIs('admin.notifications.*')" wire:navigate>
+                            {{ __('Notifications') }}
+                        </flux:sidebar.item>
+                    </flux:sidebar.group>
+                @endif
             </flux:sidebar.nav>
 
             <flux:spacer />

@@ -27,6 +27,19 @@
                 {{ __('your') }} {{ $notification->data['type'] }}:
                 <span class="font-medium">{{ $notification->data['name'] }}</span>
             </flux:text>
+        @elseif(isset($notification->data['title']))
+            <div class="space-y-1">
+                <flux:text class="text-sm font-medium">{{ $notification->data['title'] }}</flux:text>
+                <flux:text class="text-sm">{{ $notification->data['message'] }}</flux:text>
+                @if(!empty($notification->data['sent_by']))
+                    <flux:text class="text-xs text-zinc-400">{{ __('Sent by') }} {{ $notification->data['sent_by'] }}</flux:text>
+                @endif
+                @if(!empty($notification->data['action_url']))
+                    <a href="{{ $notification->data['action_url'] }}" target="_blank" class="text-xs text-blue-500 hover:underline">
+                        {{ __('Open Link') }}
+                    </a>
+                @endif
+            </div>
         @endif
         <flux:text class="text-xs text-zinc-400 mt-0.5">{{ $notification->created_at->diffForHumans() }}</flux:text>
     </div>
