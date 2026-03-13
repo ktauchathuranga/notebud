@@ -17,6 +17,8 @@ return [
 
     'uploads' => env('UPLOADS_DISK', 'uploads'),
 
+    'avatars' => env('AVATARS_DISK', env('APP_ENV') === 'production' ? 'r2' : 'public'),
+
     /*
     |--------------------------------------------------------------------------
     | Filesystem Disks
@@ -75,7 +77,9 @@ return [
             'secret' => env('CLOUDFLARE_R2_SECRET_ACCESS_KEY'),
             'region' => 'auto',
             'bucket' => env('CLOUDFLARE_R2_BUCKET'),
+            'url' => env('CLOUDFLARE_R2_URL'),
             'endpoint' => env('CLOUDFLARE_R2_ENDPOINT'),
+            'visibility' => 'public',
             'use_path_style_endpoint' => false,
             'throw' => false,
             'report' => false,

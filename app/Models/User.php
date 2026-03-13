@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class User extends Authenticatable
@@ -16,6 +17,7 @@ class User extends Authenticatable
         'username',
         'password',
         'role',
+        'avatar_path',
     ];
 
     protected $hidden = [
@@ -38,6 +40,20 @@ class User extends Authenticatable
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
+    }
+
+    public function avatarDisk(): string
+    {
+        return (string) config('filesystems.avatars', 'public');
+    }
+
+    public function avatarUrl(): ?string
+    {
+        if (! $this->avatar_path) {
+            return null;
+        }
+
+        return Storage::disk($this->avatarDisk())->url($this->avatar_path);
     }
 
     public function notes(): HasMany

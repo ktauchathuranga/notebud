@@ -58,6 +58,7 @@
             <flux:dropdown position="top" align="end">
                 <flux:profile
                     :initials="auth()->user()->initials()"
+                    :avatar="auth()->user()->avatarUrl()"
                     icon-trailing="chevron-down"
                 />
 
@@ -68,6 +69,7 @@
                                 <flux:avatar
                                     :name="auth()->user()->username"
                                     :initials="auth()->user()->initials()"
+                                    :src="auth()->user()->avatarUrl()"
                                 />
 
                                 <div class="grid flex-1 text-start text-sm leading-tight">
