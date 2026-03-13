@@ -22,3 +22,4 @@ yarn-error.log
 /.zed
 /dumped
 database/seeders/OldDatabaseSeeder.php
+output.txt
