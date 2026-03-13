@@ -13,6 +13,10 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        if (app()->isProduction()) {
+            return;
+        }
+
         User::factory()->admin()->create([
             'username' => 'admin',
             'password' => 'password',
