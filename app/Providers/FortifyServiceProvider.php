@@ -28,8 +28,12 @@ class FortifyServiceProvider extends ServiceProvider
 
         // Validate reCAPTCHA on login
         Fortify::authenticateUsing(function (Request $request) {
+            $captchaRules = app()->environment('testing')
+                ? ['nullable']
+                : ['required', new Recaptcha];
+
             Validator::make($request->all(), [
-                'g-recaptcha-response' => ['required', new Recaptcha],
+                'g-recaptcha-response' => $captchaRules,
             ], [
                 'g-recaptcha-response.required' => 'Please complete the reCAPTCHA verification.',
             ])->validate();

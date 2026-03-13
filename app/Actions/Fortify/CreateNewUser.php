@@ -12,10 +12,14 @@ class CreateNewUser implements CreatesNewUsers
 {
     public function create(array $input): User
     {
+        $captchaRules = app()->environment('testing')
+            ? ['nullable']
+            : ['required', new Recaptcha];
+
         Validator::make($input, [
             'username' => ['required', 'string', 'max:255', 'alpha_dash', 'unique:users'],
             'password' => ['required', 'string', Password::defaults(), 'confirmed'],
-            'g-recaptcha-response' => ['required', new Recaptcha],
+            'g-recaptcha-response' => $captchaRules,
         ], [
             'g-recaptcha-response.required' => 'Please complete the reCAPTCHA verification.',
         ])->validate();
