@@ -38,6 +38,9 @@
             <flux:spacer />
 
             <flux:sidebar.nav>
+                <flux:sidebar.item icon="heart" href="https://github.com/sponsors/ktauchathuranga" target="_blank">
+                    {{ __('Sponsor') }}
+                </flux:sidebar.item>
                 <flux:sidebar.item icon="book-open-text" href="https://github.com/ktauchathuranga/notebud" target="_blank">
                     {{ __('Repository') }}
                 </flux:sidebar.item>
