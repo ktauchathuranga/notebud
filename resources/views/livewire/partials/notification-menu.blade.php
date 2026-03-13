@@ -28,14 +28,51 @@
                 <span class="font-medium">{{ $notification->data['name'] }}</span>
             </flux:text>
         @elseif(isset($notification->data['title']))
-            <div class="space-y-1">
+            @php
+                $priority = $notification->data['priority'] ?? 'info';
+
+                $priorityStyles = match ($priority) {
+                    'success' => [
+                        'badge' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
+                        'icon' => 'check-circle',
+                        'iconClass' => 'text-emerald-500',
+                        'label' => __('Success'),
+                    ],
+                    'warning' => [
+                        'badge' => 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
+                        'icon' => 'exclamation-triangle',
+                        'iconClass' => 'text-amber-500',
+                        'label' => __('Warning'),
+                    ],
+                    'danger' => [
+                        'badge' => 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
+                        'icon' => 'x-circle',
+                        'iconClass' => 'text-red-500',
+                        'label' => __('Danger'),
+                    ],
+                    default => [
+                        'badge' => 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300',
+                        'icon' => 'information-circle',
+                        'iconClass' => 'text-sky-500',
+                        'label' => __('Info'),
+                    ],
+                };
+            @endphp
+
+            <div class="space-y-2">
+                <div class="flex items-center gap-2">
+                    <flux:icon name="{{ $priorityStyles['icon'] }}" class="size-4 {{ $priorityStyles['iconClass'] }}" />
+                    <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide {{ $priorityStyles['badge'] }}">
+                        {{ $priorityStyles['label'] }}
+                    </span>
+                </div>
                 <flux:text class="text-sm font-medium">{{ $notification->data['title'] }}</flux:text>
                 <flux:text class="text-sm">{{ $notification->data['message'] }}</flux:text>
                 @if(!empty($notification->data['sent_by']))
                     <flux:text class="text-xs text-zinc-400">{{ __('Sent by') }} {{ $notification->data['sent_by'] }}</flux:text>
                 @endif
                 @if(!empty($notification->data['action_url']))
-                    <a href="{{ $notification->data['action_url'] }}" target="_blank" class="text-xs text-blue-500 hover:underline">
+                    <a href="{{ $notification->data['action_url'] }}" target="_blank" rel="noopener noreferrer" class="text-xs text-blue-500 hover:underline">
                         {{ __('Open Link') }}
                     </a>
                 @endif
