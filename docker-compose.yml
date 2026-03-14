@@ -1,80 +1,40 @@
 services:
-  web:
-    build: 
+  app:
+    build:
       context: .
-      dockerfile: docker/php/Dockerfile
-    expose:
-      - "80"
-    volumes:
-      - ./src:/var/www/html/src
-    environment:
-      - DB_HOST=${DB_HOST}
-      - DB_PORT=${DB_PORT}
-      - DB_NAME=${DB_NAME}
-      - DB_USER=${DB_USER}
-      - DB_PASS=${DB_PASS}
-      - MONGODB_URI=${MONGODB_URI}
-      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
-      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
-      - JWT_SECRET=${JWT_SECRET}
-      - COOKIE_SECURE=${COOKIE_SECURE}
-      - MAX_USER_STORAGE=${MAX_USER_STORAGE}
-      - MAX_FILE_SIZE=${MAX_FILE_SIZE}
-      - MAX_FILES_PER_USER=${MAX_FILES_PER_USER}
-    depends_on:
-      - mongo
+      dockerfile: Dockerfile
+    container_name: notebud-app
     restart: unless-stopped
-    deploy:
-      replicas: 5
+    ports:
+      - "8000:80"
+    env_file:
+      - .env
+    volumes:
+      - storage:/var/www/html/storage
+    depends_on:
+      - queue
 
-  websocket:
-    build: 
+  queue:
+    build:
       context: .
-      dockerfile: docker/websocket/Dockerfile
-    expose:
-      - "10000"
-    environment:
-      - DB_HOST=${DB_HOST}
-      - DB_PORT=${DB_PORT}
-      - DB_NAME=${DB_NAME}
-      - DB_USER=${DB_USER}
-      - DB_PASS=${DB_PASS}
-      - MONGODB_URI=${MONGODB_URI}
-      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
-      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
-      - JWT_SECRET=${JWT_SECRET}
-      - PORT=10000
-      - RUST_LOG=info
-    depends_on:
-      - mongo
+      dockerfile: Dockerfile
+    container_name: notebud-queue
     restart: unless-stopped
-    deploy:
-      replicas: 5
-
-  nginx:
-    image: nginx:alpine
-    ports:
-      - "8090:8090"
-      - "8092:8092"
+    command: php artisan queue:work --sleep=3 --tries=3 --timeout=90
+    env_file:
+      - .env
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-    depends_on:
-      - web
-      - websocket
-    restart: unless-stopped
+      - storage:/var/www/html/storage
 
-  mongo:
-    image: mongo:7.0
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
-      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
-      - MONGO_INITDB_DATABASE=${DB_NAME}
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo_data:/data/db
-      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
-    restart: unless-stopped
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: notebud-migrate
+    command: php artisan migrate --force
+    env_file:
+      - .env
+    restart: "no"
 
 volumes:
-  mongo_data:
+  storage:
