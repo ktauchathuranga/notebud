@@ -23,7 +23,16 @@ class ShareModal extends Component
 
     public function useRecentUsername(string $username): void
     {
-        $this->username = $username;
+        $currentUsernames = collect(explode(',', $this->username))
+            ->map(fn (string $value) => trim($value))
+            ->filter()
+            ->values();
+
+        if (! $currentUsernames->contains($username)) {
+            $currentUsernames->push($username);
+        }
+
+        $this->username = $currentUsernames->implode(', ');
         $this->resetValidation('username');
     }
 
@@ -42,48 +51,84 @@ class ShareModal extends Component
     public function share(): void
     {
         $this->validate([
-            'username' => ['required', 'string', 'exists:users,username'],
+            'username' => ['required', 'string'],
             'message' => ['nullable', 'string', 'max:255'],
         ]);
 
-        $recipient = User::where('username', $this->username)->first();
+        $usernames = collect(explode(',', $this->username))
+            ->map(fn (string $value) => trim($value))
+            ->filter()
+            ->unique()
+            ->values();
 
-        if ($recipient->id === Auth::id()) {
+        if ($usernames->isEmpty()) {
+            $this->addError('username', 'Enter at least one valid username.');
+            $this->dispatch('share-feedback', type: 'error', message: 'Enter at least one valid username.');
+
+            return;
+        }
+
+        $recipients = User::query()
+            ->whereIn('username', $usernames)
+            ->get(['id', 'username']);
+
+        $missingUsernames = $usernames->diff($recipients->pluck('username'))->values();
+
+        if ($missingUsernames->isNotEmpty()) {
+            $this->addError('username', 'Usernames not found: '.$missingUsernames->implode(', ').'.');
+            $this->dispatch('share-feedback', type: 'error', message: 'Some usernames were not found.');
+
+            return;
+        }
+
+        if ($recipients->contains('id', Auth::id())) {
             $this->addError('username', 'You cannot share with yourself.');
             $this->dispatch('share-feedback', type: 'error', message: 'You cannot share with yourself.');
 
             return;
         }
 
-        // Check for existing pending/accepted share
-        $existing = Share::where('shared_by', Auth::id())
-            ->where('shared_with', $recipient->id)
+        $existingRecipientIds = Share::query()
+            ->where('shared_by', Auth::id())
+            ->whereIn('shared_with', $recipients->pluck('id'))
             ->where('shareable_type', $this->shareableType)
             ->where('shareable_id', $this->shareableId)
             ->whereIn('status', ['pending', 'accepted'])
-            ->exists();
+            ->pluck('shared_with');
 
-        if ($existing) {
-            $this->addError('username', 'Already shared with this user.');
-            $this->dispatch('share-feedback', type: 'error', message: 'Already shared with this user.');
+        if ($existingRecipientIds->isNotEmpty()) {
+            $alreadySharedUsernames = $recipients
+                ->whereIn('id', $existingRecipientIds)
+                ->pluck('username')
+                ->values();
+
+            $this->addError('username', 'Already shared with: '.$alreadySharedUsernames->implode(', ').'.');
+            $this->dispatch('share-feedback', type: 'error', message: 'Already shared with one or more selected users.');
 
             return;
         }
 
         try {
-            $share = Share::create([
-                'shared_by' => Auth::id(),
-                'shared_with' => $recipient->id,
-                'shareable_type' => $this->shareableType,
-                'shareable_id' => $this->shareableId,
-                'status' => 'pending',
-                'message' => $this->message ?: null,
-            ]);
+            foreach ($recipients as $recipient) {
+                $share = Share::create([
+                    'shared_by' => Auth::id(),
+                    'shared_with' => $recipient->id,
+                    'shareable_type' => $this->shareableType,
+                    'shareable_id' => $this->shareableId,
+                    'status' => 'pending',
+                    'message' => $this->message ?: null,
+                ]);
 
-            $recipient->notify(new ShareRequestNotification($share));
+                $recipient->notify(new ShareRequestNotification($share));
+            }
+
+            $recipientCount = $recipients->count();
+            $successMessage = $recipientCount === 1
+                ? 'Share request sent successfully.'
+                : "Share requests sent to {$recipientCount} users.";
 
             $this->close();
-            $this->dispatch('share-feedback', type: 'success', message: 'Share request sent successfully.');
+            $this->dispatch('share-feedback', type: 'success', message: $successMessage);
             $this->dispatch('shared');
         } catch (Throwable $e) {
             report($e);
