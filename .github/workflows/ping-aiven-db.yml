@@ -46,27 +46,51 @@ jobs:
         run: |
           php -r '
           $required = ["DB_HOST", "DB_PORT", "DB_DATABASE", "DB_USERNAME", "DB_PASSWORD", "MYSQL_ATTR_SSL_CA"];
+          $env = [];
+
           foreach ($required as $key) {
-              if (! getenv($key)) {
+            $value = getenv($key);
+            if ($value === false || trim($value) === "") {
                   fwrite(STDERR, "Missing required environment variable: {$key}\n");
                   exit(1);
               }
+
+            $env[$key] = trim($value);
+          }
+
+          $host = $env["DB_HOST"];
+
+          // Accept accidental host values like https://host by extracting hostname.
+          if (preg_match("#^https?://#i", $host)) {
+            $parsedHost = parse_url($host, PHP_URL_HOST);
+
+            if (! is_string($parsedHost) || $parsedHost === "") {
+              fwrite(STDERR, "AIVEN_DB_HOST is not a valid hostname. Use only the hostname, without protocol.\n");
+              exit(1);
+            }
+
+            $host = $parsedHost;
+          }
+
+          if (! filter_var($env["DB_PORT"], FILTER_VALIDATE_INT, ["options" => ["min_range" => 1, "max_range" => 65535]])) {
+            fwrite(STDERR, "AIVEN_DB_PORT must be a valid TCP port number.\n");
+            exit(1);
           }
 
           $dsn = sprintf(
               "mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4",
-              getenv("DB_HOST"),
-              getenv("DB_PORT"),
-              getenv("DB_DATABASE")
+            $host,
+            $env["DB_PORT"],
+            $env["DB_DATABASE"]
           );
 
           $options = [
               PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
               PDO::ATTR_TIMEOUT => 15,
-              PDO::MYSQL_ATTR_SSL_CA => getenv("MYSQL_ATTR_SSL_CA"),
+            PDO::MYSQL_ATTR_SSL_CA => $env["MYSQL_ATTR_SSL_CA"],
           ];
 
-          $pdo = new PDO($dsn, getenv("DB_USERNAME"), getenv("DB_PASSWORD"), $options);
+          $pdo = new PDO($dsn, $env["DB_USERNAME"], $env["DB_PASSWORD"], $options);
           $pdo->query("SELECT 1")->fetch();
 
           echo "Aiven DB ping successful.\n";
