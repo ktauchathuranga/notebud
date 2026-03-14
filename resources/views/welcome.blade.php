@@ -88,24 +88,59 @@
                                 <span class="text-xs font-medium text-zinc-500">Notebud Workspace</span>
                             </div>
 
-                            <div class="grid gap-4 sm:grid-cols-[0.9fr_1.1fr]">
-                                <div class="space-y-2 rounded-xl border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-zinc-950">
-                                    <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500">Shared with me</p>
-                                    <div class="rounded-lg bg-white px-3 py-2 text-xs ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800">Lab report draft</div>
-                                    <div class="rounded-lg bg-white px-3 py-2 text-xs ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800">Week 6 slides.pdf</div>
-                                    <div class="rounded-lg bg-white px-3 py-2 text-xs ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800">Exam checklist.md</div>
+                            <div class="mb-3 flex items-center gap-2 rounded-xl border border-zinc-200 bg-zinc-50 p-2.5 dark:border-zinc-800 dark:bg-zinc-950">
+                                <div class="min-w-0 flex-1 rounded-md border border-zinc-200 bg-white px-2.5 py-1.5 text-[11px] text-zinc-500 dark:border-zinc-700 dark:bg-zinc-900">
+                                    Search notes and files...
+                                </div>
+                                <span class="rounded-md bg-zinc-900 px-2 py-1 text-[10px] font-semibold text-white dark:bg-zinc-100 dark:text-zinc-900">New Note</span>
+                                <span class="rounded-md border border-zinc-300 px-2 py-1 text-[10px] font-semibold text-zinc-600 dark:border-zinc-700 dark:text-zinc-300">Upload</span>
+                            </div>
+
+                            <div class="grid gap-4 sm:grid-cols-[1fr_0.95fr]">
+                                <div class="space-y-3">
+                                    <div class="rounded-xl border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-zinc-950">
+                                        <p class="mb-2 text-[10px] font-semibold uppercase tracking-wide text-zinc-500">My Notes</p>
+                                        <div class="grid gap-2">
+                                            <div class="rounded-lg bg-white px-3 py-2 text-xs ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800">
+                                                <p class="font-semibold text-zinc-700 dark:text-zinc-200">Database Indexing Basics</p>
+                                                <p class="mt-1 text-[11px] text-zinc-500">B-tree, hash indexes, and tradeoffs.</p>
+                                            </div>
+                                            <div class="rounded-lg bg-white px-3 py-2 text-xs ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800">
+                                                <p class="font-semibold text-zinc-700 dark:text-zinc-200">Networking Week 3</p>
+                                                <p class="mt-1 text-[11px] text-zinc-500">OSI summary and socket examples.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="rounded-xl border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-zinc-950">
+                                        <p class="mb-2 text-[10px] font-semibold uppercase tracking-wide text-zinc-500">My Files</p>
+                                        <div class="space-y-1.5 text-[11px]">
+                                            <div class="flex items-center justify-between rounded-md bg-white px-2.5 py-1.5 ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800">
+                                                <span class="truncate pr-2">week6-slides.pdf</span>
+                                                <span class="text-zinc-500">1.2 MB</span>
+                                            </div>
+                                            <div class="flex items-center justify-between rounded-md bg-white px-2.5 py-1.5 ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800">
+                                                <span class="truncate pr-2">lab-template.zip</span>
+                                                <span class="text-zinc-500">860 KB</span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div class="space-y-3 rounded-xl border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-zinc-950">
-                                    <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500">Current note</p>
-                                    <div class="rounded-lg bg-white p-3 text-xs leading-relaxed ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800">
-                                        <p class="font-semibold text-zinc-700 dark:text-zinc-200">Database Indexing Basics</p>
-                                        <p class="mt-2 text-zinc-500">- B-tree for range queries</p>
-                                        <p class="text-zinc-500">- Hash index for exact lookups</p>
-                                        <p class="text-zinc-500">- Keep index count practical</p>
+                                    <p class="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Shared with me</p>
+                                    <div class="space-y-2">
+                                        <div class="rounded-lg bg-white px-3 py-2 ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800">
+                                            <p class="text-xs font-semibold text-zinc-700 dark:text-zinc-200">Lab report draft</p>
+                                            <p class="mt-1 text-[11px] text-zinc-500">From `nimal`</p>
+                                        </div>
+                                        <div class="rounded-lg bg-white px-3 py-2 ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800">
+                                            <p class="text-xs font-semibold text-zinc-700 dark:text-zinc-200">Exam checklist.md</p>
+                                            <p class="mt-1 text-[11px] text-zinc-500">From `sara`</p>
+                                        </div>
                                     </div>
-                                    <div class="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
-                                        Auto-saved
+                                    <div class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
+                                        2 new notifications
                                     </div>
                                 </div>
                             </div>
