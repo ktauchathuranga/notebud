@@ -1,0 +1,69 @@
+name: ping-aiven-db
+
+on:
+  schedule:
+    - cron: '0 */12 * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_mysql
+
+      - name: Write Aiven CA certificate
+        env:
+          AIVEN_CA_PEM: ${{ secrets.AIVEN_CA_PEM }}
+        run: |
+          if [ -z "$AIVEN_CA_PEM" ]; then
+            echo "Missing required secret: AIVEN_CA_PEM"
+            exit 1
+          fi
+
+          printf "%s" "$AIVEN_CA_PEM" > /tmp/aiven-ca.pem
+
+      - name: Ping Aiven MySQL
+        env:
+          DB_HOST: ${{ secrets.AIVEN_DB_HOST }}
+          DB_PORT: ${{ secrets.AIVEN_DB_PORT }}
+          DB_DATABASE: ${{ secrets.AIVEN_DB_DATABASE }}
+          DB_USERNAME: ${{ secrets.AIVEN_DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.AIVEN_DB_PASSWORD }}
+          MYSQL_ATTR_SSL_CA: /tmp/aiven-ca.pem
+        run: |
+          php -r '
+          $required = ["DB_HOST", "DB_PORT", "DB_DATABASE", "DB_USERNAME", "DB_PASSWORD", "MYSQL_ATTR_SSL_CA"];
+          foreach ($required as $key) {
+              if (! getenv($key)) {
+                  fwrite(STDERR, "Missing required environment variable: {$key}\n");
+                  exit(1);
+              }
+          }
+
+          $dsn = sprintf(
+              "mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4",
+              getenv("DB_HOST"),
+              getenv("DB_PORT"),
+              getenv("DB_DATABASE")
+          );
+
+          $options = [
+              PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+              PDO::ATTR_TIMEOUT => 15,
+              PDO::MYSQL_ATTR_SSL_CA => getenv("MYSQL_ATTR_SSL_CA"),
+          ];
+
+          $pdo = new PDO($dsn, getenv("DB_USERNAME"), getenv("DB_PASSWORD"), $options);
+          $pdo->query("SELECT 1")->fetch();
+
+          echo "Aiven DB ping successful.\n";
+          '
