@@ -10,6 +10,24 @@
 
             <form wire:submit="share" class="space-y-4">
                 <flux:input wire:model="username" :label="__('Username')" type="text" required placeholder="Enter username..." autofocus />
+
+                @if($recentUsernames->isNotEmpty())
+                    <div class="space-y-2">
+                        <flux:text class="text-xs text-zinc-500">{{ __('Recently shared with') }}</flux:text>
+                        <div class="flex flex-wrap gap-2">
+                            @foreach($recentUsernames as $recentUsername)
+                                <button
+                                    type="button"
+                                    wire:click="useRecentUsername('{{ $recentUsername }}')"
+                                    class="rounded-full border border-zinc-300 px-2.5 py-1 text-xs font-medium text-zinc-700 transition hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                                >
+                                    {{ $recentUsername }}
+                                </button>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
                 <flux:input wire:model="message" :label="__('Message (optional)')" type="text" placeholder="Add a message..." />
 
                 <div class="flex items-center justify-end gap-3">

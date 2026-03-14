@@ -151,3 +151,39 @@ test('non-recipient cannot accept a share', function () {
         ->call('accept', $share->id)
         ->assertForbidden();
 });
+
+test('share modal shows recently shared usernames and can autofill', function () {
+    $owner = User::factory()->create();
+    $firstRecipient = User::factory()->create();
+    $secondRecipient = User::factory()->create();
+
+    $firstNote = Note::factory()->create(['user_id' => $owner->id]);
+    $secondNote = Note::factory()->create(['user_id' => $owner->id]);
+
+    Share::create([
+        'shared_by' => $owner->id,
+        'shared_with' => $firstRecipient->id,
+        'shareable_type' => Note::class,
+        'shareable_id' => $firstNote->id,
+        'status' => 'accepted',
+    ]);
+
+    Share::create([
+        'shared_by' => $owner->id,
+        'shared_with' => $secondRecipient->id,
+        'shareable_type' => Note::class,
+        'shareable_id' => $secondNote->id,
+        'status' => 'pending',
+    ]);
+
+    $this->actingAs($owner);
+
+    Livewire\Livewire::test(App\Livewire\Shares\ShareModal::class, [
+        'shareableType' => Note::class,
+        'shareableId' => $firstNote->id,
+    ])
+        ->assertSee($firstRecipient->username)
+        ->assertSee($secondRecipient->username)
+        ->call('useRecentUsername', $secondRecipient->username)
+        ->assertSet('username', $secondRecipient->username);
+});

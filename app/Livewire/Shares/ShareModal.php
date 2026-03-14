@@ -21,6 +21,12 @@ class ShareModal extends Component
 
     public bool $showModal = false;
 
+    public function useRecentUsername(string $username): void
+    {
+        $this->username = $username;
+        $this->resetValidation('username');
+    }
+
     public function open(): void
     {
         $this->showModal = true;
@@ -88,6 +94,19 @@ class ShareModal extends Component
 
     public function render()
     {
-        return view('livewire.shares.share-modal');
+        $recentUsernames = Share::query()
+            ->where('shared_by', Auth::id())
+            ->with('recipient:id,username')
+            ->latest()
+            ->get()
+            ->pluck('recipient.username')
+            ->filter()
+            ->unique()
+            ->take(6)
+            ->values();
+
+        return view('livewire.shares.share-modal', [
+            'recentUsernames' => $recentUsernames,
+        ]);
     }
 }
