@@ -1,35 +1,208 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
         @include('partials.head')
     </head>
-    <body class="min-h-screen bg-white antialiased dark:bg-linear-to-b dark:from-neutral-950 dark:to-neutral-900">
-        <div class="flex min-h-screen flex-col items-center justify-center p-6">
-            <div class="text-center max-w-md">
-                <div class="flex justify-center mb-6">
-                    <x-app-logo-icon class="size-16 fill-current text-black dark:text-white" />
-                </div>
-                <h1 class="text-4xl font-semibold text-zinc-900 dark:text-white">Notebud</h1>
-                <p class="mt-3 text-lg text-zinc-500 dark:text-zinc-400">Save notes, upload files, and share them with friends.</p>
+    <body class="min-h-screen bg-zinc-50 text-zinc-900 antialiased dark:bg-zinc-950 dark:text-zinc-100">
+        <div class="relative overflow-hidden">
+            <div class="pointer-events-none absolute inset-0 -z-10">
+                <div class="absolute -left-24 top-10 h-72 w-72 rounded-full bg-cyan-200/50 blur-3xl dark:bg-cyan-900/20"></div>
+                <div class="absolute right-0 top-48 h-80 w-80 rounded-full bg-amber-200/40 blur-3xl dark:bg-amber-900/20"></div>
+                <div class="absolute bottom-10 left-1/3 h-64 w-64 rounded-full bg-emerald-200/40 blur-3xl dark:bg-emerald-900/20"></div>
+            </div>
 
-                <div class="mt-8 flex items-center justify-center gap-4">
+            <header class="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-6 lg:px-10">
+                <a href="{{ route('home') }}" class="inline-flex items-center gap-3">
+                    <x-app-logo-icon class="size-8 fill-current text-zinc-900 dark:text-zinc-100" />
+                    <span class="text-lg font-semibold tracking-tight">Notebud</span>
+                </a>
+
+                <div class="flex items-center gap-3">
+                    <a href="https://ktauchathuranga.gumroad.com/l/sponsor" target="_blank" rel="noopener noreferrer" class="hidden rounded-full border border-zinc-300 px-3 py-1.5 text-xs font-medium text-zinc-700 transition hover:border-zinc-400 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-900 sm:inline-flex">
+                        Sponsor
+                    </a>
                     @auth
-                        <a href="{{ route('notes.index') }}" class="inline-flex items-center justify-center rounded-lg bg-zinc-900 px-6 py-2.5 text-sm font-medium text-white transition hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200">
+                        <a href="{{ route('notes.index') }}" class="inline-flex items-center justify-center rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white">
                             Go to Notes
                         </a>
                     @else
-                        <a href="{{ route('login') }}" class="inline-flex items-center justify-center rounded-lg border border-zinc-300 px-6 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800">
+                        <a href="{{ route('login') }}" class="inline-flex items-center justify-center rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-900">
                             Log in
                         </a>
                         @if (Route::has('register'))
-                            <a href="{{ route('register') }}" class="inline-flex items-center justify-center rounded-lg bg-zinc-900 px-6 py-2.5 text-sm font-medium text-white transition hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200">
-                                Sign up
+                            <a href="{{ route('register') }}" class="inline-flex items-center justify-center rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white">
+                                Get Started
                             </a>
                         @endif
                     @endauth
                 </div>
-            </div>
+            </header>
+
+            <main class="mx-auto w-full max-w-6xl px-6 pb-16 lg:px-10 lg:pb-24">
+                <section class="grid gap-10 py-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:py-14">
+                    <div>
+                        <p class="inline-flex items-center rounded-full border border-cyan-300/70 bg-cyan-100/60 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-cyan-800 dark:border-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-200">
+                            Built for students
+                        </p>
+                        <h1 class="mt-5 text-4xl font-semibold tracking-tight text-zinc-900 dark:text-white sm:text-5xl lg:text-6xl">
+                            Keep class notes and shared files in one place.
+                        </h1>
+                        <p class="mt-5 max-w-2xl text-base leading-relaxed text-zinc-600 dark:text-zinc-300 sm:text-lg">
+                            Notebud helps classmates write notes in markdown, upload files, and share resources by username without the clutter of chat threads and scattered links.
+                        </p>
+
+                        <div class="mt-8 flex flex-wrap items-center gap-3">
+                            @auth
+                                <a href="{{ route('notes.index') }}" class="inline-flex items-center justify-center rounded-xl bg-zinc-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white">
+                                    Open Workspace
+                                </a>
+                            @else
+                                @if (Route::has('register'))
+                                    <a href="{{ route('register') }}" class="inline-flex items-center justify-center rounded-xl bg-zinc-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white">
+                                        Create Free Account
+                                    </a>
+                                @endif
+                                <a href="{{ route('login') }}" class="inline-flex items-center justify-center rounded-xl border border-zinc-300 px-6 py-3 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-900">
+                                    Log In
+                                </a>
+                            @endauth
+                        </div>
+
+                        <div class="mt-7 grid max-w-xl gap-2 text-sm text-zinc-600 dark:text-zinc-300 sm:grid-cols-2">
+                            <p class="rounded-lg bg-white/70 px-3 py-2 ring-1 ring-zinc-200 dark:bg-zinc-900/50 dark:ring-zinc-800">Markdown notes with code highlighting</p>
+                            <p class="rounded-lg bg-white/70 px-3 py-2 ring-1 ring-zinc-200 dark:bg-zinc-900/50 dark:ring-zinc-800">Share notes and files by username</p>
+                            <p class="rounded-lg bg-white/70 px-3 py-2 ring-1 ring-zinc-200 dark:bg-zinc-900/50 dark:ring-zinc-800">In-app request and response notifications</p>
+                            <p class="rounded-lg bg-white/70 px-3 py-2 ring-1 ring-zinc-200 dark:bg-zinc-900/50 dark:ring-zinc-800">Profile avatar and account controls</p>
+                        </div>
+                    </div>
+
+                    <div class="relative">
+                        <div class="absolute -inset-3 rounded-3xl bg-linear-to-br from-cyan-200 to-emerald-200 opacity-60 blur-xl dark:from-cyan-900/50 dark:to-emerald-900/50"></div>
+                        <div class="relative rounded-3xl border border-zinc-200 bg-white p-4 shadow-xl dark:border-zinc-800 dark:bg-zinc-900 sm:p-6">
+                            <div class="mb-4 flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <span class="size-2.5 rounded-full bg-red-400"></span>
+                                    <span class="size-2.5 rounded-full bg-amber-400"></span>
+                                    <span class="size-2.5 rounded-full bg-emerald-400"></span>
+                                </div>
+                                <span class="text-xs font-medium text-zinc-500">Notebud Workspace</span>
+                            </div>
+
+                            <div class="grid gap-4 sm:grid-cols-[0.9fr_1.1fr]">
+                                <div class="space-y-2 rounded-xl border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-zinc-950">
+                                    <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500">Shared with me</p>
+                                    <div class="rounded-lg bg-white px-3 py-2 text-xs ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800">Lab report draft</div>
+                                    <div class="rounded-lg bg-white px-3 py-2 text-xs ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800">Week 6 slides.pdf</div>
+                                    <div class="rounded-lg bg-white px-3 py-2 text-xs ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800">Exam checklist.md</div>
+                                </div>
+
+                                <div class="space-y-3 rounded-xl border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-zinc-950">
+                                    <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500">Current note</p>
+                                    <div class="rounded-lg bg-white p-3 text-xs leading-relaxed ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800">
+                                        <p class="font-semibold text-zinc-700 dark:text-zinc-200">Database Indexing Basics</p>
+                                        <p class="mt-2 text-zinc-500">- B-tree for range queries</p>
+                                        <p class="text-zinc-500">- Hash index for exact lookups</p>
+                                        <p class="text-zinc-500">- Keep index count practical</p>
+                                    </div>
+                                    <div class="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
+                                        Auto-saved
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="mt-8 rounded-3xl border border-zinc-200 bg-white/70 p-6 dark:border-zinc-800 dark:bg-zinc-900/50 sm:p-8">
+                    <h2 class="text-2xl font-semibold tracking-tight sm:text-3xl">Everything you need for study collaboration</h2>
+                    <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        <article class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+                            <h3 class="text-sm font-semibold">Markdown notes</h3>
+                            <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-300">Write structured notes with markdown and code-friendly formatting.</p>
+                        </article>
+                        <article class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+                            <h3 class="text-sm font-semibold">File upload and download</h3>
+                            <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-300">Store class material and download it quickly when you need it.</p>
+                        </article>
+                        <article class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+                            <h3 class="text-sm font-semibold">Username-based sharing</h3>
+                            <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-300">Share with classmates directly by username without searching for emails.</p>
+                        </article>
+                        <article class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+                            <h3 class="text-sm font-semibold">Incoming requests</h3>
+                            <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-300">Review pending share requests and accept or reject them in one place.</p>
+                        </article>
+                        <article class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+                            <h3 class="text-sm font-semibold">In-app notifications</h3>
+                            <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-300">Get immediate updates when content is shared or responses come in.</p>
+                        </article>
+                        <article class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+                            <h3 class="text-sm font-semibold">Profile control</h3>
+                            <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-300">Set your avatar, update username, and manage account settings anytime.</p>
+                        </article>
+                    </div>
+                </section>
+
+                <section class="mt-8 grid gap-6 lg:grid-cols-2">
+                    <div class="rounded-3xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/70 sm:p-8">
+                        <h2 class="text-2xl font-semibold tracking-tight">How it works</h2>
+                        <ol class="mt-6 space-y-4">
+                            <li class="rounded-xl border border-zinc-200 p-4 dark:border-zinc-800">
+                                <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500">Step 1</p>
+                                <p class="mt-1 text-sm">Create your account and start your first note.</p>
+                            </li>
+                            <li class="rounded-xl border border-zinc-200 p-4 dark:border-zinc-800">
+                                <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500">Step 2</p>
+                                <p class="mt-1 text-sm">Upload class files and organize your study material.</p>
+                            </li>
+                            <li class="rounded-xl border border-zinc-200 p-4 dark:border-zinc-800">
+                                <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500">Step 3</p>
+                                <p class="mt-1 text-sm">Share by username and track responses in notifications.</p>
+                            </li>
+                        </ol>
+                    </div>
+
+                    <div class="rounded-3xl border border-zinc-200 bg-linear-to-b from-zinc-900 to-zinc-800 p-6 text-zinc-100 dark:border-zinc-700 sm:p-8">
+                        <p class="inline-flex rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide">Why students pick Notebud</p>
+                        <h2 class="mt-4 text-2xl font-semibold tracking-tight">Simple when class gets busy</h2>
+                        <div class="mt-5 space-y-3 text-sm text-zinc-200">
+                            <p class="rounded-lg bg-white/5 px-3 py-2">Find your notes and files quickly with search.</p>
+                            <p class="rounded-lg bg-white/5 px-3 py-2">Share only what you need with request approval built in.</p>
+                            <p class="rounded-lg bg-white/5 px-3 py-2">Keep your profile and account controls in your hands.</p>
+                        </div>
+                        <a href="https://github.com/ktauchathuranga/notebud" target="_blank" rel="noopener noreferrer" class="mt-6 inline-flex rounded-lg border border-white/20 px-4 py-2 text-xs font-semibold uppercase tracking-wide transition hover:bg-white/10">
+                            View Repository
+                        </a>
+                    </div>
+                </section>
+
+                <section class="mt-8 rounded-3xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/70 sm:p-8">
+                    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <h2 class="text-xl font-semibold tracking-tight">Support Notebud</h2>
+                            <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-300">If Notebud helps your study workflow, you can support ongoing improvements.</p>
+                        </div>
+                        <a href="https://ktauchathuranga.gumroad.com/l/sponsor" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center rounded-xl bg-zinc-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white">
+                            Sponsor the Project
+                        </a>
+                    </div>
+                </section>
+            </main>
+
+            <footer class="border-t border-zinc-200 bg-white/70 px-6 py-6 dark:border-zinc-800 dark:bg-zinc-900/60 lg:px-10">
+                <div class="mx-auto flex w-full max-w-6xl flex-col gap-4 text-sm text-zinc-600 dark:text-zinc-300 sm:flex-row sm:items-center sm:justify-between">
+                    <p>&copy; {{ date('Y') }} Notebud. Built for focused study and sharing.</p>
+                    <div class="flex items-center gap-4">
+                        <a href="https://github.com/ktauchathuranga/notebud" target="_blank" rel="noopener noreferrer" class="hover:text-zinc-900 dark:hover:text-white">Repository</a>
+                        <a href="https://ktauchathuranga.gumroad.com/l/sponsor" target="_blank" rel="noopener noreferrer" class="hover:text-zinc-900 dark:hover:text-white">Sponsor</a>
+                        @guest
+                            <a href="{{ route('login') }}" class="hover:text-zinc-900 dark:hover:text-white">Log in</a>
+                        @endguest
+                    </div>
+                </div>
+            </footer>
         </div>
+
         @fluxScripts
     </body>
 </html>
