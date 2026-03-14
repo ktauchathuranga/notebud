@@ -5,7 +5,7 @@
             @if($unreadCount > 0)
                 <flux:link wire:click="markAllAsRead" class="text-xs cursor-pointer">{{ __('Mark all as read') }}</flux:link>
             @endif
-            <flux:link wire:click="clearAll" wire:confirm="Clear all notifications?" class="text-xs cursor-pointer text-red-500">
+            <flux:link wire:click="clearAll" class="text-xs cursor-pointer text-red-500">
                 {{ __('Clear all') }}
             </flux:link>
         </div>
