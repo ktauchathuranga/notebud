@@ -17,7 +17,43 @@
                 </div>
             </div>
         </div>
-        <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+        <script>
+            (() => {
+                const renderTurnstileWidgets = () => {
+                    if (typeof window.turnstile === 'undefined') {
+                        return;
+                    }
+
+                    document.querySelectorAll('.cf-turnstile').forEach((container) => {
+                        if (container.querySelector('iframe')) {
+                            return;
+                        }
+
+                        if (container.dataset.turnstileWidgetId) {
+                            return;
+                        }
+
+                        const sitekey = container.dataset.sitekey;
+
+                        if (!sitekey) {
+                            return;
+                        }
+
+                        const widgetId = window.turnstile.render(container, {
+                            sitekey,
+                        });
+
+                        container.dataset.turnstileWidgetId = String(widgetId);
+                    });
+                };
+
+                window.notebudTurnstileOnload = renderTurnstileWidgets;
+
+                document.addEventListener('DOMContentLoaded', renderTurnstileWidgets);
+                document.addEventListener('livewire:navigated', renderTurnstileWidgets);
+            })();
+        </script>
+        <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=notebudTurnstileOnload&render=explicit" async defer></script>
         @fluxScripts
     </body>
 </html>
