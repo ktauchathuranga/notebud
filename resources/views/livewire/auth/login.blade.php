@@ -8,7 +8,7 @@
         <form id="login-form" method="POST" action="{{ route('login.store') }}" class="flex flex-col gap-6">
             @csrf
 
-            @error('g-recaptcha-response')
+            @error('cf-turnstile-response')
                 <div class="text-sm text-red-600 dark:text-red-400">{{ $message }}</div>
             @enderror
 
@@ -38,8 +38,10 @@
             <!-- Remember Me -->
             <flux:checkbox name="remember" :label="__('Remember me')" :checked="old('remember')" />
 
+            <div class="cf-turnstile" data-sitekey="{{ config('services.turnstile.site_key') }}"></div>
+
             <div class="flex items-center justify-end">
-                <flux:button variant="primary" type="submit" class="w-full g-recaptcha" data-sitekey="{{ config('services.recaptcha.site_key') }}" data-callback="onLoginSubmit" data-action="login" data-test="login-button">
+                <flux:button variant="primary" type="submit" class="w-full" data-test="login-button">
                     {{ __('Log in') }}
                 </flux:button>
             </div>

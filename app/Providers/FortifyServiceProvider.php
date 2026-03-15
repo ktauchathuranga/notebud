@@ -3,7 +3,7 @@
 namespace App\Providers;
 
 use App\Actions\Fortify\CreateNewUser;
-use App\Rules\Recaptcha;
+use App\Rules\Turnstile;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -26,16 +26,16 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::loginView(fn () => view('livewire.auth.login'));
         Fortify::registerView(fn () => view('livewire.auth.register'));
 
-        // Validate reCAPTCHA on login
+        // Validate Turnstile on login
         Fortify::authenticateUsing(function (Request $request) {
             $captchaRules = app()->environment('testing')
                 ? ['nullable']
-                : ['required', new Recaptcha];
+                : ['required', new Turnstile];
 
             Validator::make($request->all(), [
-                'g-recaptcha-response' => $captchaRules,
+                'cf-turnstile-response' => $captchaRules,
             ], [
-                'g-recaptcha-response.required' => 'Please complete the reCAPTCHA verification.',
+                'cf-turnstile-response.required' => 'Please complete the Turnstile verification.',
             ])->validate();
 
             $user = \App\Models\User::where('username', $request->username)->first();
