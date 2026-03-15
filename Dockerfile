@@ -1,17 +1,3 @@
-# ---- Build frontend assets ----
-FROM node:20-alpine AS frontend
-
-WORKDIR /app
-
-COPY package.json package-lock.json* ./
-RUN npm ci
-
-COPY vite.config.js ./
-COPY resources/ ./resources/
-COPY public/ ./public/
-
-RUN npm run build
-
 # ---- PHP application ----
 FROM php:8.4-fpm-alpine AS app
 
@@ -20,6 +6,8 @@ RUN apk add --no-cache \
         nginx \
         supervisor \
         curl \
+    nodejs \
+    npm \
         libpng-dev \
         libjpeg-turbo-dev \
         freetype-dev \
@@ -64,8 +52,19 @@ RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
 # Copy application source
 COPY . .
 
-# Copy built frontend assets from the frontend stage
-COPY --from=frontend /app/public/build public/build
+# Build frontend assets after vendor is available for Flux CSS import paths.
+RUN npm ci \
+    && npm run build \
+    && rm -rf node_modules /root/.npm
+
+# Ensure required storage/cache directories exist before artisan/composer scripts.
+RUN mkdir -p \
+    storage/framework/sessions \
+    storage/framework/views \
+    storage/framework/cache \
+    storage/logs \
+    storage/app/public \
+    bootstrap/cache
 
 # Generate optimized autoload & caches
 RUN composer dump-autoload --optimize \
@@ -74,8 +73,7 @@ RUN composer dump-autoload --optimize \
     && php artisan view:cache
 
 # Ensure required storage directories exist & set permissions
-RUN mkdir -p storage/framework/{sessions,views,cache} storage/logs storage/app/public bootstrap/cache \
-    && mkdir -p /var/log/supervisor /var/run/nginx /run/nginx \
+RUN mkdir -p /var/log/supervisor /var/run/nginx /run/nginx \
     && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
