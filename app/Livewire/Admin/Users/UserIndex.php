@@ -2,7 +2,10 @@
 
 namespace App\Livewire\Admin\Users;
 
+use App\Models\File;
+use App\Models\Note;
 use App\Models\User;
+use App\Support\StorageQuota;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -122,11 +125,43 @@ class UserIndex extends Component
     {
         $users = User::query()
             ->when($this->search, fn ($query) => $query->where('username', 'like', '%'.$this->search.'%'))
+            ->withCount(['notes', 'files'])
+            ->withSum('files as used_storage_bytes', 'size')
             ->latest()
             ->get();
 
+        $totalUsers = User::query()->count();
+        $adminUsers = User::query()->where('role', 'admin')->count();
+        $totalNotes = Note::query()->count();
+        $totalFiles = File::query()->count();
+        $totalStorageUsedBytes = (int) File::query()->sum('size');
+
+        $overQuotaUsers = User::query()
+            ->withSum('files as used_storage_bytes', 'size')
+            ->get(['id', 'storage_quota_bytes'])
+            ->filter(function (User $user): bool {
+                $usedStorageBytes = (int) ($user->used_storage_bytes ?? 0);
+
+                return $usedStorageBytes > StorageQuota::limitBytes($user);
+            })
+            ->count();
+
+        $averageStoragePerUserBytes = $totalUsers > 0
+            ? (int) floor($totalStorageUsedBytes / $totalUsers)
+            : 0;
+
         return view('livewire.admin.users.user-index', [
             'users' => $users,
+            'insights' => [
+                'total_users' => $totalUsers,
+                'admin_users' => $adminUsers,
+                'member_users' => max($totalUsers - $adminUsers, 0),
+                'total_notes' => $totalNotes,
+                'total_files' => $totalFiles,
+                'total_storage_used_bytes' => $totalStorageUsedBytes,
+                'over_quota_users' => $overQuotaUsers,
+                'average_storage_per_user_bytes' => $averageStoragePerUserBytes,
+            ],
         ]);
     }
 }

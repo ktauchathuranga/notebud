@@ -10,6 +10,38 @@
             </div>
         </div>
 
+        <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <div class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
+                <flux:text class="text-xs text-zinc-500">{{ __('Users') }}</flux:text>
+                <flux:heading size="lg" class="mt-1">{{ number_format((int) $insights['total_users']) }}</flux:heading>
+                <flux:text class="mt-1 text-xs text-zinc-500">
+                    {{ __('Admins: :admins | Members: :members', ['admins' => number_format((int) $insights['admin_users']), 'members' => number_format((int) $insights['member_users'])]) }}
+                </flux:text>
+            </div>
+
+            <div class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
+                <flux:text class="text-xs text-zinc-500">{{ __('Content') }}</flux:text>
+                <flux:heading size="lg" class="mt-1">{{ number_format((int) $insights['total_notes']) }} {{ __('notes') }}</flux:heading>
+                <flux:text class="mt-1 text-xs text-zinc-500">
+                    {{ __('Files: :files', ['files' => number_format((int) $insights['total_files'])]) }}
+                </flux:text>
+            </div>
+
+            <div class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
+                <flux:text class="text-xs text-zinc-500">{{ __('Storage Used') }}</flux:text>
+                <flux:heading size="lg" class="mt-1">{{ \App\Support\StorageQuota::formatBytes((int) $insights['total_storage_used_bytes']) }}</flux:heading>
+                <flux:text class="mt-1 text-xs text-zinc-500">
+                    {{ __('Avg per user: :avg', ['avg' => \App\Support\StorageQuota::formatBytes((int) $insights['average_storage_per_user_bytes'])]) }}
+                </flux:text>
+            </div>
+
+            <div class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
+                <flux:text class="text-xs text-zinc-500">{{ __('Quota Health') }}</flux:text>
+                <flux:heading size="lg" class="mt-1">{{ number_format((int) $insights['over_quota_users']) }}</flux:heading>
+                <flux:text class="mt-1 text-xs text-zinc-500">{{ __('Users over effective limit') }}</flux:text>
+            </div>
+        </div>
+
         @if(session('status'))
             <div class="rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700 dark:border-green-900/60 dark:bg-green-900/20 dark:text-green-300">
                 {{ session('status') }}
@@ -27,22 +59,6 @@
                 {{ $message }}
             </div>
         @enderror
-
-        <div class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
-            <flux:heading size="sm">{{ __('Storage Quota Controls') }}</flux:heading>
-            <div class="mt-3 flex flex-col gap-3 lg:flex-row lg:items-end">
-                <div class="w-full lg:max-w-xs">
-                    <flux:input wire:model="bulkQuotaMb" :label="__('Quota (MB)')" type="number" min="1" step="0.01" placeholder="20" />
-                </div>
-                <div class="flex flex-wrap items-center gap-2">
-                    <flux:button variant="primary" wire:click="applyQuotaToSelected">{{ __('Set Selected') }}</flux:button>
-                    <flux:button variant="ghost" wire:click="resetQuotaForSelected">{{ __('Reset Selected') }}</flux:button>
-                    <flux:button variant="primary" wire:click="applyQuotaToAllUsers">{{ __('Set All Users') }}</flux:button>
-                    <flux:button variant="ghost" wire:click="resetQuotaForAllUsers">{{ __('Reset All Users') }}</flux:button>
-                </div>
-            </div>
-            <flux:text class="mt-2 text-xs text-zinc-500">{{ __('Reset uses default: :default plus grace: :grace', ['default' => \App\Support\StorageQuota::formatBytes((int) config('filesystems.storage_quota.default_bytes')), 'grace' => \App\Support\StorageQuota::formatBytes((int) config('filesystems.storage_quota.grace_bytes'))]) }}</flux:text>
-        </div>
 
         @if($users->isEmpty())
             <div class="flex flex-1 items-center justify-center rounded-xl border border-dashed border-zinc-300 dark:border-zinc-700 p-12">
@@ -62,6 +78,10 @@
                             </th>
                             <th class="px-4 py-3 font-medium">{{ __('Username') }}</th>
                             <th class="px-4 py-3 font-medium hidden sm:table-cell">{{ __('Role') }}</th>
+                            <th class="px-4 py-3 font-medium hidden md:table-cell">{{ __('Notes') }}</th>
+                            <th class="px-4 py-3 font-medium hidden md:table-cell">{{ __('Files') }}</th>
+                            <th class="px-4 py-3 font-medium hidden lg:table-cell">{{ __('Used') }}</th>
+                            <th class="px-4 py-3 font-medium hidden lg:table-cell">{{ __('Left') }}</th>
                             <th class="px-4 py-3 font-medium hidden md:table-cell">{{ __('Quota') }}</th>
                             <th class="px-4 py-3 font-medium hidden md:table-cell">{{ __('Joined') }}</th>
                             <th class="px-4 py-3 font-medium text-right">{{ __('Actions') }}</th>
@@ -69,6 +89,11 @@
                     </thead>
                     <tbody class="divide-y divide-zinc-200 dark:divide-zinc-700">
                         @foreach($users as $user)
+                            @php
+                                $usedStorageBytes = (int) ($user->used_storage_bytes ?? 0);
+                                $limitBytes = $user->storageLimitBytes();
+                                $remainingBytes = max($limitBytes - $usedStorageBytes, 0);
+                            @endphp
                             <tr class="bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
                                 <td class="px-4 py-3">
                                     <input
@@ -93,11 +118,31 @@
                                     </flux:badge>
                                 </td>
                                 <td class="px-4 py-3 hidden md:table-cell text-zinc-500">
+                                    {{ number_format((int) $user->notes_count) }}
+                                </td>
+                                <td class="px-4 py-3 hidden md:table-cell text-zinc-500">
+                                    {{ number_format((int) $user->files_count) }}
+                                </td>
+                                <td class="px-4 py-3 hidden lg:table-cell text-zinc-500">
+                                    {{ \App\Support\StorageQuota::formatBytes($usedStorageBytes) }}
+                                </td>
+                                <td class="px-4 py-3 hidden lg:table-cell text-zinc-500">
+                                    {{ \App\Support\StorageQuota::formatBytes($remainingBytes) }}
+                                </td>
+                                <td class="px-4 py-3 hidden md:table-cell text-zinc-500">
                                     @if($user->storage_quota_bytes)
                                         {{ \App\Support\StorageQuota::formatBytes((int) $user->storage_quota_bytes) }}
                                         <flux:badge size="sm" color="sky" class="ml-1">{{ __('Custom') }}</flux:badge>
                                     @else
                                         {{ __('Default') }}
+                                    @endif
+                                    <div class="text-xs text-zinc-400 mt-0.5">
+                                        {{ __('Limit: :limit', ['limit' => \App\Support\StorageQuota::formatBytes($limitBytes)]) }}
+                                    </div>
+                                    @if(! $user->storage_quota_bytes)
+                                        <div class="text-xs text-zinc-400">
+                                            {{ __('Includes grace') }}
+                                        </div>
                                     @endif
                                 </td>
                                 <td class="px-4 py-3 text-zinc-500 hidden md:table-cell">{{ $user->created_at->diffForHumans() }}</td>
