@@ -5,6 +5,8 @@ use App\Livewire\Admin\Notifications\NotificationSend;
 use App\Livewire\Admin\Users\UserCreate;
 use App\Livewire\Admin\Users\UserEdit;
 use App\Livewire\Admin\Users\UserIndex;
+use App\Livewire\Auth\RecoverAccount;
+use App\Livewire\Auth\RecoveryCodeHandoff;
 use App\Livewire\Files\FileIndex;
 use App\Livewire\Files\FileUpload;
 use App\Livewire\Notes\NoteCreate;
@@ -16,7 +18,17 @@ use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
 
+Route::middleware('guest')->group(function () {
+    Route::livewire('recover-account', RecoverAccount::class)
+        ->middleware('throttle:5,1')
+        ->name('recovery.recover');
+});
+
 Route::middleware(['auth'])->group(function () {
+    Route::livewire('auth/recovery-codes', RecoveryCodeHandoff::class)->name('recovery-codes.handoff');
+});
+
+Route::middleware(['auth', 'recovery-codes.handoff'])->group(function () {
     Route::redirect('dashboard', 'notes');
 
     // Notes

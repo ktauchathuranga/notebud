@@ -93,4 +93,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Share::class, 'shared_with');
     }
+
+    public function recoveryCodes(): HasMany
+    {
+        return $this->hasMany(RecoveryCode::class);
+    }
 }

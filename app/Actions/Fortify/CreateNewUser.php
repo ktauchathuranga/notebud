@@ -24,9 +24,11 @@ class CreateNewUser implements CreatesNewUsers
             'cf-turnstile-response.required' => 'Please complete the Turnstile verification.',
         ])->validate();
 
-        return User::create([
+        $user = User::create([
             'username' => $input['username'],
             'password' => $input['password'],
         ]);
+
+        return $user;
     }
 }

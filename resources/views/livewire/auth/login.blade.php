@@ -47,6 +47,10 @@
             </div>
         </form>
 
+        <div class="text-sm text-center text-zinc-600 dark:text-zinc-400">
+            <flux:link :href="route('recovery.recover')" wire:navigate>{{ __('Forgot password? Use a recovery code') }}</flux:link>
+        </div>
+
         @if (Route::has('register'))
             <div class="space-x-1 text-sm text-center rtl:space-x-reverse text-zinc-600 dark:text-zinc-400">
                 <span>{{ __('Don\'t have an account?') }}</span>

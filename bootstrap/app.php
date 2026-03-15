@@ -4,6 +4,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use App\Http\Middleware\AdminMiddleware;
+use App\Http\Middleware\EnsureRecoveryCodesHandoffCompleted;
 use Symfony\Component\HttpFoundation\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -26,6 +27,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'admin' => AdminMiddleware::class,
+            'recovery-codes.handoff' => EnsureRecoveryCodesHandoffCompleted::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

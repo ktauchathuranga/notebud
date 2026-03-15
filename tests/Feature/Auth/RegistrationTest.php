@@ -14,7 +14,13 @@ test('new users can register', function () {
     ]);
 
     $this->assertAuthenticated();
-    $response->assertRedirect(route('notes.index', absolute: false));
+    $response->assertRedirect(route('recovery-codes.handoff', absolute: false));
+
+    $user = User::query()->where('username', 'testuser')->firstOrFail();
+    expect($user->recoveryCodes()->whereNull('used_at')->count())->toBe(10);
+
+    $this->get('/notes')
+        ->assertRedirect(route('recovery-codes.handoff', absolute: false));
 });
 
 test('registration requires unique username', function () {
