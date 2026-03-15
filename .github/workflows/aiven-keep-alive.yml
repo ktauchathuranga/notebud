@@ -51,5 +51,4 @@ jobs:
           AIVEN_SERVICE: ${{ secrets.AIVEN_SERVICE }}
         run: |
           avn --auth-token "$AIVEN_TOKEN" service wait "$AIVEN_SERVICE" \
-            --project "$AIVEN_PROJECT" \
-            --state running || echo "Service is still starting"
+            --project "$AIVEN_PROJECT" || echo "Service is still starting"
