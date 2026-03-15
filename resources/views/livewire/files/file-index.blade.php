@@ -20,6 +20,22 @@
             </div>
         </div>
 
+        <div class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
+            <div class="mb-2 flex items-center justify-between gap-3 text-sm">
+                <flux:text class="font-medium">{{ __('Storage usage') }}</flux:text>
+                <flux:text class="text-zinc-500">{{ $storageUsageText }}</flux:text>
+            </div>
+            <div class="h-2 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-700">
+                <div
+                    class="h-full transition-all duration-300 {{ $storageUsagePercent >= 95 ? 'bg-red-500' : ($storageUsagePercent >= 80 ? 'bg-amber-500' : 'bg-blue-500') }}"
+                    style="width: {{ $storageUsagePercent }}%"
+                ></div>
+            </div>
+            <flux:text class="mt-2 text-xs text-zinc-500">
+                {{ __('Remaining: :remaining', ['remaining' => \App\Support\StorageQuota::formatBytes($remainingStorageBytes)]) }}
+            </flux:text>
+        </div>
+
         @if($myFiles->isEmpty() && $sharedFiles->isEmpty() && !$search)
             <div class="flex flex-1 items-center justify-center rounded-xl border border-dashed border-zinc-300 dark:border-zinc-700 p-12">
                 <div class="text-center">

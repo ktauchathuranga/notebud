@@ -22,6 +22,28 @@
             </div>
         @enderror
 
+        @error('bulkQuotaMb')
+            <div class="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-900/20 dark:text-red-300">
+                {{ $message }}
+            </div>
+        @enderror
+
+        <div class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
+            <flux:heading size="sm">{{ __('Storage Quota Controls') }}</flux:heading>
+            <div class="mt-3 flex flex-col gap-3 lg:flex-row lg:items-end">
+                <div class="w-full lg:max-w-xs">
+                    <flux:input wire:model="bulkQuotaMb" :label="__('Quota (MB)')" type="number" min="1" step="0.01" placeholder="20" />
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <flux:button variant="primary" wire:click="applyQuotaToSelected">{{ __('Set Selected') }}</flux:button>
+                    <flux:button variant="ghost" wire:click="resetQuotaForSelected">{{ __('Reset Selected') }}</flux:button>
+                    <flux:button variant="primary" wire:click="applyQuotaToAllUsers">{{ __('Set All Users') }}</flux:button>
+                    <flux:button variant="ghost" wire:click="resetQuotaForAllUsers">{{ __('Reset All Users') }}</flux:button>
+                </div>
+            </div>
+            <flux:text class="mt-2 text-xs text-zinc-500">{{ __('Reset uses default: :default plus grace: :grace', ['default' => \App\Support\StorageQuota::formatBytes((int) config('filesystems.storage_quota.default_bytes')), 'grace' => \App\Support\StorageQuota::formatBytes((int) config('filesystems.storage_quota.grace_bytes'))]) }}</flux:text>
+        </div>
+
         @if($users->isEmpty())
             <div class="flex flex-1 items-center justify-center rounded-xl border border-dashed border-zinc-300 dark:border-zinc-700 p-12">
                 <div class="text-center">
@@ -35,8 +57,12 @@
                 <table class="w-full text-left text-sm">
                     <thead class="border-b border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800/50">
                         <tr>
+                            <th class="px-4 py-3 font-medium w-10">
+                                <input type="checkbox" wire:model.live="selectAll" class="rounded border-zinc-300 text-blue-600 focus:ring-blue-500" />
+                            </th>
                             <th class="px-4 py-3 font-medium">{{ __('Username') }}</th>
                             <th class="px-4 py-3 font-medium hidden sm:table-cell">{{ __('Role') }}</th>
+                            <th class="px-4 py-3 font-medium hidden md:table-cell">{{ __('Quota') }}</th>
                             <th class="px-4 py-3 font-medium hidden md:table-cell">{{ __('Joined') }}</th>
                             <th class="px-4 py-3 font-medium text-right">{{ __('Actions') }}</th>
                         </tr>
@@ -44,6 +70,14 @@
                     <tbody class="divide-y divide-zinc-200 dark:divide-zinc-700">
                         @foreach($users as $user)
                             <tr class="bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
+                                <td class="px-4 py-3">
+                                    <input
+                                        type="checkbox"
+                                        wire:model.live="selectedUserIds"
+                                        value="{{ $user->id }}"
+                                        class="rounded border-zinc-300 text-blue-600 focus:ring-blue-500"
+                                    />
+                                </td>
                                 <td class="px-4 py-3">
                                     <div class="flex items-center gap-2">
                                         <flux:icon name="user" class="size-5 text-zinc-400" />
@@ -57,6 +91,14 @@
                                     <flux:badge size="sm" :color="$user->role === 'admin' ? 'violet' : 'zinc'">
                                         {{ ucfirst($user->role) }}
                                     </flux:badge>
+                                </td>
+                                <td class="px-4 py-3 hidden md:table-cell text-zinc-500">
+                                    @if($user->storage_quota_bytes)
+                                        {{ \App\Support\StorageQuota::formatBytes((int) $user->storage_quota_bytes) }}
+                                        <flux:badge size="sm" color="sky" class="ml-1">{{ __('Custom') }}</flux:badge>
+                                    @else
+                                        {{ __('Default') }}
+                                    @endif
                                 </td>
                                 <td class="px-4 py-3 text-zinc-500 hidden md:table-cell">{{ $user->created_at->diffForHumans() }}</td>
                                 <td class="px-4 py-3 text-right">

@@ -33,6 +33,24 @@ test('admin can create user', function () {
     expect(User::where('username', 'created_user')->exists())->toBeTrue();
 });
 
+test('admin can create user with custom storage quota', function () {
+    $admin = User::factory()->admin()->create();
+
+    $this->actingAs($admin);
+
+    Livewire\Livewire::test(App\Livewire\Admin\Users\UserCreate::class)
+        ->set('username', 'quota_user')
+        ->set('role', 'user')
+        ->set('password', 'Password123!')
+        ->set('password_confirmation', 'Password123!')
+        ->set('storage_quota_mb', '32')
+        ->call('save');
+
+    $created = User::where('username', 'quota_user')->firstOrFail();
+
+    expect($created->storage_quota_bytes)->toBe(32 * 1024 * 1024);
+});
+
 test('admin can edit user role and password', function () {
     $admin = User::factory()->admin()->create();
     $target = User::factory()->create();
@@ -50,6 +68,35 @@ test('admin can edit user role and password', function () {
 
     expect($target->username)->toBe('updated_user');
     expect($target->role)->toBe('admin');
+});
+
+test('admin can edit user storage quota override', function () {
+    $admin = User::factory()->admin()->create();
+    $target = User::factory()->create();
+
+    $this->actingAs($admin);
+
+    Livewire\Livewire::test(App\Livewire\Admin\Users\UserEdit::class, ['user' => $target])
+        ->set('storage_quota_mb', '64')
+        ->call('save');
+
+    expect($target->fresh()->storage_quota_bytes)->toBe(64 * 1024 * 1024);
+});
+
+test('admin can apply quota to selected users', function () {
+    $admin = User::factory()->admin()->create();
+    $userA = User::factory()->create();
+    $userB = User::factory()->create();
+
+    $this->actingAs($admin);
+
+    Livewire\Livewire::test(App\Livewire\Admin\Users\UserIndex::class)
+        ->set('selectedUserIds', [$userA->id, $userB->id])
+        ->set('bulkQuotaMb', '50')
+        ->call('applyQuotaToSelected');
+
+    expect($userA->fresh()->storage_quota_bytes)->toBe(50 * 1024 * 1024);
+    expect($userB->fresh()->storage_quota_bytes)->toBe(50 * 1024 * 1024);
 });
 
 test('admin cannot change own role', function () {

@@ -19,6 +19,7 @@
                 <flux:heading size="sm" class="mt-4">{{ __('Drag & drop your file here') }}</flux:heading>
                 <flux:text class="mt-1 text-sm">{{ __('or click to browse') }}</flux:text>
                 <flux:text class="mt-2 text-xs text-zinc-400">{{ __('Maximum file size: 10MB') }}</flux:text>
+                <flux:text class="mt-1 text-xs text-zinc-400">{{ __('Storage: :used / :limit (:remaining remaining)', ['used' => $usedStorageText, 'limit' => $limitStorageText, 'remaining' => $remainingStorageText]) }}</flux:text>
 
                 <input
                     x-ref="fileInput"

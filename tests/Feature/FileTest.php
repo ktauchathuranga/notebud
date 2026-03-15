@@ -32,6 +32,74 @@ test('user can upload a file', function () {
 
     expect($user->files()->count())->toBe(1);
     expect($user->files()->first()->original_name)->toBe('document.pdf');
+    expect($user->files()->first()->path)->toStartWith('files/');
+});
+
+test('upload is rejected when owned storage quota would be exceeded', function () {
+    Storage::fake('uploads');
+
+    config()->set('filesystems.storage_quota.default_bytes', 1024 * 1024); // 1MB
+    config()->set('filesystems.storage_quota.grace_bytes', 0);
+
+    $user = User::factory()->create();
+    $other = User::factory()->create();
+
+    File::create([
+        'user_id' => $user->id,
+        'original_name' => 'existing.bin',
+        'stored_name' => 'existing.bin',
+        'path' => 'files/existing.bin',
+        'size' => 900 * 1024,
+        'mime_type' => 'application/octet-stream',
+    ]);
+
+    // Other users' files must not count toward this user's quota.
+    File::create([
+        'user_id' => $other->id,
+        'original_name' => 'others.bin',
+        'stored_name' => 'others.bin',
+        'path' => 'files/others.bin',
+        'size' => 10 * 1024 * 1024,
+        'mime_type' => 'application/octet-stream',
+    ]);
+
+    $this->actingAs($user);
+
+    $file = UploadedFile::fake()->create('over-limit.pdf', 200); // 200KB
+
+    Livewire\Livewire::test(App\Livewire\Files\FileUpload::class)
+        ->set('file', $file)
+        ->call('save')
+        ->assertHasErrors('file');
+});
+
+test('grace bytes allow slightly above quota uploads', function () {
+    Storage::fake('uploads');
+
+    config()->set('filesystems.storage_quota.default_bytes', 1024 * 1024); // 1MB
+    config()->set('filesystems.storage_quota.grace_bytes', 128 * 1024); // 128KB grace
+
+    $user = User::factory()->create();
+
+    File::create([
+        'user_id' => $user->id,
+        'original_name' => 'existing.bin',
+        'stored_name' => 'existing.bin',
+        'path' => 'files/existing.bin',
+        'size' => 980 * 1024,
+        'mime_type' => 'application/octet-stream',
+    ]);
+
+    $this->actingAs($user);
+
+    $file = UploadedFile::fake()->create('within-grace.pdf', 100); // 100KB
+
+    Livewire\Livewire::test(App\Livewire\Files\FileUpload::class)
+        ->set('file', $file)
+        ->call('save')
+        ->assertHasNoErrors('file');
+
+    expect($user->fresh()->files()->count())->toBe(2);
 });
 
 test('file upload rejects files over 10MB', function () {

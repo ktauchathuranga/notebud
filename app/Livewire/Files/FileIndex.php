@@ -4,6 +4,7 @@ namespace App\Livewire\Files;
 
 use App\Models\File;
 use App\Models\Share;
+use App\Support\StorageQuota;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Layout;
@@ -50,9 +51,23 @@ class FileIndex extends Component
             ->latest()
             ->get();
 
+        $usedBytes = StorageQuota::usedBytes($user);
+        $limitBytes = StorageQuota::limitBytes($user);
+
         return view('livewire.files.file-index', [
             'myFiles' => $myFiles,
             'sharedFiles' => $sharedFiles,
+            'usedStorageBytes' => $usedBytes,
+            'storageLimitBytes' => $limitBytes,
+            'remainingStorageBytes' => max($limitBytes - $usedBytes, 0),
+            'storageUsagePercent' => $limitBytes > 0
+                ? min(100, (int) round(($usedBytes / $limitBytes) * 100))
+                : 0,
+            'storageUsageText' => sprintf(
+                '%s / %s',
+                StorageQuota::formatBytes($usedBytes),
+                StorageQuota::formatBytes($limitBytes),
+            ),
         ]);
     }
 }

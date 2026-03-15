@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\StorageQuota;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -18,6 +19,7 @@ class User extends Authenticatable
         'password',
         'role',
         'avatar_path',
+        'storage_quota_bytes',
     ];
 
     protected $hidden = [
@@ -29,6 +31,7 @@ class User extends Authenticatable
     {
         return [
             'password' => 'hashed',
+            'storage_quota_bytes' => 'integer',
         ];
     }
 
@@ -54,6 +57,21 @@ class User extends Authenticatable
         }
 
         return Storage::disk($this->avatarDisk())->url($this->avatar_path);
+    }
+
+    public function effectiveStorageQuotaBytes(): int
+    {
+        return StorageQuota::effectiveQuotaBytes($this);
+    }
+
+    public function storageLimitBytes(): int
+    {
+        return StorageQuota::limitBytes($this);
+    }
+
+    public function usedStorageBytes(): int
+    {
+        return StorageQuota::usedBytes($this);
     }
 
     public function notes(): HasMany

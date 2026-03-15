@@ -19,6 +19,13 @@ return [
 
     'uploads_path' => trim((string) env('UPLOADS_PATH', 'files'), '/'),
 
+    'avatars_path' => trim((string) env('AVATARS_PATH', 'avatars'), '/'),
+
+    'storage_quota' => [
+        'default_bytes' => (int) env('DEFAULT_STORAGE_QUOTA_BYTES', 20 * 1024 * 1024),
+        'grace_bytes' => (int) env('STORAGE_QUOTA_GRACE_BYTES', 1024 * 1024),
+    ],
+
     'avatars' => env('AVATARS_DISK', env('APP_ENV') === 'production' ? 'r2' : 'public'),
 
     /*

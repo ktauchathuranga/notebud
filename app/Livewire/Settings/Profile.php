@@ -43,7 +43,8 @@ class Profile extends Component
                 Storage::disk($user->avatarDisk())->delete($user->avatar_path);
             }
 
-            $user->avatar_path = $this->avatar->store('avatars', $user->avatarDisk());
+            $directory = (string) config('filesystems.avatars_path', 'avatars');
+            $user->avatar_path = $this->avatar->store($directory, $user->avatarDisk());
         }
 
         $user->save();
