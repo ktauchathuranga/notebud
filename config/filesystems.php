@@ -17,6 +17,8 @@ return [
 
     'uploads' => env('UPLOADS_DISK', 'uploads'),
 
+    'uploads_path' => trim((string) env('UPLOADS_PATH', 'files'), '/'),
+
     'avatars' => env('AVATARS_DISK', env('APP_ENV') === 'production' ? 'r2' : 'public'),
 
     /*
