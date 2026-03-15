@@ -5,7 +5,7 @@
             <flux:heading size="xl">{{ __('Upload File') }}</flux:heading>
         </div>
 
-        <form class="space-y-6" x-data="{ uploading: false, progress: 0 }">
+        <form wire:submit="save" class="space-y-6" x-data="{ uploading: false, progress: 0 }">
             <div
                 x-data="{ dragging: false }"
                 x-on:dragover.prevent="dragging = true"
@@ -26,7 +26,7 @@
                     wire:model="file"
                     class="hidden"
                     x-on:livewire-upload-start="uploading = true; progress = 0"
-                    x-on:livewire-upload-finish="uploading = false; progress = 100; $wire.save()"
+                    x-on:livewire-upload-finish="uploading = false; progress = 100"
                     x-on:livewire-upload-error="uploading = false"
                     x-on:livewire-upload-cancel="uploading = false"
                     x-on:livewire-upload-progress="progress = $event.detail.progress"
@@ -62,6 +62,15 @@
             </div>
 
             <div class="flex items-center gap-3">
+                <flux:button
+                    variant="primary"
+                    type="submit"
+                    :disabled="!$file"
+                    wire:loading.attr="disabled"
+                    wire:target="file,save"
+                >
+                    {{ __('Upload') }}
+                </flux:button>
                 <flux:button variant="ghost" :href="route('files.index')" wire:navigate>{{ __('Cancel') }}</flux:button>
             </div>
         </form>
