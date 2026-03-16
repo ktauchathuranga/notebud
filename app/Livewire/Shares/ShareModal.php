@@ -6,8 +6,8 @@ use App\Models\Share;
 use App\Models\User;
 use App\Notifications\ShareRequestNotification;
 use Illuminate\Support\Facades\Auth;
-use Throwable;
 use Livewire\Component;
+use Throwable;
 
 class ShareModal extends Component
 {

@@ -15,8 +15,7 @@ class AdminNotification extends Notification
         public string $priority,
         public ?string $actionUrl,
         public string $sentBy,
-    ) {
-    }
+    ) {}
 
     public function via(object $notifiable): array
     {
