@@ -3,11 +3,17 @@
 
 @php
     $siteName = config('app.name', 'Notebud');
+    $appUrl = rtrim((string) config('app.url', ''), '/');
     $defaultTitle = filled($title ?? null) ? $title.' - '.$siteName : $siteName;
     $metaTitle = trim($__env->yieldContent('meta_title')) ?: $defaultTitle;
     $metaDescription = trim($__env->yieldContent('meta_description')) ?: 'Share Notes & Files, Zero Hassle. A minimal, secure platform for your temporary pastes, notes, and file drops.';
     $metaImage = trim($__env->yieldContent('meta_image')) ?: url('/og-image.png');
-    $canonicalUrl = trim($__env->yieldContent('canonical_url')) ?: url()->current();
+    $canonicalOverride = trim($__env->yieldContent('canonical_url'));
+    $requestPath = trim(request()->getPathInfo(), '/');
+    $defaultCanonicalUrl = filled($appUrl)
+        ? ($requestPath === '' ? $appUrl : $appUrl.'/'.$requestPath)
+        : url()->current();
+    $canonicalUrl = $canonicalOverride ?: $defaultCanonicalUrl;
     $metaKeywords = trim($__env->yieldContent('meta_keywords')) ?: null;
 @endphp
 

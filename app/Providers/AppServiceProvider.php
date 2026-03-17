@@ -32,8 +32,14 @@ class AppServiceProvider extends ServiceProvider
      */
     protected function configureDefaults(): void
     {
-        if (app()->isProduction() && str_starts_with((string) config('app.url'), 'https://')) {
-            URL::forceScheme('https');
+        $appUrl = (string) config('app.url');
+
+        if (app()->isProduction() && filter_var($appUrl, FILTER_VALIDATE_URL)) {
+            URL::forceRootUrl(rtrim($appUrl, '/'));
+
+            if (str_starts_with($appUrl, 'https://')) {
+                URL::forceScheme('https');
+            }
         }
 
         Date::use(CarbonImmutable::class);
