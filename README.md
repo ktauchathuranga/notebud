@@ -1,40 +1,43 @@
 # notebud
 
-A note-taking and file-sharing app built for university labs. Simple username-based login, no 2FA hassles. Create notes with Markdown support, upload files, and share both with classmates by username.
+Notebud is a Laravel + Livewire app for writing notes, uploading files, and sharing content with classmates by username.
 
 ![notebud-preview](https://github.com/user-attachments/assets/a4ec8595-59ff-49d6-b2e1-1ebbee244d02)
 
 > [!TIP]
-> **Live at**: [notebud.cc](https://notebud.cc) | [notebud-3x6z.onrender.com](https://notebud-3x6z.onrender.com/)
+> Live: [notebud.cc](https://notebud.cc)
 
 ## Features
 
-- **Username-based auth** -- register and login with just a username and password
-- **Notes** -- create, edit, delete, and search notes with Markdown rendering
-- **File uploads** -- upload files up to 10MB, download and manage them
-- **Sharing** -- share notes and files with other users by username
-- **Notifications** -- in-app notifications when someone shares content with you
-- **Settings** -- update profile, change password, manage two-factor authentication, delete account
-- **Dark/light mode** -- appearance toggle
-- **Responsive** -- works on desktop and mobile
+- Username/password authentication with Cloudflare Turnstile on login and registration
+- Recovery-code based account recovery flow (`/recover-account`)
+- Mandatory recovery-code handoff after registration
+- Markdown note creation, editing, search, and sharing
+- File upload/download and username-based sharing
+- In-app notifications for share activity
+- Per-user storage quotas (default 20 MB + grace)
+- Admin user management with quota overrides
+- SEO basics: dynamic meta tags, canonical URLs, `sitemap.xml`, `robots.txt`
 
-## Tech Stack
+## Stack
 
-- **Backend**: Laravel 12, PHP 8.2+
-- **Frontend**: Livewire 4, Flux UI 2.9, Tailwind CSS 4
-- **Auth**: Laravel Fortify (username-based)
-- **Testing**: Pest 4
-- **Linting**: Laravel Pint
-- **CI**: GitHub Actions (lint + tests on PHP 8.4/8.5)
+- Laravel 12
+- Livewire 4 + Flux UI
+- Tailwind CSS 4
+- Laravel Fortify
+- Pest + Pint
+- Docker (single production-style container: PHP-FPM + Nginx + Supervisor)
 
-### Production Infrastructure
+## Storage and Upload Limits
 
-- **Database**: MySQL (Aiven) with SSL
-- **File storage**: Cloudflare R2 (S3-compatible)
-- **Hosting**: Render.com via Docker
-- **Dev defaults**: SQLite + local disk storage
+- Default per-user quota: `20 MB` (`DEFAULT_STORAGE_QUOTA_BYTES=20971520`)
+- Grace allowance: `1 MB` (`STORAGE_QUOTA_GRACE_BYTES=1048576`)
+- Per-file upload validation limit: `10 MB` (`max:10240` in `FileUpload`)
+- Docker PHP limits currently set to `10M` (`upload_max_filesize`, `post_max_size`)
 
-## Local Development
+If you want larger single-file uploads, increase both Laravel validation and Docker PHP ini limits.
+
+## Local Development (non-Docker)
 
 ### Requirements
 
@@ -56,139 +59,91 @@ cp .env.example .env
 php artisan key:generate
 touch database/database.sqlite
 php artisan migrate
-npm run build
 ```
 
-### Running
+### Run
 
 ```bash
 composer dev
 ```
 
-This starts the dev server, queue worker, log watcher, and Vite in parallel. Access the app at `http://localhost:8000`.
+This starts app server, queue worker, logs, and Vite at `http://localhost:8000`.
 
-### Commands
+## Docker (Production-Style Testing)
+
+`docker-compose` is not used in this project anymore.
+
+### 1. Build image
+
+```bash
+docker build -t notebud-test .
+```
+
+### 2. Run container with env file
+
+```bash
+docker rm -f notebud-local || true
+docker run --name notebud-local -p 8080:80 --env-file /path/to/prod.local.env notebud-test
+```
+
+### 3. Open app
+
+- `http://localhost:8080`
+
+### Important local-prod note
+
+For local Docker prod testing, set:
+
+```env
+APP_URL=http://localhost:8080
+```
+
+Do not use your live domain as `APP_URL` in local Docker, otherwise assets can resolve to remote URLs and trigger CORS/MIME errors.
+
+## Environment Notes
+
+- Local default DB: SQLite
+- Production DB: MySQL (Aiven SSL supported)
+- Upload disk switch:
+  - local: `UPLOADS_DISK=uploads`
+  - production: `UPLOADS_DISK=r2`
+- Avatars:
+  - local default: `public`
+  - production default: `r2`
+
+## Database Seeding
+
+Seed imported legacy data:
+
+```bash
+php artisan db:seed --class="Database\\Seeders\\OldDatabaseSeeder"
+```
+
+Inside Docker:
+
+```bash
+docker exec -it notebud-local php artisan db:seed --class="Database\\Seeders\\OldDatabaseSeeder"
+```
+
+Fresh DB + old seed inside Docker:
+
+```bash
+docker exec -it notebud-local php artisan migrate:fresh --seed --seeder="Database\\Seeders\\OldDatabaseSeeder"
+```
+
+## Useful Commands
 
 | Command | Description |
 |---|---|
-| `composer dev` | Start all dev services |
-| `composer test` | Run linter + tests |
-| `composer lint` | Auto-fix code style with Pint |
-| `composer lint:check` | Check code style without fixing |
-| `php artisan test` | Run tests only |
+| `composer dev` | Run local dev stack |
+| `composer test` | Pint check + tests |
+| `composer lint` | Auto-fix style |
+| `composer lint:check` | Style check only |
+| `php artisan test` | Run tests |
 
-## Docker
+## Deployment
 
-The app ships with a production-ready Docker setup using PHP-FPM + Nginx + Supervisor.
-
-### Build and Run
-
-```bash
-docker-compose up -d
-```
-
-This starts three services:
-
-| Service | Purpose |
-|---|---|
-| `notebud-app` | Web server (port 8000) |
-| `notebud-queue` | Queue worker |
-| `notebud-migrate` | Runs migrations on startup |
-
-### Dockerfile
-
-Multi-stage build:
-1. **Node stage** -- installs npm deps and runs `vite build`
-2. **PHP stage** -- PHP 8.4-fpm-alpine with extensions (pdo_mysql, gd, zip, intl, opcache), Nginx, and Supervisor
-
-## Configuration
-
-### Environment Switching
-
-The app uses environment variables to switch between local and production infrastructure. No code changes needed.
-
-**Database**: Set `DB_CONNECTION` to `sqlite` (local) or `mysql` (production).
-
-**File storage**: Set `UPLOADS_DISK` to `uploads` (local disk, default) or `r2` (Cloudflare R2).
-
-### Production Environment
-
-Copy `.env.production` and fill in the values:
-
-```env
-DB_CONNECTION=mysql
-DB_HOST=your-mysql-host
-DB_PORT=3306
-DB_DATABASE=your_database
-DB_USERNAME=your_user
-DB_PASSWORD=your_password
-MYSQL_ATTR_SSL_CA=/var/www/html/docker/ca.pem
-
-UPLOADS_DISK=r2
-CLOUDFLARE_R2_ACCESS_KEY_ID=your_key
-CLOUDFLARE_R2_SECRET_ACCESS_KEY=your_secret
-CLOUDFLARE_R2_BUCKET=your_bucket
-CLOUDFLARE_R2_ENDPOINT=https://your-account-id.r2.cloudflarestorage.com
-```
-
-### Render Deployment
-
-1. Connect your GitHub repo to Render as a Web Service
-2. Set the build context to the repo root
-3. Add environment variables from `.env.production` in the Render dashboard
-4. Render will build the Docker image and deploy automatically
-
-## Project Structure
-
-```
-app/
-  Http/Controllers/       -- FileDownloadController
-  Livewire/
-    Actions/              -- Logout
-    Files/                -- FileIndex, FileUpload
-    Notes/                -- NoteIndex, NoteCreate, NoteEdit, NoteShow
-    Settings/             -- Profile, Password, Appearance, TwoFactor, DeleteUserForm
-    Shares/               -- IncomingShares, ShareModal
-    NotificationBell.php
-  Models/                 -- User, Note, File, Share, Notification
-config/
-  filesystems.php         -- Local uploads + R2 disk config
-database/
-  migrations/             -- Users, cache, jobs, two-factor columns
-docker/
-  ca.pem                  -- SSL CA certificate for production DB
-  entrypoint.sh           -- Container entrypoint
-  nginx.conf              -- Nginx config
-  supervisord.conf        -- Supervisor config (PHP-FPM + Nginx)
-resources/views/
-  livewire/               -- All Livewire component views
-  layouts/                -- App and auth layouts
-  components/             -- Shared UI components
-routes/
-  web.php                 -- Main routes (notes, files, shares)
-  settings.php            -- Settings routes (profile, password, appearance)
-tests/
-  Feature/                -- Auth, notes, files, shares, settings, dashboard tests
-```
-
-## Testing
-
-Tests use SQLite in-memory and run with Pest:
-
-```bash
-php artisan test
-```
-
-CI runs on push/PR to `main`, `master`, and `develop` branches via GitHub Actions. It tests against PHP 8.4 and 8.5.
-
-## Contributing
-
-1. Fork the repo and create a feature branch
-2. Make your changes
-3. Run `composer test` to verify lint + tests pass
-4. Submit a pull request
-
-Do not commit real credentials. The `.env.example` and `.env.production` files contain only placeholders.
+The repository is Docker-first for production deployment. Provide environment variables from `.env.production` in your platform (for example Render, VPS, or any container host).
 
 ## License
 
