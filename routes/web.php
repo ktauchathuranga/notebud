@@ -14,8 +14,8 @@ use App\Livewire\Notes\NoteEdit;
 use App\Livewire\Notes\NoteIndex;
 use App\Livewire\Notes\NoteShow;
 use App\Livewire\Shares\IncomingShares;
-use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\URL;
 
 Route::view('/', 'welcome')->name('home');
 
