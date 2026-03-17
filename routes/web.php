@@ -14,9 +14,30 @@ use App\Livewire\Notes\NoteEdit;
 use App\Livewire\Notes\NoteIndex;
 use App\Livewire\Notes\NoteShow;
 use App\Livewire\Shares\IncomingShares;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
+
+Route::get('/sitemap.xml', function () {
+    $routes = ['home', 'login', 'register', 'recovery.recover'];
+
+    $urls = collect($routes)
+        ->filter(fn (string $name) => Route::has($name))
+        ->map(function (string $name) {
+            return [
+                'loc' => URL::route($name),
+                'lastmod' => now()->toDateString(),
+                'changefreq' => 'weekly',
+                'priority' => $name === 'home' ? '1.0' : '0.7',
+            ];
+        })
+        ->values();
+
+    return response()
+        ->view('sitemap.xml', ['urls' => $urls])
+        ->header('Content-Type', 'application/xml; charset=UTF-8');
+})->name('sitemap');
 
 Route::middleware('guest')->group(function () {
     Route::livewire('recover-account', RecoverAccount::class)
