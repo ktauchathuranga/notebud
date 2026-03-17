@@ -15,6 +15,7 @@
         : url()->current();
     $canonicalUrl = $canonicalOverride ?: $defaultCanonicalUrl;
     $metaKeywords = trim($__env->yieldContent('meta_keywords')) ?: null;
+    $structuredData = trim($__env->yieldContent('structured_data')) ?: null;
 @endphp
 
 <title>
@@ -29,6 +30,10 @@
     :site-name="$siteName"
     :keywords="$metaKeywords"
 />
+
+@if(filled($structuredData))
+    <script type="application/ld+json">{!! $structuredData !!}</script>
+@endif
 
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">

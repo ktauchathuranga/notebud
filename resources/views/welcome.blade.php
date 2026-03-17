@@ -4,6 +4,38 @@
 @section('canonical_url', route('home'))
 @section('meta_keywords', 'student notes, markdown notes, file sharing, class collaboration, notebud')
 
+@php
+    $homeStructuredData = [
+        [
+            '@context' => 'https://schema.org',
+            '@type' => 'WebSite',
+            'name' => 'Notebud',
+            'url' => route('home'),
+            'description' => 'Notebud helps students write markdown notes, upload files, and share resources by username in one focused workspace.',
+            'inLanguage' => 'en',
+        ],
+        [
+            '@context' => 'https://schema.org',
+            '@type' => 'SoftwareApplication',
+            'name' => 'Notebud',
+            'applicationCategory' => 'EducationalApplication',
+            'operatingSystem' => 'Web',
+            'url' => route('home'),
+            'description' => 'A focused student workspace for markdown notes, file uploads, and username-based sharing. Free to use, with optional sponsorship support.',
+            'isAccessibleForFree' => true,
+            'offers' => [
+                '@type' => 'Offer',
+                'price' => '0.00',
+                'priceCurrency' => 'USD',
+            ],
+        ],
+    ];
+@endphp
+
+@section('structured_data')
+{!! json_encode($homeStructuredData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+@endsection
+
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
