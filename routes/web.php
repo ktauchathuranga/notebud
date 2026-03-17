@@ -20,7 +20,8 @@ use Illuminate\Support\Facades\Route;
 Route::view('/', 'welcome')->name('home');
 
 Route::get('/sitemap.xml', function () {
-    $routes = ['home', 'login', 'register', 'recovery.recover'];
+    // Include only indexable, public pages in sitemap.
+    $routes = ['home'];
 
     $urls = collect($routes)
         ->filter(fn (string $name) => Route::has($name))
@@ -29,7 +30,7 @@ Route::get('/sitemap.xml', function () {
                 'loc' => URL::route($name),
                 'lastmod' => now()->toDateString(),
                 'changefreq' => 'weekly',
-                'priority' => $name === 'home' ? '1.0' : '0.7',
+                'priority' => '1.0',
             ];
         })
         ->values();
