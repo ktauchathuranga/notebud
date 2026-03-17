@@ -1,3 +1,9 @@
+@section('meta_title', 'Register - Notebud')
+@section('meta_description', 'Create a Notebud account to write markdown notes, upload files, and share with classmates by username.')
+@section('meta_image', url('/og-image.png'))
+@section('canonical_url', route('register'))
+@section('meta_keywords', 'notebud register, create student account, notes sharing app')
+
 <x-layouts::auth :title="__('Register')">
     <div class="flex flex-col gap-6">
         <x-auth-header :title="__('Create a Notebud account')" :description="__('Pick a username and password to get started')" />

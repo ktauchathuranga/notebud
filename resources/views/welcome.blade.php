@@ -1,3 +1,9 @@
+@section('meta_title', 'Notebud - Notes and File Sharing for Students')
+@section('meta_description', 'Notebud helps students write markdown notes, upload files, and share resources by username in one focused workspace.')
+@section('meta_image', url('/og-image.png'))
+@section('canonical_url', route('home'))
+@section('meta_keywords', 'student notes, markdown notes, file sharing, class collaboration, notebud')
+
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>

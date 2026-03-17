@@ -1,23 +1,28 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+@php
+    $siteName = config('app.name', 'Notebud');
+    $defaultTitle = filled($title ?? null) ? $title.' - '.$siteName : $siteName;
+    $metaTitle = trim($__env->yieldContent('meta_title')) ?: $defaultTitle;
+    $metaDescription = trim($__env->yieldContent('meta_description')) ?: 'Share Notes & Files, Zero Hassle. A minimal, secure platform for your temporary pastes, notes, and file drops.';
+    $metaImage = trim($__env->yieldContent('meta_image')) ?: url('/og-image.png');
+    $canonicalUrl = trim($__env->yieldContent('canonical_url')) ?: url()->current();
+    $metaKeywords = trim($__env->yieldContent('meta_keywords')) ?: null;
+@endphp
+
 <title>
-    {{ filled($title ?? null) ? $title.' - '.config('app.name', 'Laravel') : config('app.name', 'Laravel') }}
+    {{ $metaTitle }}
 </title>
 
-<!-- Open Graph / Facebook -->
-<meta property="og:type" content="website" />
-<meta property="og:url" content="{{ url()->current() }}" />
-<meta property="og:title" content="{{ filled($title ?? null) ? $title.' - '.config('app.name', 'Notebud') : config('app.name', 'Notebud') }}" />
-<meta property="og:description" content="Share Notes &amp; Files, Zero Hassle. A minimal, secure platform for your temporary pastes, notes, and file drops." />
-<meta property="og:image" content="{{ url('/og-image.png') }}" />
-
-<!-- Twitter -->
-<meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:url" content="{{ url()->current() }}" />
-<meta name="twitter:title" content="{{ filled($title ?? null) ? $title.' - '.config('app.name', 'Notebud') : config('app.name', 'Notebud') }}" />
-<meta name="twitter:description" content="Share Notes &amp; Files, Zero Hassle. A minimal, secure platform for your temporary pastes, notes, and file drops." />
-<meta name="twitter:image" content="{{ url('/og-image.png') }}" />
+<x-seo-meta
+    :title="$metaTitle"
+    :description="$metaDescription"
+    :url="$canonicalUrl"
+    :image="$metaImage"
+    :site-name="$siteName"
+    :keywords="$metaKeywords"
+/>
 
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">

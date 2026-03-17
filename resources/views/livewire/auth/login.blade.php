@@ -1,3 +1,9 @@
+@section('meta_title', 'Log in - Notebud')
+@section('meta_description', 'Log in to Notebud to access your notes, uploads, and shared study resources.')
+@section('meta_image', url('/og-image.png'))
+@section('canonical_url', route('login'))
+@section('meta_keywords', 'notebud login, student notes login, file sharing login')
+
 <x-layouts::auth :title="__('Log in')">
     <div class="flex flex-col gap-6">
         <x-auth-header :title="__('Log in to Notebud')" :description="__('Enter your username and password')" />
