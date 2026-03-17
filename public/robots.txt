@@ -1,2 +1,25 @@
 User-agent: *
-Disallow:
+Allow: /
+
+# Keep private/authenticated areas out of search indexes.
+Disallow: /dashboard
+Disallow: /notes
+Disallow: /files
+Disallow: /shares
+Disallow: /settings
+Disallow: /admin
+Disallow: /auth/
+
+# Auth and recovery flows are utility pages, not landing pages.
+Disallow: /login
+Disallow: /register
+Disallow: /recover-account
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /confirm-password
+Disallow: /two-factor-challenge
+
+# Laravel file serving path should never be indexed.
+Disallow: /storage/
+
+Sitemap: /sitemap.xml
