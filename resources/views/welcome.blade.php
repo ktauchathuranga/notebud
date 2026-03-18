@@ -257,6 +257,9 @@
                         <div>
                             <h2 class="text-xl font-semibold tracking-tight">Support Notebud</h2>
                             <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-300">If Notebud helps your study workflow, you can support ongoing improvements.</p>
+                            <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
+                                Support contact: <a href="mailto:contact@notebud.cc" class="font-medium hover:text-zinc-900 dark:hover:text-zinc-100">contact@notebud.cc</a>
+                            </p>
                         </div>
                         <a href="https://ktauchathuranga.gumroad.com/l/sponsor" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center rounded-xl bg-zinc-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white">
                             Sponsor the Project
@@ -271,6 +274,7 @@
                     <div class="flex items-center gap-4">
                         <a href="https://github.com/ktauchathuranga/notebud" target="_blank" rel="noopener noreferrer" class="hover:text-zinc-900 dark:hover:text-white">Repository</a>
                         <a href="https://ktauchathuranga.gumroad.com/l/sponsor" target="_blank" rel="noopener noreferrer" class="hover:text-zinc-900 dark:hover:text-white">Sponsor</a>
+                        <a href="mailto:contact@notebud.cc" class="hover:text-zinc-900 dark:hover:text-white">Contact</a>
                         @guest
                             <a href="{{ route('login') }}" class="hover:text-zinc-900 dark:hover:text-white">Log in</a>
                         @endguest

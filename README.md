@@ -6,6 +6,8 @@ Notebud is a Laravel + Livewire app for writing notes, uploading files, and shar
 
 > [!TIP]
 > Live: [notebud.cc](https://notebud.cc)
+> Alternative: [notebud-3x6z.onrender.com](https://notebud-3x6z.onrender.com/)
+> Support: [contact@notebud.cc](mailto:contact@notebud.cc)
 
 ## Features
 
