@@ -6,7 +6,7 @@ on:
       - main
       - laravel
   schedule:
-    - cron: '0 */2 * * *'
+    - cron: '0 */5 * * *'
   workflow_dispatch:
 
 jobs:
