@@ -9,7 +9,7 @@
             required
             autofocus
             autocomplete="username"
-            placeholder="johndoe"
+            placeholder="Username"
         />
 
         <flux:input
