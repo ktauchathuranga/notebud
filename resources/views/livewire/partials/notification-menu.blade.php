@@ -18,10 +18,8 @@
         $isShareRequestNotification = isset($notification->data['shared_by']);
     @endphp
     <div
-        @if($isShareRequestNotification)
-            wire:click="openNotification('{{ $notification->id }}')"
-        @endif
-        class="px-3 py-2 {{ $isShareRequestNotification ? 'cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800' : 'cursor-default' }} {{ !$notification->read_at ? 'bg-blue-50 dark:bg-blue-900/20' : '' }}"
+        wire:click="{{ $isShareRequestNotification ? "openNotification('{$notification->id}')" : "markAsRead('{$notification->id}')" }}"
+        class="px-3 py-2 cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800 {{ !$notification->read_at ? 'bg-blue-50 dark:bg-blue-900/20' : '' }}"
     >
         @if(isset($notification->data['shared_by']))
             <flux:text class="text-sm">
