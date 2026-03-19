@@ -46,7 +46,9 @@
                 </flux:sidebar.item>
             </flux:sidebar.nav>
 
-            <livewire:notification-bell />
+            <div class="hidden lg:block">
+                <livewire:notification-bell />
+            </div>
             <x-desktop-user-menu class="hidden lg:block" :name="auth()->user()->username" />
         </flux:sidebar>
 
