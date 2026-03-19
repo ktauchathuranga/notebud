@@ -1,7 +1,13 @@
 <div class="text-left">
-    <flux:button variant="ghost" size="sm" wire:click="open" icon="share" />
+    @if($trigger === 'menu')
+        <flux:menu.item wire:click.prevent="open" icon="share">{{ __($label) }}</flux:menu.item>
+    @elseif($trigger === 'none')
+        <span class="hidden" aria-hidden="true"></span>
+    @else
+        <flux:button variant="ghost" size="sm" wire:click="open" icon="share" />
+    @endif
 
-    <flux:modal wire:model="showModal" name="share-modal" class="w-full max-w-md">
+    <flux:modal wire:model="showModal" :name="$modalName" class="w-full max-w-md">
         <div class="space-y-6">
             <div>
                 <flux:heading size="lg">{{ __('Share') }}</flux:heading>

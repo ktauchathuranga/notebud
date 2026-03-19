@@ -15,11 +15,32 @@ class ShareModal extends Component
 
     public int $shareableId;
 
+    public string $trigger = 'icon';
+
+    public string $label = 'Share';
+
+    public string $modalName = 'share-modal';
+
+    public string $openEvent = 'open-share-modal';
+
     public string $username = '';
 
     public string $message = '';
 
     public bool $showModal = false;
+
+    public function mount(): void
+    {
+        $this->modalName = 'share-modal-'.md5($this->shareableType.'-'.$this->shareableId);
+        $this->openEvent = 'open-share-modal-'.md5($this->shareableType.'-'.$this->shareableId);
+    }
+
+    protected function getListeners(): array
+    {
+        return [
+            $this->openEvent => 'open',
+        ];
+    }
 
     public function useRecentUsername(string $username): void
     {

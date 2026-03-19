@@ -1,5 +1,15 @@
-<div>
+<div
+    x-data="{ flash: { show: false, type: 'success', message: '' } }"
+    x-on:share-feedback.window="flash = { show: true, type: $event.detail.type, message: $event.detail.message }; setTimeout(() => flash.show = false, 3500)"
+>
     <div class="flex h-full w-full flex-1 flex-col gap-6">
+        <div x-show="flash.show" x-transition x-cloak class="rounded-lg border p-3 text-sm"
+             :class="flash.type === 'success'
+                ? 'border-green-200 bg-green-50 text-green-700 dark:border-green-900/60 dark:bg-green-900/20 dark:text-green-300'
+                : 'border-red-200 bg-red-50 text-red-700 dark:border-red-900/60 dark:bg-red-900/20 dark:text-red-300'">
+            <span x-text="flash.message"></span>
+        </div>
+
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <flux:heading size="xl">{{ __('My Notes') }}</flux:heading>
             <div class="flex items-center gap-3">
@@ -34,12 +44,14 @@
                                     <flux:button variant="ghost" size="sm" icon="ellipsis-vertical" class="opacity-0 group-hover:opacity-100" />
                                     <flux:menu>
                                         <flux:menu.item :href="route('notes.edit', $note)" wire:navigate icon="pencil">{{ __('Edit') }}</flux:menu.item>
+                                        <flux:menu.item x-on:click.prevent="$dispatch('open-share-modal-{{ md5(App\Models\Note::class.'-'.$note->id) }}')" icon="share">{{ __('Share') }}</flux:menu.item>
                                         <flux:menu.item wire:click="deleteNote({{ $note->id }})" wire:confirm="Are you sure you want to delete this note?" icon="trash" variant="danger">{{ __('Delete') }}</flux:menu.item>
                                     </flux:menu>
                                 </flux:dropdown>
                             </div>
                             <flux:text class="mt-2 line-clamp-3 text-sm">{{ Str::limit(strip_tags($note->content), 150) }}</flux:text>
                             <flux:text class="mt-auto pt-3 text-xs text-zinc-400">{{ $note->updated_at->diffForHumans() }}</flux:text>
+                            <livewire:shares.share-modal :shareable-type="App\Models\Note::class" :shareable-id="$note->id" trigger="none" :key="'share-note-card-'.$note->id" />
                         </div>
                     @endforeach
                 </div>
