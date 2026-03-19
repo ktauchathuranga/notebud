@@ -16,7 +16,4 @@ Disallow: /register
 Disallow: /recover-account
 Disallow: /user/confirm-password
 
-# Laravel file serving path should never be indexed.
-Disallow: /storage/
-
 Sitemap: /sitemap.xml
