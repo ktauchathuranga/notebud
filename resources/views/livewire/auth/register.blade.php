@@ -5,13 +5,22 @@
 @section('meta_keywords', 'notebud register, create student account, notes sharing app')
 
 <x-layouts::auth :title="__('Register')">
-    <div class="flex flex-col gap-6">
+    <div x-data="{ loading: false }" class="flex flex-col gap-6 relative">
+        <div x-show="loading" x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/60">
+            <div class="flex flex-col items-center gap-4">
+                <svg class="animate-spin h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                </svg>
+                <span class="text-white text-lg font-semibold">{{ __('Creating account...') }}</span>
+            </div>
+        </div>
         <x-auth-header :title="__('Create a Notebud account')" :description="__('Pick a username and password to get started')" />
 
         <!-- Session Status -->
         <x-auth-session-status class="text-center" :status="session('status')" />
 
-        <form id="register-form" method="POST" action="{{ route('register.store') }}" class="flex flex-col gap-6">
+        <form id="register-form" method="POST" action="{{ route('register.store') }}" class="flex flex-col gap-6" @submit="loading = true">
             @csrf
 
             @error('cf-turnstile-response')
