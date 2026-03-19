@@ -19,12 +19,7 @@
     @endphp
     <div
         x-data="{ loading: false }"
-        @if($isShareRequestNotification)
-            x-on:livewire:loading.window="loading = true"
-            x-on:livewire:load.window="loading = false"
-        @else
-            @click="loading = true; setTimeout(() => loading = false, 400);"
-        @endif
+        @click="loading = true; setTimeout(() => loading = false, 500);"
         wire:click="{{ $isShareRequestNotification ? "openNotification('{$notification->id}')" : "markAsRead('{$notification->id}')" }}"
         class="relative px-3 py-2 cursor-pointer transition-colors duration-200
             hover:bg-zinc-50 dark:hover:bg-zinc-800
