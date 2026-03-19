@@ -18,9 +18,27 @@
         $isShareRequestNotification = isset($notification->data['shared_by']);
     @endphp
     <div
+        x-data="{ loading: false }"
+        @if($isShareRequestNotification)
+            x-on:livewire:loading.window="loading = true"
+            x-on:livewire:load.window="loading = false"
+        @else
+            @click="loading = true; setTimeout(() => loading = false, 400);"
+        @endif
         wire:click="{{ $isShareRequestNotification ? "openNotification('{$notification->id}')" : "markAsRead('{$notification->id}')" }}"
-        class="px-3 py-2 cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800 {{ !$notification->read_at ? 'bg-blue-50 dark:bg-blue-900/20' : '' }}"
+        class="relative px-3 py-2 cursor-pointer transition-colors duration-200
+            hover:bg-zinc-50 dark:hover:bg-zinc-800
+            {{ !$notification->read_at ? 'bg-blue-50 dark:bg-blue-900/20' : '' }}"
+        :class="loading ? 'bg-amber-100 dark:bg-amber-900/30 opacity-70' : ''"
     >
+        <template x-if="loading">
+            <div class="absolute inset-0 flex items-center justify-center bg-amber-100/80 dark:bg-amber-900/60 rounded z-10">
+                <svg class="animate-spin h-6 w-6 text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                </svg>
+            </div>
+        </template>
         @if(isset($notification->data['shared_by']))
             <flux:text class="text-sm">
                 <span class="font-medium">{{ $notification->data['shared_by'] }}</span>
