@@ -14,10 +14,7 @@ Disallow: /auth/
 Disallow: /login
 Disallow: /register
 Disallow: /recover-account
-Disallow: /forgot-password
-Disallow: /reset-password
-Disallow: /confirm-password
-Disallow: /two-factor-challenge
+Disallow: /user/confirm-password
 
 # Laravel file serving path should never be indexed.
 Disallow: /storage/
