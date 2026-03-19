@@ -274,9 +274,9 @@
             <footer class="border-t border-zinc-200 bg-white/70 px-6 py-6 dark:border-zinc-800 dark:bg-zinc-900/60 lg:px-10">
                 <div class="mx-auto flex w-full max-w-6xl flex-col gap-4 text-sm text-zinc-600 dark:text-zinc-300 sm:flex-row sm:items-center sm:justify-between">
                     <p class="text-zinc-500 dark:text-zinc-400">
-                        &copy; {{ date('Y') }} Notebud ·
-                        <a href="https://github.com/ktauchathuranga/notebud/releases/tag/v1.0.0" target="_blank" rel="noopener noreferrer" class="font-normal text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300">v1.0.0</a>
-                        <span class="text-zinc-400 dark:text-zinc-500">· Maintained by</span>
+                        &copy; {{ date('Y') }} Notebud
+                        <a href="https://github.com/ktauchathuranga/notebud/releases/tag/v1.0.0" target="_blank" rel="noopener noreferrer" class="font-normal text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300">(v1.0.0)</a>.
+                        <span class="text-zinc-400 dark:text-zinc-500">Maintained by</span>
                         <a href="https://www.linkedin.com/in/ktauchathuranga/" target="_blank" rel="noopener noreferrer" class="font-normal text-zinc-500 no-underline underline-offset-2 hover:underline hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200">Ashen Chathuranga</a>
                     </p>
                     <div class="flex items-center gap-4">
