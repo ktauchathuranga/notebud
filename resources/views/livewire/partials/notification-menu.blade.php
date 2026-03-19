@@ -14,9 +14,14 @@
 <flux:menu.separator />
 
 @forelse($notifications as $notification)
+    @php
+        $isShareRequestNotification = isset($notification->data['shared_by']);
+    @endphp
     <div
-        wire:click="markAsRead('{{ $notification->id }}')"
-        class="cursor-pointer px-3 py-2 hover:bg-zinc-50 dark:hover:bg-zinc-800 {{ !$notification->read_at ? 'bg-blue-50 dark:bg-blue-900/20' : '' }}"
+        @if($isShareRequestNotification)
+            wire:click="openNotification('{{ $notification->id }}')"
+        @endif
+        class="px-3 py-2 {{ $isShareRequestNotification ? 'cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800' : 'cursor-default' }} {{ !$notification->read_at ? 'bg-blue-50 dark:bg-blue-900/20' : '' }}"
     >
         @if(isset($notification->data['shared_by']))
             <flux:text class="text-sm">
