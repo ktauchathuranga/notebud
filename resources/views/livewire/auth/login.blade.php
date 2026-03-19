@@ -6,7 +6,7 @@
 
 <x-layouts::auth :title="__('Log in')">
     <div x-data="{ loading: false }" class="flex flex-col gap-6 relative">
-        <div x-show="loading" x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/60">
+        <div x-show="loading" x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/80 backdrop-blur-sm">
             <div class="flex flex-col items-center gap-4">
                 <svg class="animate-spin h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
