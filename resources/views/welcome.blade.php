@@ -285,6 +285,9 @@
                         <a href="mailto:contact@notebud.cc" class="hover:text-zinc-900 dark:hover:text-white">Contact</a>
                         @guest
                             <a href="{{ route('login') }}" class="hover:text-zinc-900 dark:hover:text-white">Log in</a>
+                            @if (Route::has('register'))
+                                <a href="{{ route('register') }}" class="hover:text-zinc-900 dark:hover:text-white">Sign up</a>
+                            @endif
                         @endguest
                     </div>
                 </div>
