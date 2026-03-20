@@ -53,6 +53,7 @@
                 <a href="{{ route('home') }}" class="inline-flex items-center gap-3">
                     <x-app-logo-icon class="size-8 fill-current text-zinc-900 dark:text-zinc-100" />
                     <span class="text-lg font-semibold tracking-tight">Notebud</span>
+                    <span class="inline-flex items-center rounded-full border border-emerald-300/70 bg-emerald-100/60 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-800 dark:border-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-200 ml-0.1">BETA</span>
                 </a>
 
                 <div class="flex items-center gap-3">

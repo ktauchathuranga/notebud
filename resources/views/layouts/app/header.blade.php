@@ -8,7 +8,11 @@
             <flux:sidebar.toggle class="lg:hidden mr-2" icon="bars-2" inset="left" />
 
             <x-app-logo href="{{ route('dashboard') }}" wire:navigate />
-
+            <span class="inline-flex items-center gap-2">
+                <x-app-logo class="!m-0" href="{{ route('dashboard') }}" wire:navigate />
+                <span class="text-lg font-semibold tracking-tight">Notebud</span>
+                <span class="inline-flex items-center rounded-full border border-emerald-300/70 bg-emerald-100/60 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-800 dark:border-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-200 ml-1">BETA</span>
+            </span>
             <flux:navbar class="-mb-px max-lg:hidden">
                 <flux:navbar.item icon="layout-grid" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
                     {{ __('Dashboard') }}
