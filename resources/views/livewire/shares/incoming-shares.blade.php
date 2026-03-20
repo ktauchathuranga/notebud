@@ -53,7 +53,7 @@
                         <div class="flex items-center justify-between rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-4">
                             <div class="flex items-center gap-4 min-w-0">
                                 <div class="flex size-10 items-center justify-center rounded-full bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-300">
-                                    @if($share->shareable_type === 'App\Models\Note')
+                                    @if($share->shareable_type === 'App\\Models\\Note')
                                         <flux:icon name="book-open" class="size-5" />
                                     @else
                                         <flux:icon name="document" class="size-5" />
@@ -61,7 +61,7 @@
                                 </div>
                                 <div class="min-w-0">
                                     <flux:text class="font-medium truncate">
-                                        @if($share->shareable_type === 'App\Models\Note')
+                                        @if($share->shareable_type === 'App\\Models\\Note')
                                             {{ $share->shareable->title ?? 'Deleted note' }}
                                         @else
                                             {{ $share->shareable->original_name ?? 'Deleted file' }}
@@ -70,12 +70,13 @@
                                     <flux:text class="text-sm text-zinc-500">{{ __('From') }} <span class="font-medium">{{ $share->sharer->username }}</span></flux:text>
                                 </div>
                             </div>
-                            <div class="shrink-0 ml-4">
-                                @if($share->shareable_type === 'App\Models\Note')
+                            <div class="shrink-0 ml-4 flex gap-2">
+                                @if($share->shareable_type === 'App\\Models\\Note')
                                     <flux:button variant="ghost" size="sm" :href="route('notes.show', $share->shareable_id)" wire:navigate icon="eye">{{ __('View') }}</flux:button>
                                 @else
                                     <flux:button variant="ghost" size="sm" :href="route('files.download', $share->shareable_id)" icon="arrow-down-tray">{{ __('Download') }}</flux:button>
                                 @endif
+                                <flux:button variant="danger" size="sm" wire:click="remove({{ $share->id }})" wire:confirm="Are you sure you want to remove this shared item?" icon="trash">{{ __('Remove') }}</flux:button>
                             </div>
                         </div>
                     @endforeach

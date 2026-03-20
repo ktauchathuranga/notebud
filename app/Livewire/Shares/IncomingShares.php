@@ -13,6 +13,15 @@ use Livewire\Component;
 #[Title('Shared with me')]
 class IncomingShares extends Component
 {
+    public function remove(int $shareId): void
+    {
+        $share = Share::findOrFail($shareId);
+        // Only the recipient can remove
+        if ($share->shared_with !== Auth::id()) {
+            abort(403);
+        }
+        $share->delete();
+    }
     public function accept(int $shareId): void
     {
         $share = Share::findOrFail($shareId);
