@@ -238,15 +238,15 @@
                         </ol>
                     </div>
 
-                    <div class="rounded-3xl border border-zinc-200 bg-linear-to-b from-zinc-900 to-zinc-800 p-6 text-zinc-100 dark:border-zinc-700 sm:p-8">
+                    <div class="rounded-3xl border border-zinc-200 bg-white p-6 text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900/70 dark:text-zinc-100 sm:p-8">
                         <p class="inline-flex rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide">Why students pick Notebud</p>
                         <h2 class="mt-4 text-2xl font-semibold tracking-tight">Simple when class gets busy</h2>
-                        <div class="mt-5 space-y-3 text-sm text-zinc-200">
-                            <p class="rounded-lg bg-white/5 px-3 py-2">Find your notes and files quickly with search.</p>
-                            <p class="rounded-lg bg-white/5 px-3 py-2">Share only what you need with request approval built in.</p>
-                            <p class="rounded-lg bg-white/5 px-3 py-2">Keep your profile and account controls in your hands.</p>
+                        <div class="mt-5 space-y-3 text-sm text-zinc-600 dark:text-zinc-200">
+                            <p class="rounded-lg bg-white/70 px-3 py-2 ring-1 ring-zinc-200 dark:bg-zinc-900/50 dark:ring-zinc-800">Find your notes and files quickly with search.</p>
+                            <p class="rounded-lg bg-white/70 px-3 py-2 ring-1 ring-zinc-200 dark:bg-zinc-900/50 dark:ring-zinc-800">Share only what you need with request approval built in.</p>
+                            <p class="rounded-lg bg-white/70 px-3 py-2 ring-1 ring-zinc-200 dark:bg-zinc-900/50 dark:ring-zinc-800">Keep your profile and account controls in your hands.</p>
                         </div>
-                        <a href="https://github.com/ktauchathuranga/notebud" target="_blank" rel="noopener noreferrer" class="mt-6 inline-flex rounded-lg border border-white/20 px-4 py-2 text-xs font-semibold uppercase tracking-wide transition hover:bg-white/10">
+                        <a href="https://github.com/ktauchathuranga/notebud" target="_blank" rel="noopener noreferrer" class="mt-6 inline-flex rounded-lg border border-zinc-200 dark:border-zinc-700 px-4 py-2 text-xs font-semibold uppercase tracking-wide transition hover:bg-zinc-50 dark:hover:bg-zinc-800">
                             View Repository
                         </a>
                     </div>
