@@ -36,7 +36,7 @@
                 <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     @foreach($myNotes as $note)
                         <div
-                            @click="$event.target.closest('[data-flux-dropdown]') || $event.target.closest('[data-flux-menu]') || Livewire.navigate('{{ route('notes.show', $note) }}')"
+                            @click="$event.target.closest('[data-flux-dropdown]') || $event.target.closest('[data-flux-menu]') || $event.target.closest('[data-flux-modal]') || Livewire.navigate('{{ route('notes.show', $note) }}')"
                             class="group relative flex flex-col rounded-xl border border-zinc-200 bg-white p-5 transition hover:shadow-md dark:border-zinc-700 dark:bg-zinc-900 cursor-pointer"
                         >
                             <div class="flex items-start justify-between">
@@ -56,7 +56,9 @@
                             </div>
                             <flux:text class="mt-2 line-clamp-3 text-sm">{{ Str::limit(strip_tags($note->content), 150) }}</flux:text>
                             <flux:text class="mt-auto pt-3 text-xs text-zinc-400">{{ $note->updated_at->diffForHumans() }}</flux:text>
-                            <livewire:shares.share-modal :shareable-type="App\Models\Note::class" :shareable-id="$note->id" trigger="none" :key="'share-note-card-'.$note->id" />
+                            <div @click.stop>
+                                <livewire:shares.share-modal :shareable-type="App\Models\Note::class" :shareable-id="$note->id" trigger="none" :key="'share-note-card-'.$note->id" />
+                            </div>
                         </div>
                     @endforeach
                 </div>
