@@ -33,8 +33,8 @@
                                 </div>
                             </div>
                             <div class="flex items-center gap-2 shrink-0 ml-4">
-                                <flux:button variant="primary" size="sm" wire:click="accept({{ $share->id }})">{{ __('Accept') }}</flux:button>
-                                <flux:button variant="ghost" size="sm" wire:click="reject({{ $share->id }})">{{ __('Reject') }}</flux:button>
+                                <flux:button variant="primary" size="sm" wire:click="accept({{ $share->id }})" wire:target="accept({{ $share->id }})">{{ __('Accept') }}</flux:button>
+                                <flux:button variant="ghost" size="sm" wire:click="reject({{ $share->id }})" wire:target="reject({{ $share->id }})">{{ __('Reject') }}</flux:button>
                             </div>
                         </div>
                     @endforeach
@@ -76,7 +76,7 @@
                                 @else
                                     <flux:button variant="ghost" size="sm" :href="route('files.download', $share->shareable_id)" icon="arrow-down-tray">{{ __('Download') }}</flux:button>
                                 @endif
-                                <flux:button variant="danger" size="sm" wire:click="remove({{ $share->id }})" wire:confirm="Are you sure you want to remove this shared item?" icon="trash">{{ __('Remove') }}</flux:button>
+                                <flux:button variant="danger" size="sm" wire:click="remove({{ $share->id }})" wire:confirm="Are you sure you want to remove this shared item?" wire:target="remove({{ $share->id }})" icon="trash">{{ __('Remove') }}</flux:button>
                             </div>
                         </div>
                     @endforeach

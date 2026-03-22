@@ -49,7 +49,7 @@
                                         <flux:menu>
                                             <flux:menu.item :href="route('notes.edit', $note)" wire:navigate icon="pencil">{{ __('Edit') }}</flux:menu.item>
                                             <flux:menu.item x-on:click.prevent="$dispatch('open-share-modal-{{ md5(App\Models\Note::class.'-'.$note->id) }}')" icon="share">{{ __('Share') }}</flux:menu.item>
-                                            <flux:menu.item wire:click="deleteNote({{ $note->id }})" wire:confirm="Are you sure you want to delete this note?" icon="trash" variant="danger">{{ __('Delete') }}</flux:menu.item>
+                                            <flux:menu.item wire:click="deleteNote({{ $note->id }})" wire:target="deleteNote({{ $note->id }})" wire:confirm="Are you sure you want to delete this note?" icon="trash" variant="danger">{{ __('Delete') }}</flux:menu.item>
                                         </flux:menu>
                                     </flux:dropdown>
                                 </div>
