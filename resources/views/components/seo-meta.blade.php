@@ -6,9 +6,11 @@
     'type' => 'website',
     'siteName' => null,
     'keywords' => null,
+    'robots' => 'index, follow',
     'twitterCard' => 'summary_large_image',
 ])
 
+<meta name="robots" content="{{ $robots }}" />
 <meta name="description" content="{{ $description }}" />
 @if(filled($keywords))
     <meta name="keywords" content="{{ $keywords }}" />

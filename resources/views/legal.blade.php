@@ -1,6 +1,24 @@
 @section('meta_title', 'Privacy & Terms - Notebud')
 @section('meta_description', 'Privacy policy and terms of use for Notebud. We keep it simple — no email, no tracking, just your notes and files.')
 @section('canonical_url', route('legal'))
+@section('meta_robots', 'index, follow')
+
+@php
+    $legalStructuredData = [
+        '@context' => 'https://schema.org',
+        '@type' => 'WebPage',
+        'name' => 'Privacy & Terms - Notebud',
+        'url' => route('legal'),
+        'description' => 'Privacy policy and terms of use for Notebud. We keep it simple — no email, no tracking, just your notes and files.',
+        'inLanguage' => 'en',
+        'datePublished' => '2024-03-22T00:00:00+00:00',
+        'dateModified' => now()->toIso8601String(),
+    ];
+@endphp
+
+@section('structured_data')
+{!! json_encode($legalStructuredData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+@endsection
 
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">

@@ -15,6 +15,7 @@
         : url()->current();
     $canonicalUrl = $canonicalOverride ?: $defaultCanonicalUrl;
     $metaKeywords = trim($__env->yieldContent('meta_keywords')) ?: null;
+    $metaRobots = trim($__env->yieldContent('meta_robots')) ?: 'index, follow';
     $structuredData = trim($__env->yieldContent('structured_data')) ?: null;
 @endphp
 
@@ -29,6 +30,7 @@
     :image="$metaImage"
     :site-name="$siteName"
     :keywords="$metaKeywords"
+    :robots="$metaRobots"
 />
 
 @if(filled($structuredData))
