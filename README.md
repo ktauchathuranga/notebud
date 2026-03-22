@@ -1,3 +1,15 @@
+# ⚠️ Academic Use Only – Disclaimer
+
+**Notebud is intended strictly for fair academic use.**
+
+- Do **not** use this platform to facilitate cheating, plagiarism, or any form of academic dishonesty.
+- Do **not** use Notebud for any illegal activities or to violate your institution’s code of conduct.
+- The developer is **not responsible** for any misuse, academic consequences, or legal issues arising from the use of this software.
+
+By using Notebud, you agree to use it ethically and at your own risk.
+
+---
+
 # notebud
 
 Notebud is a Laravel + Livewire app for writing notes, uploading files, and sharing content with classmates by username.
