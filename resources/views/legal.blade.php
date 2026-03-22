@@ -13,6 +13,7 @@
                 <a href="{{ route('home') }}" class="inline-flex items-center gap-3">
                     <x-app-logo-icon class="size-8 fill-current text-zinc-900 dark:text-zinc-100" />
                     <span class="text-lg font-semibold tracking-tight">Notebud</span>
+                    <span class="inline-flex items-center rounded-full border border-emerald-300/70 bg-emerald-100/60 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-800 dark:border-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-200 ml-0.1">BETA</span>
                 </a>
 
                 <div class="flex items-center gap-3">
@@ -177,7 +178,8 @@
             <footer class="border-t border-zinc-200 bg-white/70 px-6 py-6 dark:border-zinc-800 dark:bg-zinc-900/60 lg:px-10">
                 <div class="mx-auto flex w-full max-w-4xl flex-col gap-4 text-sm text-zinc-600 dark:text-zinc-300 sm:flex-row sm:items-center sm:justify-between">
                     <p class="text-zinc-500 dark:text-zinc-400">
-                        &copy; {{ date('Y') }} Notebud.
+                        &copy; {{ date('Y') }} Notebud
+                        <a href="https://github.com/ktauchathuranga/notebud/releases/tag/v{{ config('app.version') }}" target="_blank" rel="noopener noreferrer" class="font-normal text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300">(v{{ config('app.version') }})</a>.
                         <span class="text-zinc-400 dark:text-zinc-500">Built by</span>
                         <a href="https://www.linkedin.com/in/ktauchathuranga/" target="_blank" rel="noopener noreferrer" class="font-normal text-zinc-500 no-underline underline-offset-2 hover:underline hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200">Ashen Chathuranga</a>
                     </p>
