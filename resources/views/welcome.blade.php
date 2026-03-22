@@ -1,8 +1,8 @@
-@section('meta_title', 'Notebud - Notes and File Sharing for Students')
-@section('meta_description', 'Notebud helps students write markdown notes, upload files, and share resources by username in one focused workspace.')
+@section('meta_title', 'Notebud - Save & Share Notes from University Lab Computers')
+@section('meta_description', 'Notebud lets students save notes and files from university lab computers without needing email, OTP, or personal cloud accounts. Just username and password.')
 @section('meta_image', url('/og-image.png'))
 @section('canonical_url', route('home'))
-@section('meta_keywords', 'student notes, markdown notes, file sharing, class collaboration, notebud')
+@section('meta_keywords', 'university lab notes, student file sharing, no email login, lab computer notes, share notes by username, notebud')
 
 @php
     $homeStructuredData = [
@@ -11,7 +11,7 @@
             '@type' => 'WebSite',
             'name' => 'Notebud',
             'url' => route('home'),
-            'description' => 'Notebud helps students write markdown notes, upload files, and share resources by username in one focused workspace.',
+            'description' => 'Notebud lets students save notes and files from university lab computers without needing email, OTP, or personal cloud accounts. Just username and password.',
             'inLanguage' => 'en',
         ],
         [
@@ -21,7 +21,7 @@
             'applicationCategory' => 'EducationalApplication',
             'operatingSystem' => 'Web',
             'url' => route('home'),
-            'description' => 'A focused student workspace for markdown notes, file uploads, and username-based sharing. Free to use, with optional sponsorship support.',
+            'description' => 'A student workspace designed for university lab environments. Save markdown notes, upload files, and share with classmates by username — no email or personal cloud accounts needed.',
             'isAccessibleForFree' => true,
             'offers' => [
                 '@type' => 'Offer',
@@ -84,13 +84,13 @@
                 <section class="grid gap-10 py-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:py-14">
                     <div>
                         <p class="inline-flex items-center rounded-full border border-cyan-300/70 bg-cyan-100/60 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-cyan-800 dark:border-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-200">
-                            Built for students
+                            Built for university labs
                         </p>
                         <h1 class="mt-5 text-4xl font-semibold tracking-tight text-zinc-900 dark:text-white sm:text-5xl lg:text-6xl">
-                            Keep class notes and shared files in one place.
+                            Save your work from any lab computer.
                         </h1>
                         <p class="mt-5 max-w-2xl text-base leading-relaxed text-zinc-600 dark:text-zinc-300 sm:text-lg">
-                            Notebud helps classmates write notes in markdown, upload files, and share resources by username without the clutter of chat threads and scattered links.
+                            University labs don't let you bring your own devices. Cloud drives need email and OTP you can't access. Notebud lets you save notes and files with just a username and password — no email, no personal accounts on shared computers.
                         </p>
 
                         <div class="mt-8 flex flex-wrap items-center gap-3">
@@ -111,10 +111,10 @@
                         </div>
 
                         <div class="mt-7 grid max-w-xl gap-2 text-sm text-zinc-600 dark:text-zinc-300 sm:grid-cols-2">
-                            <p class="rounded-lg bg-white/70 px-3 py-2 ring-1 ring-zinc-200 dark:bg-zinc-900/50 dark:ring-zinc-800">Markdown notes with code highlighting</p>
-                            <p class="rounded-lg bg-white/70 px-3 py-2 ring-1 ring-zinc-200 dark:bg-zinc-900/50 dark:ring-zinc-800">Share notes and files by username</p>
-                            <p class="rounded-lg bg-white/70 px-3 py-2 ring-1 ring-zinc-200 dark:bg-zinc-900/50 dark:ring-zinc-800">In-app request and response notifications</p>
-                            <p class="rounded-lg bg-white/70 px-3 py-2 ring-1 ring-zinc-200 dark:bg-zinc-900/50 dark:ring-zinc-800">Profile avatar and account controls</p>
+                            <p class="rounded-lg bg-white/70 px-3 py-2 ring-1 ring-zinc-200 dark:bg-zinc-900/50 dark:ring-zinc-800">No email or OTP needed</p>
+                            <p class="rounded-lg bg-white/70 px-3 py-2 ring-1 ring-zinc-200 dark:bg-zinc-900/50 dark:ring-zinc-800">Just username + password</p>
+                            <p class="rounded-lg bg-white/70 px-3 py-2 ring-1 ring-zinc-200 dark:bg-zinc-900/50 dark:ring-zinc-800">Share by username instantly</p>
+                            <p class="rounded-lg bg-white/70 px-3 py-2 ring-1 ring-zinc-200 dark:bg-zinc-900/50 dark:ring-zinc-800">Works on any lab computer</p>
                         </div>
                     </div>
 
@@ -191,31 +191,31 @@
                 </section>
 
                 <section class="mt-8 rounded-3xl border border-zinc-200 bg-white/70 p-6 dark:border-zinc-800 dark:bg-zinc-900/50 sm:p-8">
-                    <h2 class="text-2xl font-semibold tracking-tight sm:text-3xl">Everything you need for study collaboration</h2>
+                    <h2 class="text-2xl font-semibold tracking-tight sm:text-3xl">Built around how labs actually work</h2>
                     <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                         <article class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+                            <h3 class="text-sm font-semibold">No email or phone required</h3>
+                            <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-300">Sign up with just a username and password. No email verification, no OTP, no phone needed — because you won't have it in the lab.</p>
+                        </article>
+                        <article class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+                            <h3 class="text-sm font-semibold">Safe on shared computers</h3>
+                            <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-300">No personal Google, Mega, or cloud accounts to log into and risk forgetting to sign out. Just your Notebud username.</p>
+                        </article>
+                        <article class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
                             <h3 class="text-sm font-semibold">Markdown notes</h3>
-                            <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-300">Write structured notes with markdown and code-friendly formatting.</p>
+                            <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-300">Write structured notes with full markdown support and code-friendly formatting — perfect for lab reports and code snippets.</p>
                         </article>
                         <article class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-                            <h3 class="text-sm font-semibold">File upload and download</h3>
-                            <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-300">Store class material and download it quickly when you need it.</p>
+                            <h3 class="text-sm font-semibold">Upload and download files</h3>
+                            <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-300">Save lab work, slides, or template files during your session and download them later from your own device.</p>
                         </article>
                         <article class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-                            <h3 class="text-sm font-semibold">Username-based sharing</h3>
-                            <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-300">Share with classmates directly by username without searching for emails.</p>
+                            <h3 class="text-sm font-semibold">Share by username</h3>
+                            <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-300">Send notes or files to a classmate sitting next to you — just type their username. No email addresses, no links to copy.</p>
                         </article>
                         <article class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-                            <h3 class="text-sm font-semibold">Incoming requests</h3>
-                            <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-300">Review pending share requests and accept or reject them in one place.</p>
-                        </article>
-                        <article class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-                            <h3 class="text-sm font-semibold">In-app notifications</h3>
-                            <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-300">Get immediate updates when content is shared or responses come in.</p>
-                        </article>
-                        <article class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-                            <h3 class="text-sm font-semibold">Profile control</h3>
-                            <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-300">Set your avatar, update username, and manage account settings anytime.</p>
+                            <h3 class="text-sm font-semibold">Share request approval</h3>
+                            <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-300">Incoming shares need your approval first. Accept or reject them from your notifications — you stay in control.</p>
                         </article>
                     </div>
                 </section>
@@ -226,26 +226,26 @@
                         <ol class="mt-6 space-y-4">
                             <li class="rounded-xl border border-zinc-200 p-4 dark:border-zinc-800">
                                 <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500">Step 1</p>
-                                <p class="mt-1 text-sm">Create your account and start your first note.</p>
+                                <p class="mt-1 text-sm">Pick a username and password — no email needed. You're ready in seconds.</p>
                             </li>
                             <li class="rounded-xl border border-zinc-200 p-4 dark:border-zinc-800">
                                 <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500">Step 2</p>
-                                <p class="mt-1 text-sm">Upload class files and organize your study material.</p>
+                                <p class="mt-1 text-sm">Write notes or upload files during your lab session. Everything is saved to your account.</p>
                             </li>
                             <li class="rounded-xl border border-zinc-200 p-4 dark:border-zinc-800">
                                 <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500">Step 3</p>
-                                <p class="mt-1 text-sm">Share by username and track responses in notifications.</p>
+                                <p class="mt-1 text-sm">Share with classmates by username, or log in from your own device later to access everything.</p>
                             </li>
                         </ol>
                     </div>
 
                     <div class="rounded-3xl border border-zinc-200 bg-white p-6 text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900/70 dark:text-zinc-100 sm:p-8">
-                        <p class="inline-flex rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide">Why students pick Notebud</p>
-                        <h2 class="mt-4 text-2xl font-semibold tracking-tight">Simple when class gets busy</h2>
+                        <p class="inline-flex rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide">The problem it solves</p>
+                        <h2 class="mt-4 text-2xl font-semibold tracking-tight">Labs shouldn't make saving your work hard</h2>
                         <div class="mt-5 space-y-3 text-sm text-zinc-600 dark:text-zinc-200">
-                            <p class="rounded-lg bg-white/70 px-3 py-2 ring-1 ring-zinc-200 dark:bg-zinc-900/50 dark:ring-zinc-800">Find your notes and files quickly with search.</p>
-                            <p class="rounded-lg bg-white/70 px-3 py-2 ring-1 ring-zinc-200 dark:bg-zinc-900/50 dark:ring-zinc-800">Share only what you need with request approval built in.</p>
-                            <p class="rounded-lg bg-white/70 px-3 py-2 ring-1 ring-zinc-200 dark:bg-zinc-900/50 dark:ring-zinc-800">Keep your profile and account controls in your hands.</p>
+                            <p class="rounded-lg bg-white/70 px-3 py-2 ring-1 ring-zinc-200 dark:bg-zinc-900/50 dark:ring-zinc-800">Google Drive, Mega, Mediafire — they all need email and OTP. You don't have your phone in the lab.</p>
+                            <p class="rounded-lg bg-white/70 px-3 py-2 ring-1 ring-zinc-200 dark:bg-zinc-900/50 dark:ring-zinc-800">Logging into personal accounts on public computers is risky. Forgetting to sign out is worse.</p>
+                            <p class="rounded-lg bg-white/70 px-3 py-2 ring-1 ring-zinc-200 dark:bg-zinc-900/50 dark:ring-zinc-800">Sharing a file with a lab mate shouldn't require sending links through email or messaging apps you can't access.</p>
                         </div>
                         <a href="https://github.com/ktauchathuranga/notebud" target="_blank" rel="noopener noreferrer" class="mt-6 inline-flex rounded-lg border border-zinc-200 dark:border-zinc-700 px-4 py-2 text-xs font-semibold uppercase tracking-wide transition hover:bg-zinc-50 dark:hover:bg-zinc-800">
                             View Repository
@@ -257,7 +257,7 @@
                     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <div>
                             <h2 class="text-xl font-semibold tracking-tight">Support Notebud</h2>
-                            <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-300">If Notebud helps your study workflow, you can support ongoing improvements.</p>
+                            <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-300">If Notebud saves you time in the lab, consider supporting its development.</p>
                             <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
                                 Support contact:
                                 <a href="mailto:contact@notebud.cc" class="ms-1 inline-flex items-center rounded-md border border-zinc-200 bg-zinc-100/80 px-2 py-0.5 font-semibold text-zinc-900 transition hover:bg-zinc-200 dark:border-zinc-700 dark:bg-zinc-800/70 dark:text-zinc-100 dark:hover:bg-zinc-700">

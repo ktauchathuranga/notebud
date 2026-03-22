@@ -1,8 +1,8 @@
 # notebud
 
-Notebud is a Laravel + Livewire app for writing notes, uploading files, and sharing content with classmates by username.
+University labs typically don't allow personal devices — no phones, no laptops. When students need to save their work, the only option is cloud services like Google Drive, Mega, or Mediafire. But those require email addresses and OTP codes that students can't access without their phones. Even worse, logging into personal accounts on shared lab computers is risky — it's easy to forget to sign out.
 
-![notebud-preview](https://github.com/user-attachments/assets/a4ec8595-59ff-49d6-b2e1-1ebbee244d02)
+**Notebud solves this.** It's a web app where students can save notes and files using just a username and password — no email, no OTP, no personal cloud accounts. Students can also share notes and files with classmates instantly by typing their username.
 
 > [!TIP]
 > Live: [notebud.cc](https://notebud.cc)
@@ -15,7 +15,7 @@ Notebud is a Laravel + Livewire app for writing notes, uploading files, and shar
 **Notebud is intended strictly for fair academic use.**
 
 - Do **not** use this platform to facilitate cheating, plagiarism, or any form of academic dishonesty.
-- Do **not** use Notebud for any illegal activities or to violate your institution’s code of conduct.
+- Do **not** use Notebud for any illegal activities or to violate your institution's code of conduct.
 - The developer is **not responsible** for any misuse, academic consequences, or legal issues arising from the use of this software.
 
 By using Notebud, you agree to use it ethically and at your own risk.
@@ -24,6 +24,9 @@ By using Notebud, you agree to use it ethically and at your own risk.
 
 ## Features
 
+- **No email or phone required** — sign up with just a username and password
+- **Safe on shared computers** — no personal accounts to forget to sign out of
+- **Share by username** — send notes or files to classmates without email addresses
 - Username/password authentication with Cloudflare Turnstile on login and registration
 - Recovery-code based account recovery flow (`/recover-account`)
 - Mandatory recovery-code handoff after registration
