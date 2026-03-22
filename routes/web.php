@@ -18,10 +18,11 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
 
 Route::view('/', 'welcome')->name('home');
+Route::view('/legal', 'legal')->name('legal');
 
 Route::get('/sitemap.xml', function () {
     // Include only indexable, public pages in sitemap.
-    $routes = ['home'];
+    $routes = ['home', 'legal'];
 
     $urls = collect($routes)
         ->filter(fn (string $name) => Route::has($name))
