@@ -256,8 +256,8 @@
                 <section class="mt-8 rounded-3xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900/70 sm:p-8">
                     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <div>
-                            <h2 class="text-xl font-semibold tracking-tight">Support Notebud</h2>
-                            <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-300">If Notebud saves you time in the lab, consider supporting its development.</p>
+                            <h2 class="text-xl font-semibold tracking-tight">The Server Bill is Real</h2>
+                            <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-300">Notebud is free, but the servers aren't. Your support helps keep it running.</p>
                             <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
                                 Support contact:
                                 <a href="mailto:contact@notebud.cc" class="ms-1 inline-flex items-center rounded-md border border-zinc-200 bg-zinc-100/80 px-2 py-0.5 font-semibold text-zinc-900 transition hover:bg-zinc-200 dark:border-zinc-700 dark:bg-zinc-800/70 dark:text-zinc-100 dark:hover:bg-zinc-700">
