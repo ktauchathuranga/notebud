@@ -1,4 +1,4 @@
-@section('meta_title', 'Notebud - Save & Share Notes from University Lab Computers')
+@section('meta_title', 'Notebud - Save and Share Notes from University Lab Computers')
 @section('meta_description', 'Notebud lets students save notes and files from university lab computers without needing email, OTP, or personal cloud accounts. Just username and password.')
 @section('meta_image', url('/og-image.png'))
 @section('canonical_url', route('home'))
