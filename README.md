@@ -1,12 +1,12 @@
-# notebud
+# Notebud
 
 University labs typically don't allow personal devices — no phones, no laptops. When students need to save their work, the only option is cloud services like Google Drive, Mega, or Mediafire. But those require email addresses and OTP codes that students can't access without their phones. Even worse, logging into personal accounts on shared lab computers is risky — it's easy to forget to sign out.
 
 **Notebud solves this.** It's a web app where students can save notes and files using just a username and password — no email, no OTP, no personal cloud accounts. Students can also share notes and files with classmates instantly by typing their username.
 
 > [!TIP]
-> Live: [notebud.cc](https://notebud.cc)
-> Alternative: [notebud-3x6z.onrender.com](https://notebud-3x6z.onrender.com/)
+> Live: [notebud.cc](https://notebud.cc)<br>
+> Alternative: [notebud-3x6z.onrender.com](https://notebud-3x6z.onrender.com/)<br>
 > Support: [contact@notebud.cc](mailto:contact@notebud.cc)
 
 
