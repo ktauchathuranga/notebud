@@ -22,6 +22,7 @@ class IncomingShares extends Component
         }
         $share->delete();
     }
+
     public function accept(int $shareId): void
     {
         $share = Share::findOrFail($shareId);
