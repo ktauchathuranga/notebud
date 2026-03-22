@@ -94,7 +94,7 @@
                                 $limitBytes = $user->storageLimitBytes();
                                 $remainingBytes = max($limitBytes - $usedStorageBytes, 0);
                             @endphp
-                            <tr class="bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
+                            <tr wire:key="user-{{ $user->id }}" class="bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
                                 <td class="px-4 py-3">
                                     <input
                                         type="checkbox"
@@ -153,6 +153,7 @@
                                             variant="ghost"
                                             size="sm"
                                             wire:click="deleteUser({{ $user->id }})"
+                                            wire:target="deleteUser({{ $user->id }})"
                                             wire:confirm="Are you sure you want to delete this user?"
                                             icon="trash"
                                             class="!text-red-500"

@@ -7,7 +7,7 @@
                 <flux:heading size="lg" class="mb-4">{{ __('Pending Requests') }}</flux:heading>
                 <div class="space-y-3">
                     @foreach($pendingShares as $share)
-                        <div class="flex items-center justify-between rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-4">
+                        <div wire:key="pending-share-{{ $share->id }}" class="flex items-center justify-between rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-4">
                             <div class="flex items-center gap-4 min-w-0">
                                 <div class="flex size-10 items-center justify-center rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-300">
                                     @if($share->shareable_type === 'App\Models\Note')
@@ -50,7 +50,7 @@
                 <flux:heading size="lg" class="mb-4">{{ __('Accepted') }}</flux:heading>
                 <div class="space-y-3">
                     @foreach($acceptedShares as $share)
-                        <div class="flex items-center justify-between rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-4">
+                        <div wire:key="accepted-share-{{ $share->id }}" class="flex items-center justify-between rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-4">
                             <div class="flex items-center gap-4 min-w-0">
                                 <div class="flex size-10 items-center justify-center rounded-full bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-300">
                                     @if($share->shareable_type === 'App\\Models\\Note')

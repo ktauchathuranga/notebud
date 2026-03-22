@@ -36,6 +36,7 @@
                 <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     @foreach($myNotes as $note)
                         <div
+                            wire:key="my-note-{{ $note->id }}"
                             @click="$event.target.closest('[data-flux-dropdown]') || $event.target.closest('[data-flux-menu]') || $event.target.closest('[data-flux-modal]') || Livewire.navigate('{{ route('notes.show', $note) }}')"
                             class="group relative flex flex-col rounded-xl border border-zinc-200 bg-white p-5 transition hover:shadow-md dark:border-zinc-700 dark:bg-zinc-900 cursor-pointer"
                         >
@@ -72,6 +73,7 @@
                 <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     @foreach($sharedNotes as $note)
                         <div
+                            wire:key="shared-note-{{ $note->id }}"
                             @click="Livewire.navigate('{{ route('notes.show', $note) }}')"
                             class="flex flex-col rounded-xl border border-zinc-200 bg-white p-5 transition hover:shadow-md dark:border-zinc-700 dark:bg-zinc-900 cursor-pointer"
                         >

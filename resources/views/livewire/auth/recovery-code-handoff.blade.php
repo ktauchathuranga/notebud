@@ -4,7 +4,7 @@
     <div class="rounded-lg border border-amber-300/60 bg-amber-50 p-4 dark:border-amber-500/40 dark:bg-amber-900/20">
         <div class="grid gap-2 sm:grid-cols-2">
             @foreach ($codes as $code)
-                <code class="rounded bg-white px-3 py-2 text-sm font-semibold tracking-wide text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100">{{ $code }}</code>
+                <code wire:key="code-{{ $code }}" class="rounded bg-white px-3 py-2 text-sm font-semibold tracking-wide text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100">{{ $code }}</code>
             @endforeach
         </div>
     </div>

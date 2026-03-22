@@ -61,7 +61,7 @@
                         </thead>
                         <tbody class="divide-y divide-zinc-200 dark:divide-zinc-700">
                             @foreach($myFiles as $file)
-                                <tr class="bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
+                                <tr wire:key="my-file-{{ $file->id }}" class="bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
                                     <td class="px-4 py-3">
                                         <div class="flex items-center gap-2">
                                             <flux:icon name="document" class="size-5 text-zinc-400" />
@@ -101,7 +101,7 @@
                         </thead>
                         <tbody class="divide-y divide-zinc-200 dark:divide-zinc-700">
                             @foreach($sharedFiles as $file)
-                                <tr class="bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
+                                <tr wire:key="shared-file-{{ $file->id }}" class="bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
                                     <td class="px-4 py-3">
                                         <div class="flex items-center gap-2">
                                             <flux:icon name="document" class="size-5 text-zinc-400" />
