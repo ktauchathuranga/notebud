@@ -1,15 +1,18 @@
 name: Build and Deploy
 
-# Fast, automatic deployments whenever you push code to the 'laravel' branch
+# Deploy on merged Pull Requests to 'main', OR manually via the Actions tab
 on:
-  push:
+  pull_request:
+    types:
+      - closed
     branches:
-      - laravel
       - main
+  workflow_dispatch:
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
     
     steps:
       # 1. Grab your code from GitHub
