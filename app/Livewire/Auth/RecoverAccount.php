@@ -6,6 +6,7 @@ use App\Concerns\PasswordValidationRules;
 use App\Models\User;
 use App\Support\RecoveryCodes as RecoveryCodesSupport;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -33,7 +34,14 @@ class RecoverAccount extends Component
             'password' => $this->passwordRules(),
         ]);
 
-        $user = User::query()->where('username', $validated['username'])->first();
+        $username = $validated['username'];
+        $user = Cache::tags(['user_'.$username])->remember(
+            'recovery_user',
+            now()->addHour(),
+            function () use ($username) {
+                return User::query()->where('username', $username)->first();
+            }
+        );
 
         $invalidRecoveryMessage = 'We could not verify that recovery code for this username.';
 
@@ -54,6 +62,8 @@ class RecoverAccount extends Component
         $user->forceFill([
             'password' => $validated['password'],
         ])->save();
+
+        Cache::tags(['user_'.$username])->flush();
 
         Auth::login($user);
 

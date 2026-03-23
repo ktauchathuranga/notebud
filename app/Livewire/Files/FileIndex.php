@@ -6,6 +6,7 @@ use App\Models\File;
 use App\Models\Share;
 use App\Support\StorageQuota;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -26,30 +27,51 @@ class FileIndex extends Component
 
         Storage::disk(config('filesystems.uploads'))->delete($file->path);
         $file->delete();
+        Cache::tags(['user_'.Auth::id().'_files'])->flush();
     }
 
     public function render()
     {
         $user = Auth::user();
 
-        $myFiles = $user->files()
-            ->when($this->search, function ($query) {
-                $query->where('original_name', 'like', '%'.$this->search.'%');
-            })
-            ->latest()
-            ->get();
+        $search = $this->search;
 
-        $sharedFileIds = Share::where('shared_with', $user->id)
-            ->where('status', 'accepted')
-            ->where('shareable_type', File::class)
-            ->pluck('shareable_id');
+        $myFiles = Cache::tags(['user_'.$user->id.'_files'])->remember(
+            'my_files_'.md5($search),
+            now()->addHour(),
+            function () use ($user, $search) {
+                return $user->files()
+                    ->when($search, function ($query) use ($search) {
+                        $query->where('original_name', 'like', '%'.$search.'%');
+                    })
+                    ->latest()
+                    ->get();
+            }
+        );
 
-        $sharedFiles = File::whereIn('id', $sharedFileIds)
-            ->when($this->search, function ($query) {
-                $query->where('original_name', 'like', '%'.$this->search.'%');
-            })
-            ->latest()
-            ->get();
+        $sharedFileIds = Cache::tags(['user_'.$user->id.'_files'])->remember(
+            'shared_file_ids',
+            now()->addHour(),
+            function () use ($user) {
+                return Share::where('shared_with', $user->id)
+                    ->where('status', 'accepted')
+                    ->where('shareable_type', File::class)
+                    ->pluck('shareable_id');
+            }
+        );
+
+        $sharedFiles = Cache::tags(['user_'.$user->id.'_files'])->remember(
+            'shared_files_'.md5($search),
+            now()->addHour(),
+            function () use ($sharedFileIds, $search) {
+                return File::whereIn('id', $sharedFileIds)
+                    ->when($search, function ($query) use ($search) {
+                        $query->where('original_name', 'like', '%'.$search.'%');
+                    })
+                    ->latest()
+                    ->get();
+            }
+        );
 
         $usedBytes = StorageQuota::usedBytes($user);
         $limitBytes = StorageQuota::limitBytes($user);

@@ -6,6 +6,7 @@ use App\Models\File;
 use App\Models\User;
 use App\Support\StorageQuota;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -66,6 +67,7 @@ class FileUpload extends Component
                     'mime_type' => $mimeType,
                 ]);
             });
+            Cache::tags(['user_'.$user->id.'_files'])->flush();
         } catch (ValidationException $exception) {
             Storage::disk($diskName)->delete($path);
 

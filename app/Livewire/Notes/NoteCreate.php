@@ -3,6 +3,7 @@
 namespace App\Livewire\Notes;
 
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -26,6 +27,8 @@ class NoteCreate extends Component
             'title' => $this->title,
             'content' => $this->content,
         ]);
+
+        Cache::tags(['user_'.Auth::id().'_notes'])->flush();
 
         $this->redirect(route('notes.index'), navigate: true);
     }

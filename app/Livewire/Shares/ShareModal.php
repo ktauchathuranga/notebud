@@ -6,6 +6,7 @@ use App\Models\Share;
 use App\Models\User;
 use App\Notifications\ShareRequestNotification;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Livewire\Component;
 use Throwable;
 
@@ -141,6 +142,8 @@ class ShareModal extends Component
                 ]);
 
                 $recipient->notify(new ShareRequestNotification($share));
+                Cache::tags(['user_'.$recipient->id.'_shares'])->flush();
+                Cache::tags(['user_'.Auth::id().'_shares'])->flush();
             }
 
             $recipientCount = $recipients->count();
@@ -160,16 +163,22 @@ class ShareModal extends Component
 
     public function render()
     {
-        $recentUsernames = Share::query()
-            ->where('shared_by', Auth::id())
-            ->with('recipient:id,username')
-            ->latest()
-            ->get()
-            ->pluck('recipient.username')
-            ->filter()
-            ->unique()
-            ->take(6)
-            ->values();
+        $recentUsernames = Cache::tags(['user_'.Auth::id().'_shares'])->remember(
+            'recent_usernames',
+            now()->addHour(),
+            function () {
+                return Share::query()
+                    ->where('shared_by', Auth::id())
+                    ->with('recipient:id,username')
+                    ->latest()
+                    ->get()
+                    ->pluck('recipient.username')
+                    ->filter()
+                    ->unique()
+                    ->take(6)
+                    ->values();
+            }
+        );
 
         return view('livewire.shares.share-modal', [
             'recentUsernames' => $recentUsernames,
