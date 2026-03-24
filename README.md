@@ -165,7 +165,7 @@ docker exec -it notebud-local php artisan migrate:fresh --seed --seeder="Databas
 
 The repository is Docker-first for production deployment. Provide environment variables from `.env.production` in your platform (for example Render, VPS, or any container host).
 
-A continuous integration pipeline (`.github/workflows/deploy.yml`) is included, which automatically builds the Docker image remotely, caches composer/npm dependencies, pushes to Docker Hub, and triggers a live deployment webhook whenever code is merged into the `main` branch.
+A continuous deployment (CD) pipeline (`.github/workflows/deploy.yml`) is included, which automatically builds the Docker image remotely, caches composer/npm dependencies, pushes to Docker Hub, and triggers a live deployment webhook whenever code is merged into the `main` branch.
 
 ## License
 
