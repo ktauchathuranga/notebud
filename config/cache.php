@@ -19,6 +19,24 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Serializable Classes
+    |--------------------------------------------------------------------------
+    |
+    | When storing serialized closures or objects within your cache stores,
+    | Laravel can securely attempt to restore them if they are an instance
+    | of one of these classes.
+    |
+    */
+
+    'serializable_classes' => [
+        App\Models\User::class,
+        App\Models\Note::class,
+        App\Models\File::class,
+        App\Models\Share::class,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Cache Stores
     |--------------------------------------------------------------------------
     |

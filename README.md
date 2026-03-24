@@ -35,11 +35,13 @@ By using Notebud, you agree to use it ethically and at your own risk.
 - In-app notifications for share activity
 - Per-user storage quotas (default 20 MB + grace)
 - Admin user management with quota overrides
+- Super-fast Redis object caching and invalidation
+- Automated Docker CI/CD deployments via GitHub Actions
 - SEO basics: dynamic meta tags, canonical URLs, `sitemap.xml`, `robots.txt`
 
 ## Stack
 
-- Laravel 12
+- Laravel 13
 - Livewire 4 + Flux UI
 - Tailwind CSS 4
 - Laravel Fortify
@@ -162,6 +164,8 @@ docker exec -it notebud-local php artisan migrate:fresh --seed --seeder="Databas
 ## Deployment
 
 The repository is Docker-first for production deployment. Provide environment variables from `.env.production` in your platform (for example Render, VPS, or any container host).
+
+A continuous integration pipeline (`.github/workflows/deploy.yml`) is included, which automatically builds the Docker image remotely, caches composer/npm dependencies, pushes to Docker Hub, and triggers a live deployment webhook whenever code is merged into the `main` branch.
 
 ## License
 
