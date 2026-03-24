@@ -6,7 +6,7 @@ University labs typically don't allow personal devices — no phones, no laptops
 
 > [!TIP]
 > Live: [notebud.cc](https://notebud.cc)<br>
-> Alternative: [notebud-3x6z.onrender.com](https://notebud-3x6z.onrender.com/)<br>
+> Alternative: [notebud-lsia.onrender.com](https://notebud-lsia.onrender.com/)<br>
 > Support: [contact@notebud.cc](mailto:contact@notebud.cc)
 
 
