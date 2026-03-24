@@ -4,9 +4,11 @@ namespace App\Providers;
 
 use App\Actions\Fortify\CreateNewUser;
 use App\Http\Responses\RegisterResponse;
+use App\Models\User;
 use App\Rules\Turnstile;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\ServiceProvider;
@@ -40,9 +42,9 @@ class FortifyServiceProvider extends ServiceProvider
                 'cf-turnstile-response.required' => 'Please complete the Turnstile verification.',
             ])->validate();
 
-            $user = \App\Models\User::where('username', $request->username)->first();
+            $user = User::where('username', $request->username)->first();
 
-            if ($user && \Illuminate\Support\Facades\Hash::check($request->password, $user->password)) {
+            if ($user && Hash::check($request->password, $user->password)) {
                 return $user;
             }
 

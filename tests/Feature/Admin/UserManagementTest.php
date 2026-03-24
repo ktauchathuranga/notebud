@@ -1,5 +1,8 @@
 <?php
 
+use App\Livewire\Admin\Users\UserCreate;
+use App\Livewire\Admin\Users\UserEdit;
+use App\Livewire\Admin\Users\UserIndex;
 use App\Models\User;
 
 test('admin users page requires admin role', function () {
@@ -23,7 +26,7 @@ test('admin can create user', function () {
 
     $this->actingAs($admin);
 
-    Livewire\Livewire::test(App\Livewire\Admin\Users\UserCreate::class)
+    Livewire\Livewire::test(UserCreate::class)
         ->set('username', 'created_user')
         ->set('role', 'user')
         ->set('password', 'Password123!')
@@ -38,7 +41,7 @@ test('admin can create user with custom storage quota', function () {
 
     $this->actingAs($admin);
 
-    Livewire\Livewire::test(App\Livewire\Admin\Users\UserCreate::class)
+    Livewire\Livewire::test(UserCreate::class)
         ->set('username', 'quota_user')
         ->set('role', 'user')
         ->set('password', 'Password123!')
@@ -57,7 +60,7 @@ test('admin can edit user role and password', function () {
 
     $this->actingAs($admin);
 
-    Livewire\Livewire::test(App\Livewire\Admin\Users\UserEdit::class, ['user' => $target])
+    Livewire\Livewire::test(UserEdit::class, ['user' => $target])
         ->set('username', 'updated_user')
         ->set('role', 'admin')
         ->set('password', 'NewPassword123!')
@@ -76,7 +79,7 @@ test('admin can edit user storage quota override', function () {
 
     $this->actingAs($admin);
 
-    Livewire\Livewire::test(App\Livewire\Admin\Users\UserEdit::class, ['user' => $target])
+    Livewire\Livewire::test(UserEdit::class, ['user' => $target])
         ->set('storage_quota_mb', '64')
         ->call('save');
 
@@ -90,7 +93,7 @@ test('admin can apply quota to selected users', function () {
 
     $this->actingAs($admin);
 
-    Livewire\Livewire::test(App\Livewire\Admin\Users\UserIndex::class)
+    Livewire\Livewire::test(UserIndex::class)
         ->set('selectedUserIds', [$userA->id, $userB->id])
         ->set('bulkQuotaMb', '50')
         ->call('applyQuotaToSelected');
@@ -104,7 +107,7 @@ test('admin cannot change own role', function () {
 
     $this->actingAs($admin);
 
-    Livewire\Livewire::test(App\Livewire\Admin\Users\UserEdit::class, ['user' => $admin])
+    Livewire\Livewire::test(UserEdit::class, ['user' => $admin])
         ->set('role', 'user')
         ->call('save')
         ->assertHasErrors('role');
@@ -117,7 +120,7 @@ test('admin cannot delete own account from admin dashboard', function () {
 
     $this->actingAs($admin);
 
-    Livewire\Livewire::test(App\Livewire\Admin\Users\UserIndex::class)
+    Livewire\Livewire::test(UserIndex::class)
         ->call('deleteUser', $admin->id)
         ->assertHasErrors('delete');
 
@@ -130,7 +133,7 @@ test('admin can delete another user', function () {
 
     $this->actingAs($admin);
 
-    Livewire\Livewire::test(App\Livewire\Admin\Users\UserIndex::class)
+    Livewire\Livewire::test(UserIndex::class)
         ->call('deleteUser', $target->id);
 
     expect(User::whereKey($target->id)->exists())->toBeFalse();

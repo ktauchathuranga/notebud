@@ -1,5 +1,7 @@
 <?php
 
+use App\Livewire\Files\FileIndex;
+use App\Livewire\Files\FileUpload;
 use App\Models\File;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
@@ -26,7 +28,7 @@ test('user can upload a file', function () {
 
     $file = UploadedFile::fake()->create('document.pdf', 1024);
 
-    Livewire\Livewire::test(App\Livewire\Files\FileUpload::class)
+    Livewire\Livewire::test(FileUpload::class)
         ->set('file', $file)
         ->call('save');
 
@@ -67,7 +69,7 @@ test('upload is rejected when owned storage quota would be exceeded', function (
 
     $file = UploadedFile::fake()->create('over-limit.pdf', 200); // 200KB
 
-    Livewire\Livewire::test(App\Livewire\Files\FileUpload::class)
+    Livewire\Livewire::test(FileUpload::class)
         ->set('file', $file)
         ->call('save')
         ->assertHasErrors('file');
@@ -94,7 +96,7 @@ test('grace bytes allow slightly above quota uploads', function () {
 
     $file = UploadedFile::fake()->create('within-grace.pdf', 100); // 100KB
 
-    Livewire\Livewire::test(App\Livewire\Files\FileUpload::class)
+    Livewire\Livewire::test(FileUpload::class)
         ->set('file', $file)
         ->call('save')
         ->assertHasNoErrors('file');
@@ -111,7 +113,7 @@ test('file upload rejects files over 10MB', function () {
 
     $file = UploadedFile::fake()->create('large.pdf', 11000); // 11MB
 
-    Livewire\Livewire::test(App\Livewire\Files\FileUpload::class)
+    Livewire\Livewire::test(FileUpload::class)
         ->set('file', $file)
         ->call('save')
         ->assertHasErrors('file');
@@ -175,7 +177,7 @@ test('user can delete own file', function () {
 
     $this->actingAs($user);
 
-    Livewire\Livewire::test(App\Livewire\Files\FileIndex::class)
+    Livewire\Livewire::test(FileIndex::class)
         ->call('deleteFile', $file->id);
 
     expect(File::find($file->id))->toBeNull();

@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Admin\Notifications\NotificationSend;
 use App\Models\User;
 use App\Notifications\AdminNotification;
 use Illuminate\Support\Facades\Notification;
@@ -21,7 +22,7 @@ test('admin can send notification to all users including admins', function () {
 
     $this->actingAs($admin);
 
-    Livewire\Livewire::test(App\Livewire\Admin\Notifications\NotificationSend::class)
+    Livewire\Livewire::test(NotificationSend::class)
         ->set('title', 'Maintenance Notice')
         ->set('message', 'The app will be briefly unavailable tonight.')
         ->set('priority', 'warning')
@@ -40,7 +41,7 @@ test('admin can send notification to selected users only', function () {
 
     $this->actingAs($admin);
 
-    Livewire\Livewire::test(App\Livewire\Admin\Notifications\NotificationSend::class)
+    Livewire\Livewire::test(NotificationSend::class)
         ->set('title', 'Personal Update')
         ->set('message', 'This message is only for selected accounts.')
         ->set('priority', 'info')
@@ -58,7 +59,7 @@ test('selected target requires at least one recipient', function () {
 
     $this->actingAs($admin);
 
-    Livewire\Livewire::test(App\Livewire\Admin\Notifications\NotificationSend::class)
+    Livewire\Livewire::test(NotificationSend::class)
         ->set('title', 'Empty Selection')
         ->set('message', 'No users selected.')
         ->set('priority', 'info')

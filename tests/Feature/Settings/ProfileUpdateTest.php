@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Settings\Profile;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -17,7 +18,7 @@ test('profile username can be updated', function () {
 
     $this->actingAs($user);
 
-    $response = Livewire\Livewire::test(App\Livewire\Settings\Profile::class)
+    $response = Livewire\Livewire::test(Profile::class)
         ->set('username', 'newusername')
         ->call('updateProfileInformation');
 
@@ -33,7 +34,7 @@ test('profile avatar can be uploaded', function () {
 
     $this->actingAs($user);
 
-    $response = Livewire\Livewire::test(App\Livewire\Settings\Profile::class)
+    $response = Livewire\Livewire::test(Profile::class)
         ->set('avatar', UploadedFile::fake()->image('avatar.png'))
         ->call('updateProfileInformation');
 
@@ -56,7 +57,7 @@ test('profile avatar can be removed', function () {
 
     $this->actingAs($user);
 
-    Livewire\Livewire::test(App\Livewire\Settings\Profile::class)
+    Livewire\Livewire::test(Profile::class)
         ->call('removeAvatar');
 
     $user->refresh();

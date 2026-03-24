@@ -1,5 +1,8 @@
 <?php
 
+use App\Livewire\Notes\NoteCreate;
+use App\Livewire\Notes\NoteEdit;
+use App\Livewire\Notes\NoteIndex;
 use App\Models\Note;
 use App\Models\User;
 
@@ -20,7 +23,7 @@ test('user can create a note', function () {
 
     $this->actingAs($user);
 
-    Livewire\Livewire::test(App\Livewire\Notes\NoteCreate::class)
+    Livewire\Livewire::test(NoteCreate::class)
         ->set('title', 'Test Note')
         ->set('content', '# Hello World')
         ->call('save');
@@ -54,7 +57,7 @@ test('user can edit own note', function () {
 
     $this->actingAs($user);
 
-    Livewire\Livewire::test(App\Livewire\Notes\NoteEdit::class, ['note' => $note])
+    Livewire\Livewire::test(NoteEdit::class, ['note' => $note])
         ->set('title', 'Updated Title')
         ->set('content', 'Updated content')
         ->call('save');
@@ -70,7 +73,7 @@ test('user can delete own note', function () {
 
     $this->actingAs($user);
 
-    Livewire\Livewire::test(App\Livewire\Notes\NoteIndex::class)
+    Livewire\Livewire::test(NoteIndex::class)
         ->call('deleteNote', $note->id);
 
     expect(Note::find($note->id))->toBeNull();
@@ -83,7 +86,7 @@ test('user cannot delete another users note', function () {
 
     $this->actingAs($user);
 
-    Livewire\Livewire::test(App\Livewire\Notes\NoteIndex::class)
+    Livewire\Livewire::test(NoteIndex::class)
         ->call('deleteNote', $note->id)
         ->assertForbidden();
 });
@@ -95,7 +98,7 @@ test('notes can be searched', function () {
 
     $this->actingAs($user);
 
-    $component = Livewire\Livewire::test(App\Livewire\Notes\NoteIndex::class)
+    $component = Livewire\Livewire::test(NoteIndex::class)
         ->set('search', 'Laravel');
 
     $component->assertSee('Laravel Notes');

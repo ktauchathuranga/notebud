@@ -1,5 +1,7 @@
 <?php
 
+use App\Livewire\Shares\IncomingShares;
+use App\Livewire\Shares\ShareModal;
 use App\Models\Note;
 use App\Models\Share;
 use App\Models\User;
@@ -16,7 +18,7 @@ test('user can share a note with another user', function () {
 
     $this->actingAs($owner);
 
-    Livewire\Livewire::test(App\Livewire\Shares\ShareModal::class, [
+    Livewire\Livewire::test(ShareModal::class, [
         'shareableType' => Note::class,
         'shareableId' => $note->id,
     ])
@@ -36,7 +38,7 @@ test('user cannot share with themselves', function () {
 
     $this->actingAs($user);
 
-    Livewire\Livewire::test(App\Livewire\Shares\ShareModal::class, [
+    Livewire\Livewire::test(ShareModal::class, [
         'shareableType' => Note::class,
         'shareableId' => $note->id,
     ])
@@ -62,7 +64,7 @@ test('recipient can accept a share', function () {
 
     $this->actingAs($recipient);
 
-    Livewire\Livewire::test(App\Livewire\Shares\IncomingShares::class)
+    Livewire\Livewire::test(IncomingShares::class)
         ->call('accept', $share->id);
 
     $share->refresh();
@@ -88,7 +90,7 @@ test('recipient can reject a share', function () {
 
     $this->actingAs($recipient);
 
-    Livewire\Livewire::test(App\Livewire\Shares\IncomingShares::class)
+    Livewire\Livewire::test(IncomingShares::class)
         ->call('reject', $share->id);
 
     $share->refresh();
@@ -147,7 +149,7 @@ test('non-recipient cannot accept a share', function () {
 
     $this->actingAs($intruder);
 
-    Livewire\Livewire::test(App\Livewire\Shares\IncomingShares::class)
+    Livewire\Livewire::test(IncomingShares::class)
         ->call('accept', $share->id)
         ->assertForbidden();
 });
@@ -178,7 +180,7 @@ test('share modal shows recently shared usernames and can autofill', function ()
 
     $this->actingAs($owner);
 
-    Livewire\Livewire::test(App\Livewire\Shares\ShareModal::class, [
+    Livewire\Livewire::test(ShareModal::class, [
         'shareableType' => Note::class,
         'shareableId' => $firstNote->id,
     ])
@@ -198,7 +200,7 @@ test('user can share a note with multiple users using comma separated usernames'
 
     $this->actingAs($owner);
 
-    Livewire\Livewire::test(App\Livewire\Shares\ShareModal::class, [
+    Livewire\Livewire::test(ShareModal::class, [
         'shareableType' => Note::class,
         'shareableId' => $note->id,
     ])
@@ -242,7 +244,7 @@ test('recent username click appends to existing comma separated input', function
 
     $this->actingAs($owner);
 
-    Livewire\Livewire::test(App\Livewire\Shares\ShareModal::class, [
+    Livewire\Livewire::test(ShareModal::class, [
         'shareableType' => Note::class,
         'shareableId' => $note->id,
     ])

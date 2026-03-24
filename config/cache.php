@@ -1,5 +1,9 @@
 <?php
 
+use App\Models\File;
+use App\Models\Note;
+use App\Models\Share;
+use App\Models\User;
 use Illuminate\Support\Str;
 
 return [
@@ -29,10 +33,10 @@ return [
     */
 
     'serializable_classes' => [
-        App\Models\User::class,
-        App\Models\Note::class,
-        App\Models\File::class,
-        App\Models\Share::class,
+        User::class,
+        Note::class,
+        File::class,
+        Share::class,
     ],
 
     /*
