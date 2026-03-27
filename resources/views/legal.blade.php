@@ -156,7 +156,7 @@
                                 <li><strong>No illegal content.</strong> Do not upload, store, or share content that is illegal, harmful, or violates your institution's code of conduct.</li>
                                 <li><strong>Your responsibility.</strong> You are responsible for keeping your login credentials secure and for all activity under your account.</li>
                                 <li><strong>Storage limits.</strong> Each account has a storage quota. If you exceed it, you won't be able to upload new files until you free up space.</li>
-                                <li><strong>No warranty.</strong> Notebud is provided "as is" without warranties of any kind. We do our best, but we can't guarantee 100% uptime or zero data loss.</li>
+                                <li><strong>No warranty.</strong> Notebud is provided "as is" without warranties of any kind. We do our best, but we can't guarantee 100% uptime or zero data loss. <strong>We are not liable for any loss of data, and lost data may not be recoverable under any circumstances.</strong></li>
                                 <li><strong>Account termination.</strong> We reserve the right to delete accounts that violate these terms or are used for abuse.</li>
                             </ul>
                         </div>
