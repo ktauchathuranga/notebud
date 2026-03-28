@@ -138,7 +138,7 @@ Do not use your live domain as `APP_URL` in local Docker, otherwise assets can r
 ## Environment Notes
 
 - Local default DB: SQLite
-- Production DB: MySQL (Aiven SSL supported)
+- Production DB: TiDB (Aiven SSL supported)
 - Upload disk switch:
   - local: `UPLOADS_DISK=uploads`
   - production: `UPLOADS_DISK=r2`
