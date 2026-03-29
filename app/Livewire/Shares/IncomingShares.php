@@ -54,29 +54,17 @@ class IncomingShares extends Component
 
     public function render()
     {
-        $pendingShares = Cache::tags(['user_'.Auth::id().'_shares'])->remember(
-            'pending_shares',
-            now()->addHour(),
-            function () {
-                return Share::with(['sharer', 'shareable'])
-                    ->where('shared_with', Auth::id())
-                    ->where('status', 'pending')
-                    ->latest()
-                    ->get();
-            }
-        );
+        $pendingShares = Share::with(['sharer', 'shareable'])
+            ->where('shared_with', Auth::id())
+            ->where('status', 'pending')
+            ->latest()
+            ->get();
 
-        $acceptedShares = Cache::tags(['user_'.Auth::id().'_shares'])->remember(
-            'accepted_shares',
-            now()->addHour(),
-            function () {
-                return Share::with(['sharer', 'shareable'])
-                    ->where('shared_with', Auth::id())
-                    ->where('status', 'accepted')
-                    ->latest()
-                    ->get();
-            }
-        );
+        $acceptedShares = Share::with(['sharer', 'shareable'])
+            ->where('shared_with', Auth::id())
+            ->where('status', 'accepted')
+            ->latest()
+            ->get();
 
         return view('livewire.shares.incoming-shares', [
             'pendingShares' => $pendingShares,
