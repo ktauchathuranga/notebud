@@ -1,6 +1,6 @@
 <p align="center">
-    <img alt="Notebud Logo Light Mode" src="/art/notebud-light.svg#gh-light-mode-only" height="80"/>
-    <img alt="Notebud Logo Dark Mode" src="/art/notebud-dark.svg#gh-dark-mode-only" height="80"/>
+    <img alt="Notebud Logo Light Mode" src="art/notebud-light.svg#gh-light-mode-only" height="80"/>
+    <img alt="Notebud Logo Dark Mode" src="art/notebud-dark.svg#gh-dark-mode-only" height="80"/>
 </p>
 
 <p align="center">
