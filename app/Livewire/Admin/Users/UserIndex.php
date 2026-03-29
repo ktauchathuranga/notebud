@@ -131,7 +131,7 @@ class UserIndex extends Component
     {
         $search = $this->search;
 
-        $users = Cache::tags(['admin_users'])->remember(
+        $users = collect(Cache::tags(['admin_users'])->remember(
             'users_index_'.md5($search),
             now()->addHour(),
             function () use ($search) {
@@ -140,9 +140,10 @@ class UserIndex extends Component
                     ->withCount(['notes', 'files'])
                     ->withSum('files as used_storage_bytes', 'size')
                     ->latest()
-                    ->get();
+                    ->get()
+                    ->toArray();
             }
-        );
+        ));
 
         $insights = Cache::tags(['admin_users'])->remember(
             'admin_insights',

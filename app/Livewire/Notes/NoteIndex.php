@@ -33,7 +33,7 @@ class NoteIndex extends Component
 
         $search = $this->search;
 
-        $myNotes = Cache::tags(['user_'.$user->id.'_notes'])->remember(
+        $myNotes = collect(Cache::tags(['user_'.$user->id.'_notes'])->remember(
             'my_notes_'.md5($search),
             now()->addHour(),
             function () use ($user, $search) {
@@ -45,22 +45,24 @@ class NoteIndex extends Component
                         });
                     })
                     ->latest()
-                    ->get();
+                    ->get()
+                    ->toArray();
             }
-        );
+        ));
 
-        $sharedNoteIds = Cache::tags(['user_'.$user->id.'_notes'])->remember(
+        $sharedNoteIds = collect(Cache::tags(['user_'.$user->id.'_notes'])->remember(
             'shared_note_ids',
             now()->addHour(),
             function () use ($user) {
                 return Share::where('shared_with', $user->id)
                     ->where('status', 'accepted')
                     ->where('shareable_type', Note::class)
-                    ->pluck('shareable_id');
+                    ->pluck('shareable_id')
+                    ->toArray();
             }
-        );
+        ));
 
-        $sharedNotes = Cache::tags(['user_'.$user->id.'_notes'])->remember(
+        $sharedNotes = collect(Cache::tags(['user_'.$user->id.'_notes'])->remember(
             'shared_notes_'.md5($search),
             now()->addHour(),
             function () use ($sharedNoteIds, $search) {
@@ -72,9 +74,10 @@ class NoteIndex extends Component
                         });
                     })
                     ->latest()
-                    ->get();
+                    ->get()
+                    ->toArray();
             }
-        );
+        ));
 
         return view('livewire.notes.note-index', [
             'myNotes' => $myNotes,
