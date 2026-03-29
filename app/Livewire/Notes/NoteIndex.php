@@ -55,7 +55,7 @@ class NoteIndex extends Component
         } else {
             $myNotes = Note::whereIn('id', $myNoteIds)
                 ->get()
-                ->sortBy(fn($model) => array_search($model->id, $myNoteIds))
+                ->sortBy(fn ($model) => array_search($model->id, $myNoteIds))
                 ->values();
         }
 
@@ -83,7 +83,7 @@ class NoteIndex extends Component
                 })
                 ->latest()
                 ->get()
-                ->sortBy(fn($model) => array_search($model->id, $sharedNoteIds))
+                ->sortBy(fn ($model) => array_search($model->id, $sharedNoteIds))
                 ->values();
         }
 

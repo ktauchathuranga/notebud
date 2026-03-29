@@ -55,7 +55,7 @@ class FileIndex extends Component
         } else {
             $myFiles = File::whereIn('id', $myFileIds)
                 ->get()
-                ->sortBy(fn($model) => array_search($model->id, $myFileIds))
+                ->sortBy(fn ($model) => array_search($model->id, $myFileIds))
                 ->values();
         }
 
@@ -80,7 +80,7 @@ class FileIndex extends Component
                 })
                 ->latest()
                 ->get()
-                ->sortBy(fn($model) => array_search($model->id, $sharedFileIds))
+                ->sortBy(fn ($model) => array_search($model->id, $sharedFileIds))
                 ->values();
         }
 
