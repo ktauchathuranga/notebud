@@ -36,7 +36,8 @@ class FileIndex extends Component
 
         $search = $this->search;
 
-        $myFiles = collect(Cache::tags(['user_'.$user->id.'_files'])->remember(
+        // Cache only file IDs, then re-query for Eloquent models
+        $myFileIds = Cache::tags(['user_'.$user->id.'_files'])->remember(
             'my_files_'.md5($search),
             now()->addHour(),
             function () use ($user, $search) {
@@ -45,12 +46,20 @@ class FileIndex extends Component
                         $query->where('original_name', 'like', '%'.$search.'%');
                     })
                     ->latest()
-                    ->get()
+                    ->pluck('id')
                     ->toArray();
             }
-        ));
+        );
+        if (empty($myFileIds)) {
+            $myFiles = collect();
+        } else {
+            $myFiles = File::whereIn('id', $myFileIds)
+                ->get()
+                ->sortBy(fn ($model) => array_search($model->id, $myFileIds))
+                ->values();
+        }
 
-        $sharedFileIds = collect(Cache::tags(['user_'.$user->id.'_files'])->remember(
+        $sharedFileIds = Cache::tags(['user_'.$user->id.'_files'])->remember(
             'shared_file_ids',
             now()->addHour(),
             function () use ($user) {
@@ -60,21 +69,20 @@ class FileIndex extends Component
                     ->pluck('shareable_id')
                     ->toArray();
             }
-        ));
+        );
 
-        $sharedFiles = collect(Cache::tags(['user_'.$user->id.'_files'])->remember(
-            'shared_files_'.md5($search),
-            now()->addHour(),
-            function () use ($sharedFileIds, $search) {
-                return File::whereIn('id', $sharedFileIds)
-                    ->when($search, function ($query) use ($search) {
-                        $query->where('original_name', 'like', '%'.$search.'%');
-                    })
-                    ->latest()
-                    ->get()
-                    ->toArray();
-            }
-        ));
+        if (empty($sharedFileIds)) {
+            $sharedFiles = collect();
+        } else {
+            $sharedFiles = File::whereIn('id', $sharedFileIds)
+                ->when($search, function ($query) use ($search) {
+                    $query->where('original_name', 'like', '%'.$search.'%');
+                })
+                ->latest()
+                ->get()
+                ->sortBy(fn ($model) => array_search($model->id, $sharedFileIds))
+                ->values();
+        }
 
         $usedBytes = StorageQuota::usedBytes($user);
         $limitBytes = StorageQuota::limitBytes($user);
