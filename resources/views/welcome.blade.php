@@ -1,6 +1,6 @@
 @section('meta_title', 'Notebud - Save and Share Notes from University Lab Computers')
 @section('meta_description', 'Notebud lets students save notes and files from university lab computers without needing email, OTP, or personal cloud accounts. Just username and password.')
-@section('meta_image', url('/og-image.png'))
+@section('meta_image', url('/og-image.jpg'))
 @section('canonical_url', route('home'))
 @section('meta_keywords', 'university lab notes, student file sharing, no email login, lab computer notes, share notes by username, notebud')
 
