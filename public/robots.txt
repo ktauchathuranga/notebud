@@ -1,0 +1,19 @@
+User-agent: *
+Allow: /
+
+# Keep private/authenticated areas out of search indexes.
+Disallow: /dashboard
+Disallow: /notes
+Disallow: /files
+Disallow: /shares
+Disallow: /settings
+Disallow: /admin
+Disallow: /auth/
+
+# Auth and recovery flows are utility pages, not landing pages.
+Disallow: /login
+Disallow: /register
+Disallow: /recover-account
+Disallow: /user/confirm-password
+
+Sitemap: /sitemap.xml

@@ -1,0 +1,45 @@
+name: Build and Deploy
+
+# Deploy on merged Pull Requests to 'main', OR manually via the Actions tab
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
+    
+    steps:
+      # 1. Grab your code from GitHub
+      - name: Check out repository
+        uses: actions/checkout@v4
+      
+      # 2. Prepare the high-speed Docker compiling engine
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        
+      # 3. Securely log into your Docker Hub account
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_ACCESS_TOKEN }}
+          
+      # 4. Build your 'Dockerfile' and push it straight to Docker Hub
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/notebud:latest
+          cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/notebud:buildcache
+          cache-to: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/notebud:buildcache,mode=max
+
+      # 5. Tell Render to wake up and pull the new Image!
+      - name: Trigger Render Deployment
+        run: curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}

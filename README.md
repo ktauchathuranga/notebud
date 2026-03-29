@@ -1,479 +1,187 @@
-# notebud
+<p align="center">
+    <img alt="Notebud Logo Light Mode" src="art/notebud-light.svg#gh-light-mode-only" height="80"/>
+    <img alt="Notebud Logo Dark Mode" src="art/notebud-dark.svg#gh-dark-mode-only" height="80"/>
+</p>
 
-A simple note-taking and chat app designed for university labs with flexible session management. Quick login with both temporary and permanent session options, automatic cleanup, and seamless cloud or local database support.
+<p align="center">
+<a href="https://github.com/ktauchathuranga/notebud/actions"><img src="https://github.com/ktauchathuranga/notebud/workflows/tests/badge.svg" alt="Build Status"></a>
+<a href="https://notebud.cc"><img src="https://img.shields.io/website?url=https%3A%2F%2Fnotebud.cc" alt="Live Demo"></a>
+<a href="https://github.com/ktauchathuranga/notebud/releases"><img src="https://img.shields.io/github/v/release/ktauchathuranga/notebud" alt="Latest Release"></a>
+<a href="https://github.com/ktauchathuranga/notebud/blob/laravel/LICENSE"><img src="https://img.shields.io/github/license/ktauchathuranga/notebud" alt="License"></a>
+</p>
 
-![notebud-preview](https://github.com/user-attachments/assets/a4ec8595-59ff-49d6-b2e1-1ebbee244d02)
 
+# Notebud
 
-## Why notebud?
+Notebud is a Laravel + Livewire app for writing notes, uploading files, and sharing content with classmates by username. It is designed for fast, secure, and fair academic collaboration, **no email or phone required**.
 
-Perfect for uni labs where you can't access OneDrive/Google Drive due to 2FA hassles. Choose between temporary sessions (4-hour auto-logout) or permanent sessions (logout only when you want). Notes auto-clear in 30 days to keep things tidy. Connect with classmates through real-time chat.
+University labs typically don't allow personal devices, no phones, no laptops. When students need to save their work, the only option is cloud services like Google Drive, Mega, or Mediafire. But those require email addresses and OTP codes that students can't access without their phones. Even worse, logging into personal accounts on shared lab computers is risky, it's easy to forget to sign out.
+
+**Notebud solves this.** It's a web app where students can save notes and files using just a username and password, no email, no OTP, no personal cloud accounts. Students can also share notes and files with classmates instantly by typing their username.
 
 > [!TIP]
-> - **Visit us at**: [notebud.cc](https://notebud.cc)
-> - Alternative Domain: [notebud-3x6z.onrender.com](https://notebud-3x6z.onrender.com/)
+> Live: [notebud.cc](https://notebud.cc)<br>
+> Alternative: [notebud-lsia.onrender.com](https://notebud-lsia.onrender.com/)<br>
+> Support Email: [contact@notebud.cc](mailto:contact@notebud.cc)
 
-## ⚠️ Important User Responsibility
 
-**PRIVACY & SECURITY WARNING**: notebud is designed for temporary academic use. Users are solely responsible for:
+### Academic Use Only – Disclaimer
 
-- **Never sharing private, sensitive, or confidential information** through notes or chat
-- **Not using the platform for illegal activities** or inappropriate content
-- **Understanding that data may be visible to system administrators** for maintenance purposes
-- **Accepting that all content is automatically deleted after 30 days**
-- **Using the service at your own risk** - we provide no guarantees of data security or privacy
+**Notebud is intended strictly for fair academic use.**
 
-By using notebud, you acknowledge these limitations and agree to use the platform responsibly and legally.
+- Do **not** use this platform to facilitate cheating, plagiarism, or any form of academic dishonesty.
+- Do **not** use Notebud for any illegal activities or to violate your institution's code of conduct.
+- The developer is **not responsible** for any misuse, academic consequences, or legal issues arising from the use of this software.
 
-## Features
-
-### Core Features
-- **Flexible login** - Choose temporary (4h) or permanent sessions
-- **Session management** - Permanent users can logout all temporary sessions
-- **Simple authentication** - No 2FA required
-- **Auto-delete** - Notes and chat data vanish after 30 days
-- **Modern UI** - Dark theme, responsive design with inline SVG icons
-- **Auto-save** - Notes save after 30 seconds of inactivity
-- **Edit notes** - Click to modify existing notes
-- **Search functionality** - Quick search through your notes
-- **Character counter** - Track note length with warnings
-- **Share notes** - You can share notes using usernames
-- **20Mb storage** - You can store documets and zip files total size of 20Mb's
-- **Share files** - You can share files as well with other users
-
-### Chat Features
-- **Real-time messaging** - WebSocket-powered instant communication
-- **Username-based contacts** - Find and chat with other users by username
-- **Chat requests** - Send and receive connection requests
-- **Session status** - See when users are online/offline
-- **Mobile responsive** - Full chat functionality on mobile devices
-- **Professional interface** - Clean, modern chat experience
-
-### Session Types
-- **Temporary Sessions**: 4-hour duration, perfect for lecture sessions
-- **Permanent Sessions**: Stay logged in until manual logout
-- **Session Control**: Permanent users can logout all temporary sessions across devices
-
-### Database Options
-- **Local Docker MongoDB** - Full local development setup
-- **MongoDB Atlas** - Cloud database with free tier support
-
-## Quick Start
-
-### Option 1: Local Development (Docker MongoDB)
-```bash
-git clone https://github.com/yourusername/notebud.git
-cd notebud
-cp .env.local .env
-# Edit .env with your passwords
-docker-compose up -d
-```
-
-### Option 2: Cloud Database (MongoDB Atlas)
-```bash
-git clone https://github.com/yourusername/notebud.git
-cd notebud
-cp .env.cloud .env
-# Edit .env with your Atlas connection string
-docker-compose up -d web websocket
-```
-
-Access the app at `http://localhost:8090` for local development or visit [https://notebud.cc](https://notebud.cc) for the live version.
-
-## Architecture
-
-notebud consists of three main services:
-
-1. **Web Service** (PHP) - Handles authentication, notes, and serves the frontend
-2. **WebSocket Service** (Rust) - Powers real-time chat functionality  
-3. **MongoDB** - Stores users, notes, chat messages, and chat requests
-
-### Service Ports
-- **Web**: `8090` (HTTP interface)
-- **WebSocket**: `8092` (Chat server)
-- **MongoDB**: `27017` (Database)
-
-## Database Configuration
-
-### Local Docker MongoDB
-Use `.env.local` configuration:
-```env
-DB_HOST=mongo
-DB_PORT=27017
-DB_NAME=notebud
-DB_USER=admin
-DB_PASS=your_secure_password
-MONGO_INITDB_ROOT_USERNAME=admin
-MONGO_INITDB_ROOT_PASSWORD=your_secure_password
-MONGODB_URI=
-JWT_SECRET=your_very_long_random_secret_key
-```
-
-### MongoDB Atlas Cloud
-Use `.env.cloud` configuration:
-```env
-DB_HOST=cluster0.xxxxx.mongodb.net
-DB_NAME=notebud
-DB_USER=notebud_user
-DB_PASS=your_atlas_password
-MONGODB_URI=mongodb+srv://notebud_user:password@cluster0.xxxxx.mongodb.net/notebud?retryWrites=true&w=majority
-JWT_SECRET=your_very_long_random_secret_key
-```
-
-## Setting Up MongoDB Atlas (Cloud)
-
-1. **Create account** at [mongodb.com/atlas](https://mongodb.com/atlas)
-2. **Create free M0 cluster**
-3. **Add database user** with read/write permissions
-4. **Allow network access** from anywhere (0.0.0.0/0)
-5. **Get connection string** and update `.env.cloud`
-6. **Copy to .env**: `cp .env.cloud .env`
-
-## Switching Between Databases
-
-### Manual Method
-```bash
-# Use local Docker MongoDB
-cp .env.local .env
-docker-compose up -d
-
-# Use MongoDB Atlas
-cp .env.cloud .env
-docker-compose up -d web websocket
-```
-
-### Script Method
-Create `switch.sh`:
-```bash
-#!/bin/bash
-if [ "$1" = "local" ]; then
-    cp .env.local .env
-    echo "Switched to local Docker MongoDB"
-    docker-compose up -d
-elif [ "$1" = "cloud" ]; then
-    cp .env.cloud .env  
-    echo "Switched to MongoDB Atlas"
-    docker-compose up -d web websocket
-else
-    echo "Usage: ./switch.sh [local|cloud]"
-fi
-```
-
-Usage: `./switch.sh local` or `./switch.sh cloud`
-
-## Chat System
-
-### How Chat Works
-
-1. **User Discovery**: Find other users by their username
-2. **Connection Requests**: Send chat requests to initiate conversations
-3. **Real-time Messaging**: Once accepted, chat in real-time via WebSocket
-4. **Session Awareness**: See when contacts are online/offline
-5. **Mobile Support**: Full functionality on mobile devices
-
-### Chat Security Considerations
-
-- All chat messages are stored temporarily and auto-deleted after 30 days
-- Users can only see their own conversations
-- WebSocket connections are authenticated via JWT tokens
-- No end-to-end encryption - messages are visible to system administrators
-- Chat history is limited to active sessions
-
-### Chat Usage Guidelines
-
-- Use professional, appropriate language
-- Respect other users' privacy and time
-- Remember that conversations are not permanently stored
-- Report inappropriate behavior through proper channels
-- Understand that chat logs may be reviewed for maintenance purposes
-
-## Security
-
-- JWT authentication with HttpOnly cookies
-- Users only see their own notes and conversations
-- Input validation and sanitization
-- Flexible session timeout (4-hour temporary or permanent)
-- Session management for permanent users
-- Auto-deletion after 30 days for all data
-- WebSocket authentication
-- HTTPS support for production
-
-## Development
-
-### Requirements
-- Docker and Docker Compose
-- PHP 8+ (if running without Docker)
-- Rust 1.70+ (for WebSocket service development)
-- MongoDB (local) or Atlas account (cloud)
-
-### Local Development
-```bash
-# Start all services
-docker-compose up -d
-
-# View logs for specific services
-docker-compose logs -f web
-docker-compose logs -f websocket
-docker-compose logs -f mongo
-
-# Stop services  
-docker-compose down
-
-# Rebuild containers
-docker-compose build --no-cache
-```
-
-### Database Management
-- **Local**: MongoDB runs in Docker container
-- **Cloud**: Managed by MongoDB Atlas
-- **TTL Index**: Automatically deletes notes and chat data after 30 days
-- **Collections**: `users`, `notes`, `chat_requests`, `chats`, `chat_messages`
-
-### WebSocket Development
-
-The chat system uses a Rust-based WebSocket server for real-time communication:
-
-```bash
-# Access WebSocket container
-docker-compose exec websocket bash
-
-# View WebSocket logs
-docker-compose logs -f websocket
-
-# Rebuild WebSocket service
-docker-compose build websocket
-```
-
-### Project Structure
-```
-notebud
-├── docker
-│   ├── mongo
-│   │   └── init-mongo.js
-│   ├── php
-│   │   ├── 000-default.conf
-│   │   ├── Dockerfile
-│   │   └── supervisord.conf
-│   └── websocket
-│       └── Dockerfile
-├── docker-compose.yml
-├── init-mongo.js
-├── README.md
-├── src
-│   ├── api
-│   │   ├── auth.php
-│   │   ├── db.php
-│   │   ├── delete_note.php
-│   │   ├── get_chat_requests.php
-│   │   ├── get_notes.php
-│   │   ├── get_online_users.php
-│   │   ├── jwt.php
-│   │   ├── login.php
-│   │   ├── logout_all_temp.php
-│   │   ├── logout.php
-│   │   ├── register.php
-│   │   ├── reset_password.php
-│   │   ├── save_note.php
-│   │   └── update_note.php
-│   ├── public
-│   │   ├── 404.html
-│   │   ├── chat.php
-│   │   ├── css
-│   │   │   └── style.css
-│   │   ├── favicon
-│   │   ├── index.php
-│   │   ├── js
-│   │   │   ├── chat.js
-│   │   │   └── notes.js
-│   │   ├── login.html
-│   │   ├── notes.php
-│   │   ├── register.html
-│   │   └── reset-password.html
-│   └── websocket
-│       └── notebud_websocket
-│           ├── Cargo.lock
-│           ├── Cargo.toml
-│           └── src
-│               ├── auth.rs
-│               ├── database.rs
-│               ├── handlers.rs
-│               ├── main.rs
-│               └── types.rs
-└── switch.sh
-```
-
-## Contributing
-
-We welcome contributions to notebud! Please follow these guidelines:
-
-### Getting Started
-
-1. **Fork the repository** on GitHub
-2. **Clone your fork** locally:
-   ```bash
-   git clone https://github.com/yourusername/notebud.git
-   cd notebud
-   ```
-3. **Create a feature branch**:
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
-### Environment File Handling
-
-This repository contains `.env.local` and `.env.cloud` files as **templates only**.
-- Do **not** commit real passwords or API keys.
-- Treat these files as "locked" — changes should not be pushed.
-
-To prevent accidental commits, run the following after cloning:
-
-```bash
-git update-index --skip-worktree .env.local
-git update-index --skip-worktree .env.cloud
-```
-
-#### Commit Messages
-Use conventional commit format:
-```
-type(scope): description
-
-feat(auth): add permanent login session support
-feat(chat): implement real-time messaging system
-fix(notes): resolve auto-save timing issue
-docs(readme): update installation instructions
-```
-
-Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
-
-#### Testing
-- Test your changes with both local MongoDB and Atlas configurations
-- Verify functionality in multiple browsers
-- Test both temporary and permanent session flows
-- Test chat functionality with multiple users
-- Ensure mobile responsiveness for both notes and chat
-
-### Pull Request Process
-
-1. **Update documentation** if needed
-2. **Test thoroughly** with both database configurations
-3. **Test chat features** with multiple browser sessions
-4. **Create detailed PR description** with:
-   - What changes were made
-   - Why the changes are necessary
-   - How to test the changes
-   - Screenshots for UI changes
-
-4. **PR Title Format**:
-   ```
-   feat: Add session management for permanent users
-   feat(chat): Add real-time messaging system
-   fix: Resolve note deletion confirmation dialog
-   docs: Update contributing guidelines
-   ```
-
-### Issue Reporting
-
-When reporting issues, please include:
-
-- **Environment details** (OS, browser, Docker version)
-- **Service details** (which service: web, websocket, mongo)
-- **Steps to reproduce** the issue
-- **Expected vs actual behavior**
-- **Screenshots** if applicable
-- **Database configuration** (local/cloud)
-- **Browser console errors** (if applicable)
-
-### Feature Requests
-
-For new features:
-- Check existing issues to avoid duplicates
-- Provide clear use case and rationale
-- Consider implementation complexity
-- Discuss breaking changes
-- Specify if feature affects notes, chat, or both
-
-### Development Setup
-
-1. **Environment setup**:
-   ```bash
-   cp .env.local .env
-   # Edit database credentials
-   ```
-
-2. **Start development environment**:
-   ```bash
-   docker-compose up -d
-   ```
-
-3. **Access application**: `http://localhost:8090`
-
-4. **Monitor logs**:
-   ```bash
-   # All services
-   docker-compose logs -f
-   
-   # Specific service
-   docker-compose logs -f websocket
-   ```
-
-### Code Review Checklist
-
-Before submitting:
-- [ ] Code follows project style guidelines
-- [ ] All tests pass
-- [ ] Documentation updated
-- [ ] No sensitive data in commits
-- [ ] Changes work with both database options
-- [ ] UI changes are responsive
-- [ ] Session management works correctly
-- [ ] Chat functionality tested with multiple users
-- [ ] WebSocket connections handle disconnections gracefully
-
-### Community
-
-- Be respectful and constructive in discussions
-- Help review other contributors' PRs
-- Share knowledge and best practices
-- Follow the code of conduct
-
-## Privacy & Legal Disclaimers
-
-### Data Handling
-- All user data (notes, messages, accounts) is automatically deleted after 30 days
-- System administrators may access data for maintenance and security purposes
-- No data recovery is possible after deletion
-- We do not guarantee data security, privacy, or availability
-
-### User Responsibilities
-- Users must not share sensitive, private, or confidential information
-- Users must comply with all applicable laws and regulations
-- Users must not engage in harassment, illegal activities, or inappropriate behavior
-- Users acknowledge that conversations and notes are not private or secure
-
-### Limitation of Liability
-- notebud is provided "as-is" without warranties of any kind
-- We are not liable for any data loss, privacy breaches, or damages
-- Users assume all risks associated with using the platform
-- The service may be discontinued or modified at any time
-
-### Academic Use Only
-This platform is designed specifically for temporary academic collaboration and note-taking in university lab environments. It is not suitable for:
-- Sensitive or confidential communications
-- Long-term data storage
-- Business or commercial use
-- Storage of personally identifiable information
-
-## License
-
-This project is open source and available under the [MIT License](LICENSE).
-
-## Support
-
-If you encounter issues or have questions:
-- Check existing [GitHub Issues](https://github.com/yourusername/notebud/issues)
-- Create a new issue with detailed information
-- Join discussions in existing issues
-- Visit [https://notebud.cc](https://notebud.cc) for the live application
+By using Notebud, you agree to use it ethically and at your own risk.
 
 ---
 
-**Perfect for university students who need quick, flexible note-taking and communication without authentication hassles. Use responsibly and at your own risk.**
+## Features
+
+- **No email or phone required** — sign up with just a username and password
+- **Safe on shared computers** — no personal accounts to forget to sign out of
+- **Share by username** — send notes or files to classmates without email addresses
+- Username/password authentication with Cloudflare Turnstile on login and registration
+- Recovery-code based account recovery flow (`/recover-account`)
+- Mandatory recovery-code handoff after registration
+- Markdown note creation, editing, search, and sharing
+- File upload/download and username-based sharing
+- In-app notifications for share activity
+- Per-user storage quotas (default 20 MB + grace)
+- Admin user management with quota overrides
+- Super-fast Redis object caching and invalidation
+- Automated Docker CI/CD deployments via GitHub Actions
+- SEO basics: dynamic meta tags, canonical URLs, `sitemap.xml`, `robots.txt`
+
+## Stack
+
+- Laravel 13
+- Livewire 4 + Flux UI
+- Tailwind CSS 4
+- Laravel Fortify
+- Pest + Pint
+- Docker (single production-style container: PHP-FPM + Nginx + Supervisor)
+
+## Storage and Upload Limits
+
+- Default per-user quota: `20 MB` (`DEFAULT_STORAGE_QUOTA_BYTES=20971520`)
+- Grace allowance: `1 MB` (`STORAGE_QUOTA_GRACE_BYTES=1048576`)
+- Per-file upload validation limit: `10 MB` (`max:10240` in `FileUpload`)
+- Docker PHP limits currently set to `10M` (`upload_max_filesize`, `post_max_size`)
+
+If you want larger single-file uploads, increase both Laravel validation and Docker PHP ini limits.
+
+## Local Development (non-Docker)
+
+### Requirements
+
+- PHP 8.2+
+- Composer
+- Node.js 20+
+- SQLite
+
+### Setup
+
+```bash
+git clone https://github.com/ktauchathuranga/notebud.git
+cd notebud
+git checkout laravel
+
+composer install
+npm install
+cp .env.example .env
+php artisan key:generate
+touch database/database.sqlite
+php artisan migrate
+```
+
+### Run
+
+```bash
+composer dev
+```
+
+This starts app server, queue worker, logs, and Vite at `http://localhost:8000`.
+
+## Docker (Production-Style Testing)
+
+`docker-compose` is not used in this project anymore.
+
+### 1. Build image
+
+```bash
+docker build -t notebud-test .
+```
+
+### 2. Run container with env file
+
+```bash
+docker rm -f notebud-local || true
+docker run --name notebud-local -p 8080:80 --env-file /path/to/prod.local.env notebud-test
+```
+
+### 3. Open app
+
+- `http://localhost:8080`
+
+### Important local-prod note
+
+For local Docker prod testing, set:
+
+```env
+APP_URL=http://localhost:8080
+```
+
+Do not use your live domain as `APP_URL` in local Docker, otherwise assets can resolve to remote URLs and trigger CORS/MIME errors.
+
+## Environment Notes
+
+- Local default DB: SQLite
+- Production DB: TiDB (Aiven SSL supported)
+- Upload disk switch:
+  - local: `UPLOADS_DISK=uploads`
+  - production: `UPLOADS_DISK=r2`
+- Avatars:
+  - local default: `public`
+  - production default: `r2`
+
+## Database Seeding
+
+Seed imported legacy data:
+
+```bash
+php artisan db:seed --class="Database\\Seeders\\OldDatabaseSeeder"
+```
+
+Inside Docker:
+
+```bash
+docker exec -it notebud-local php artisan db:seed --class="Database\\Seeders\\OldDatabaseSeeder"
+```
+
+Fresh DB + old seed inside Docker:
+
+```bash
+docker exec -it notebud-local php artisan migrate:fresh --seed --seeder="Database\\Seeders\\OldDatabaseSeeder"
+```
+
+## Useful Commands
+
+| Command | Description |
+|---|---|
+| `composer dev` | Run local dev stack |
+| `composer test` | Pint check + tests |
+| `composer lint` | Auto-fix style |
+| `composer lint:check` | Style check only |
+| `php artisan test` | Run tests |
+
+## Deployment
+
+The repository is Docker-first for production deployment. Provide environment variables from `.env.production` in your platform (for example Render, VPS, or any container host).
+
+A continuous deployment (CD) pipeline (`.github/workflows/deploy.yml`) is included, which automatically builds the Docker image remotely, caches composer/npm dependencies, pushes to Docker Hub, and triggers a live deployment webhook whenever code is merged into the `main` branch.
+
+## License
+
+[MIT](LICENSE)
