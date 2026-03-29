@@ -163,7 +163,7 @@ class ShareModal extends Component
 
     public function render()
     {
-        $recentUsernames = Cache::tags(['user_'.Auth::id().'_shares'])->remember(
+        $recentUsernames = collect(Cache::tags(['user_'.Auth::id().'_shares'])->remember(
             'recent_usernames',
             now()->addHour(),
             function () {
@@ -176,9 +176,10 @@ class ShareModal extends Component
                     ->filter()
                     ->unique()
                     ->take(6)
-                    ->values();
+                    ->values()
+                    ->toArray();
             }
-        );
+        ));
 
         return view('livewire.shares.share-modal', [
             'recentUsernames' => $recentUsernames,

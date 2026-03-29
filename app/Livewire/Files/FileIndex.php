@@ -36,7 +36,7 @@ class FileIndex extends Component
 
         $search = $this->search;
 
-        $myFiles = Cache::tags(['user_'.$user->id.'_files'])->remember(
+        $myFiles = collect(Cache::tags(['user_'.$user->id.'_files'])->remember(
             'my_files_'.md5($search),
             now()->addHour(),
             function () use ($user, $search) {
@@ -45,22 +45,24 @@ class FileIndex extends Component
                         $query->where('original_name', 'like', '%'.$search.'%');
                     })
                     ->latest()
-                    ->get();
+                    ->get()
+                    ->toArray();
             }
-        );
+        ));
 
-        $sharedFileIds = Cache::tags(['user_'.$user->id.'_files'])->remember(
+        $sharedFileIds = collect(Cache::tags(['user_'.$user->id.'_files'])->remember(
             'shared_file_ids',
             now()->addHour(),
             function () use ($user) {
                 return Share::where('shared_with', $user->id)
                     ->where('status', 'accepted')
                     ->where('shareable_type', File::class)
-                    ->pluck('shareable_id');
+                    ->pluck('shareable_id')
+                    ->toArray();
             }
-        );
+        ));
 
-        $sharedFiles = Cache::tags(['user_'.$user->id.'_files'])->remember(
+        $sharedFiles = collect(Cache::tags(['user_'.$user->id.'_files'])->remember(
             'shared_files_'.md5($search),
             now()->addHour(),
             function () use ($sharedFileIds, $search) {
@@ -69,9 +71,10 @@ class FileIndex extends Component
                         $query->where('original_name', 'like', '%'.$search.'%');
                     })
                     ->latest()
-                    ->get();
+                    ->get()
+                    ->toArray();
             }
-        );
+        ));
 
         $usedBytes = StorageQuota::usedBytes($user);
         $limitBytes = StorageQuota::limitBytes($user);
