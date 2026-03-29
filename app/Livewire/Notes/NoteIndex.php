@@ -33,7 +33,8 @@ class NoteIndex extends Component
 
         $search = $this->search;
 
-        $myNotes = collect(Cache::tags(['user_'.$user->id.'_notes'])->remember(
+        // Cache only note IDs, then re-query for Eloquent models
+        $myNoteIds = Cache::tags(['user_'.$user->id.'_notes'])->remember(
             'my_notes_'.md5($search),
             now()->addHour(),
             function () use ($user, $search) {
@@ -45,12 +46,20 @@ class NoteIndex extends Component
                         });
                     })
                     ->latest()
-                    ->get()
+                    ->pluck('id')
                     ->toArray();
             }
-        ));
+        );
+        if (empty($myNoteIds)) {
+            $myNotes = collect();
+        } else {
+            $myNotes = Note::whereIn('id', $myNoteIds)
+                ->get()
+                ->sortBy(fn($model) => array_search($model->id, $myNoteIds))
+                ->values();
+        }
 
-        $sharedNoteIds = collect(Cache::tags(['user_'.$user->id.'_notes'])->remember(
+        $sharedNoteIds = Cache::tags(['user_'.$user->id.'_notes'])->remember(
             'shared_note_ids',
             now()->addHour(),
             function () use ($user) {
@@ -60,24 +69,23 @@ class NoteIndex extends Component
                     ->pluck('shareable_id')
                     ->toArray();
             }
-        ));
+        );
 
-        $sharedNotes = collect(Cache::tags(['user_'.$user->id.'_notes'])->remember(
-            'shared_notes_'.md5($search),
-            now()->addHour(),
-            function () use ($sharedNoteIds, $search) {
-                return Note::whereIn('id', $sharedNoteIds)
-                    ->when($search, function ($query) use ($search) {
-                        $query->where(function ($q) use ($search) {
-                            $q->where('title', 'like', '%'.$search.'%')
-                                ->orWhere('content', 'like', '%'.$search.'%');
-                        });
-                    })
-                    ->latest()
-                    ->get()
-                    ->toArray();
-            }
-        ));
+        if (empty($sharedNoteIds)) {
+            $sharedNotes = collect();
+        } else {
+            $sharedNotes = Note::whereIn('id', $sharedNoteIds)
+                ->when($search, function ($query) use ($search) {
+                    $query->where(function ($q) use ($search) {
+                        $q->where('title', 'like', '%'.$search.'%')
+                            ->orWhere('content', 'like', '%'.$search.'%');
+                    });
+                })
+                ->latest()
+                ->get()
+                ->sortBy(fn($model) => array_search($model->id, $sharedNoteIds))
+                ->values();
+        }
 
         return view('livewire.notes.note-index', [
             'myNotes' => $myNotes,

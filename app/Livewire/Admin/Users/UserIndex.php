@@ -131,19 +131,23 @@ class UserIndex extends Component
     {
         $search = $this->search;
 
-        $users = collect(Cache::tags(['admin_users'])->remember(
+        // Cache only user IDs, then re-query for Eloquent models
+        $userIds = Cache::tags(['admin_users'])->remember(
             'users_index_'.md5($search),
             now()->addHour(),
             function () use ($search) {
                 return User::query()
                     ->when($search, fn ($query) => $query->where('username', 'like', '%'.$search.'%'))
-                    ->withCount(['notes', 'files'])
-                    ->withSum('files as used_storage_bytes', 'size')
                     ->latest()
-                    ->get()
+                    ->pluck('id')
                     ->toArray();
             }
-        ));
+        );
+        $users = User::query()
+            ->whereIn('id', $userIds)
+            ->withCount(['notes', 'files'])
+            ->withSum('files as used_storage_bytes', 'size')
+            ->get();
 
         $insights = Cache::tags(['admin_users'])->remember(
             'admin_insights',
