@@ -16,4 +16,4 @@ Disallow: /register
 Disallow: /recover-account
 Disallow: /user/confirm-password
 
-Sitemap: /sitemap.xml
+Sitemap: https://notebud.cc/sitemap.xml
