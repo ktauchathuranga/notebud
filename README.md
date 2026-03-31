@@ -76,7 +76,7 @@ If you want larger single-file uploads, increase both Laravel validation and Doc
 
 ### Requirements
 
-- PHP 8.2+
+- PHP 8.4+
 - Composer
 - Node.js 20+
 - SQLite
@@ -138,7 +138,7 @@ Do not use your live domain as `APP_URL` in local Docker, otherwise assets can r
 ## Environment Notes
 
 - Local default DB: SQLite
-- Production DB: TiDB (Aiven SSL supported)
+- Production DB: TiDB Cloud (MySQL-compatible, SSL required)
 - Upload disk switch:
   - local: `UPLOADS_DISK=uploads`
   - production: `UPLOADS_DISK=r2`
