@@ -156,7 +156,7 @@
                                             wire:target="deleteUser({{ $user->id }})"
                                             wire:confirm="Are you sure you want to delete this user?"
                                             icon="trash"
-                                            class="!text-red-500"
+                                            class="text-red-500!"
                                         />
                                     </div>
                                 </td>

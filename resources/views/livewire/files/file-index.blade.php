@@ -65,7 +65,7 @@
                                     <td class="px-4 py-3">
                                         <div class="flex items-center gap-2">
                                             <flux:icon name="document" class="size-5 text-zinc-400" />
-                                            <span class="truncate max-w-[200px]">{{ $file->original_name }}</span>
+                                            <span class="truncate max-w-50">{{ $file->original_name }}</span>
                                         </div>
                                     </td>
                                     <td class="px-4 py-3 text-zinc-500 hidden sm:table-cell">{{ $file->sizeForHumans() }}</td>
@@ -74,7 +74,7 @@
                                         <div class="flex items-center justify-end gap-1">
                                             <flux:button variant="ghost" size="sm" :href="route('files.download', $file)" icon="arrow-down-tray" />
                                             <livewire:shares.share-modal :shareable-type="App\Models\File::class" :shareable-id="$file->id" :key="'share-file-'.$file->id" />
-                                            <flux:button variant="ghost" size="sm" wire:click="deleteFile({{ $file->id }})" wire:target="deleteFile({{ $file->id }})" wire:confirm="Are you sure you want to delete this file?" icon="trash" class="!text-red-500" />
+                                            <flux:button variant="ghost" size="sm" wire:click="deleteFile({{ $file->id }})" wire:target="deleteFile({{ $file->id }})" wire:confirm="Are you sure you want to delete this file?" icon="trash" class="" />
                                         </div>
                                     </td>
                                 </tr>
@@ -106,7 +106,7 @@
                                     <td class="px-4 py-3">
                                         <div class="flex items-center gap-2">
                                             <flux:icon name="document" class="size-5 text-zinc-400" />
-                                            <span class="truncate max-w-[200px]">{{ $file->original_name }}</span>
+                                            <span class="truncate max-w-50">{{ $file->original_name }}</span>
                                         </div>
                                     </td>
                                     <td class="px-4 py-3 hidden sm:table-cell"><flux:badge size="sm" color="blue">{{ $file->user->username }}</flux:badge></td>
@@ -123,3 +123,4 @@
         @endif
     </div>
 </div>
+!text-red-500
