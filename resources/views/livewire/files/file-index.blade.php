@@ -123,4 +123,3 @@
         @endif
     </div>
 </div>
-!text-red-500

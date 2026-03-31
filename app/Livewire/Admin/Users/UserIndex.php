@@ -8,7 +8,6 @@ use App\Models\User;
 use App\Support\StorageQuota;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -46,7 +45,6 @@ class UserIndex extends Component
 
         User::findOrFail($userId)->delete();
 
-        Cache::tags(['admin_users'])->flush();
         session()->flash('status', 'User deleted successfully.');
     }
 
@@ -83,7 +81,6 @@ class UserIndex extends Component
             'storage_quota_bytes' => $quotaBytes,
         ]);
 
-        Cache::tags(['admin_users'])->flush();
         session()->flash('status', 'Storage quota updated for selected users.');
     }
 
@@ -102,7 +99,6 @@ class UserIndex extends Component
         $this->selectedUserIds = [];
         $this->selectAll = false;
 
-        Cache::tags(['admin_users'])->flush();
         session()->flash('status', 'Storage quota updated for all users.');
     }
 
@@ -118,7 +114,6 @@ class UserIndex extends Component
             'storage_quota_bytes' => null,
         ]);
 
-        Cache::tags(['admin_users'])->flush();
         session()->flash('status', 'Selected users now use the global default quota.');
     }
 
@@ -131,7 +126,6 @@ class UserIndex extends Component
         $this->selectedUserIds = [];
         $this->selectAll = false;
 
-        Cache::tags(['admin_users'])->flush();
         session()->flash('status', 'All users now use the global default quota.');
     }
 
@@ -155,41 +149,35 @@ class UserIndex extends Component
 
     private function getInsights(): array
     {
-        return Cache::tags(['admin_users'])->remember(
-            'admin_insights',
-            now()->addHour(),
-            function () {
-                $totalUsers = User::query()->count();
-                $adminUsers = User::query()->where('role', 'admin')->count();
-                $totalNotes = Note::query()->count();
-                $totalFiles = File::query()->count();
-                $totalStorageUsedBytes = (int) File::query()->sum('size');
+        $totalUsers = User::query()->count();
+        $adminUsers = User::query()->where('role', 'admin')->count();
+        $totalNotes = Note::query()->count();
+        $totalFiles = File::query()->count();
+        $totalStorageUsedBytes = (int) File::query()->sum('size');
 
-                $overQuotaUsers = User::query()
-                    ->withSum('files as used_storage_bytes', 'size')
-                    ->get(['id', 'storage_quota_bytes'])
-                    ->filter(function (User $user): bool {
-                        $usedStorageBytes = (int) ($user->used_storage_bytes ?? 0);
+        $overQuotaUsers = User::query()
+            ->withSum('files as used_storage_bytes', 'size')
+            ->get(['id', 'storage_quota_bytes'])
+            ->filter(function (User $user): bool {
+                $usedStorageBytes = (int) ($user->used_storage_bytes ?? 0);
 
-                        return $usedStorageBytes > StorageQuota::limitBytes($user);
-                    })
-                    ->count();
+                return $usedStorageBytes > StorageQuota::limitBytes($user);
+            })
+            ->count();
 
-                $averageStoragePerUserBytes = $totalUsers > 0
-                    ? (int) floor($totalStorageUsedBytes / $totalUsers)
-                    : 0;
+        $averageStoragePerUserBytes = $totalUsers > 0
+            ? (int) floor($totalStorageUsedBytes / $totalUsers)
+            : 0;
 
-                return [
-                    'total_users' => $totalUsers,
-                    'admin_users' => $adminUsers,
-                    'member_users' => max($totalUsers - $adminUsers, 0),
-                    'total_notes' => $totalNotes,
-                    'total_files' => $totalFiles,
-                    'total_storage_used_bytes' => $totalStorageUsedBytes,
-                    'over_quota_users' => $overQuotaUsers,
-                    'average_storage_per_user_bytes' => $averageStoragePerUserBytes,
-                ];
-            }
-        );
+        return [
+            'total_users' => $totalUsers,
+            'admin_users' => $adminUsers,
+            'member_users' => max($totalUsers - $adminUsers, 0),
+            'total_notes' => $totalNotes,
+            'total_files' => $totalFiles,
+            'total_storage_used_bytes' => $totalStorageUsedBytes,
+            'over_quota_users' => $overQuotaUsers,
+            'average_storage_per_user_bytes' => $averageStoragePerUserBytes,
+        ];
     }
 }
