@@ -12,7 +12,7 @@
         'description' => 'Privacy policy and terms of use for Notebud. We keep it simple — no email, no tracking, just your notes and files.',
         'inLanguage' => 'en',
         'datePublished' => '2024-03-22T00:00:00+00:00',
-        'dateModified' => now()->toIso8601String(),
+        'dateModified' => '2026-03-31T00:00:00+00:00',
     ];
 @endphp
 
@@ -55,7 +55,7 @@
             <main class="mx-auto w-full max-w-4xl px-6 pb-16 lg:px-10 lg:pb-24">
                 <div class="py-8 lg:py-14">
                     <h1 class="text-3xl font-semibold tracking-tight sm:text-4xl">Privacy & Terms</h1>
-                    <p class="mt-3 text-sm text-zinc-500 dark:text-zinc-400">Last updated: {{ now()->format('F j, Y') }}</p>
+                    <p class="mt-3 text-sm text-zinc-500 dark:text-zinc-400">Last updated: March 31, 2026</p>
                     <p class="mt-4 text-base text-zinc-600 dark:text-zinc-300">
                         Notebud is built for university students who need a simple way to save and share notes from lab computers. We believe in keeping things transparent — here's exactly what we do (and don't do) with your data.
                     </p>
