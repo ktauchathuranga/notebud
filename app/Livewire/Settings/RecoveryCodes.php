@@ -4,6 +4,7 @@ namespace App\Livewire\Settings;
 
 use App\Support\RecoveryCodes as RecoveryCodesSupport;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
@@ -36,7 +37,7 @@ class RecoveryCodes extends Component
             ->count();
     }
 
-    public function render()
+    public function render(): View
     {
         $this->refreshCodeCount();
 

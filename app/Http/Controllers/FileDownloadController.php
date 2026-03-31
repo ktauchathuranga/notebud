@@ -15,19 +15,23 @@ class FileDownloadController extends Controller
 
         $disk = Storage::disk(config('filesystems.uploads'));
 
+        $stream = $disk->readStream($file->path);
+
+        abort_unless(is_resource($stream), 404);
+
         return response()->streamDownload(
-            function () use ($disk, $file): void {
-                $stream = $disk->readStream($file->path);
-
-                if ($stream === false) {
-                    abort(404);
-                }
-
+            function () use ($stream): void {
                 fpassthru($stream);
-                fclose($stream);
+
+                if (is_resource($stream)) {
+                    fclose($stream);
+                }
             },
             $file->original_name,
-            ['Content-Disposition' => 'attachment; filename="'.$file->original_name.'"']
+            [
+                'Content-Type' => $file->mime_type,
+                'Content-Length' => $file->size,
+            ]
         );
     }
 }

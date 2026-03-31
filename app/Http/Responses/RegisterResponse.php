@@ -4,10 +4,11 @@ namespace App\Http\Responses;
 
 use App\Support\RecoveryCodes;
 use Laravel\Fortify\Contracts\RegisterResponse as RegisterResponseContract;
+use Symfony\Component\HttpFoundation\Response;
 
 class RegisterResponse implements RegisterResponseContract
 {
-    public function toResponse($request)
+    public function toResponse($request): Response
     {
         $user = $request->user();
 

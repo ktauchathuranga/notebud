@@ -3,6 +3,7 @@
 namespace App\Livewire\Notes;
 
 use App\Models\Note;
+use Illuminate\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -19,7 +20,7 @@ class NoteShow extends Component
         $this->note = $note;
     }
 
-    public function render()
+    public function render(): View
     {
         return view('livewire.notes.note-show');
     }

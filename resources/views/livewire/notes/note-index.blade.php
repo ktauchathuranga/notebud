@@ -63,6 +63,7 @@
                         </div>
                     @endforeach
                 </div>
+                {{ $myNotes->links() }}
             @elseif($search)
                 <flux:text class="text-center py-8">{{ __('No notes match your search.') }}</flux:text>
             @endif

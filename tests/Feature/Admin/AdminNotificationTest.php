@@ -68,3 +68,18 @@ test('selected target requires at least one recipient', function () {
         ->call('send')
         ->assertHasErrors('selectedUserIds');
 });
+
+test('action url rejects javascript scheme', function () {
+    $admin = User::factory()->admin()->create();
+
+    $this->actingAs($admin);
+
+    Livewire\Livewire::test(NotificationSend::class)
+        ->set('title', 'Test')
+        ->set('message', 'Test message')
+        ->set('priority', 'info')
+        ->set('target', 'all')
+        ->set('action_url', 'javascript:alert(1)')
+        ->call('send')
+        ->assertHasErrors('action_url');
+});

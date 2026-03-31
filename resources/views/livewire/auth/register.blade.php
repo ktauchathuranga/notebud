@@ -64,7 +64,7 @@
             <!-- Legal Agreement Notice -->
             <div class="text-xs text-zinc-600 dark:text-zinc-400 mb-2">
                 By creating an account, you agree to our
-                <a href="/legal" target="_blank" class="underline">Privacy Policy and Terms</a>.
+                <a href="{{ route('legal') }}" target="_blank" class="underline">Privacy Policy and Terms</a>.
                 Continued use means you accept any future updates.
             </div>
 

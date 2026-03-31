@@ -165,6 +165,7 @@
                     </tbody>
                 </table>
             </div>
+            {{ $users->links() }}
         @endif
     </div>
 </div>

@@ -5,20 +5,31 @@ namespace App\Livewire\Files;
 use App\Models\File;
 use App\Models\Share;
 use App\Support\StorageQuota;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 #[Layout('layouts.app')]
 #[Title('My Files')]
 class FileIndex extends Component
 {
+    use WithPagination;
+
     #[Url]
     public string $search = '';
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
 
     public function deleteFile(int $fileId): void
     {
@@ -30,66 +41,15 @@ class FileIndex extends Component
         Cache::tags(['user_'.Auth::id().'_files'])->flush();
     }
 
-    public function render()
+    public function render(): View
     {
         $user = Auth::user();
-
-        $search = $this->search;
-
-        // Cache only file IDs, then re-query for Eloquent models
-        $myFileIds = Cache::tags(['user_'.$user->id.'_files'])->remember(
-            'my_files_'.md5($search),
-            now()->addHour(),
-            function () use ($user, $search) {
-                return $user->files()
-                    ->when($search, function ($query) use ($search) {
-                        $query->where('original_name', 'like', '%'.$search.'%');
-                    })
-                    ->latest()
-                    ->pluck('id')
-                    ->toArray();
-            }
-        );
-        if (empty($myFileIds)) {
-            $myFiles = collect();
-        } else {
-            $myFiles = File::whereIn('id', $myFileIds)
-                ->get()
-                ->sortBy(fn ($model) => array_search($model->id, $myFileIds))
-                ->values();
-        }
-
-        $sharedFileIds = Cache::tags(['user_'.$user->id.'_files'])->remember(
-            'shared_file_ids',
-            now()->addHour(),
-            function () use ($user) {
-                return Share::where('shared_with', $user->id)
-                    ->where('status', 'accepted')
-                    ->where('shareable_type', File::class)
-                    ->pluck('shareable_id')
-                    ->toArray();
-            }
-        );
-
-        if (empty($sharedFileIds)) {
-            $sharedFiles = collect();
-        } else {
-            $sharedFiles = File::whereIn('id', $sharedFileIds)
-                ->when($search, function ($query) use ($search) {
-                    $query->where('original_name', 'like', '%'.$search.'%');
-                })
-                ->latest()
-                ->get()
-                ->sortBy(fn ($model) => array_search($model->id, $sharedFileIds))
-                ->values();
-        }
-
         $usedBytes = StorageQuota::usedBytes($user);
         $limitBytes = StorageQuota::limitBytes($user);
 
         return view('livewire.files.file-index', [
-            'myFiles' => $myFiles,
-            'sharedFiles' => $sharedFiles,
+            'myFiles' => $this->getMyFiles(),
+            'sharedFiles' => $this->getSharedFiles(),
             'usedStorageBytes' => $usedBytes,
             'storageLimitBytes' => $limitBytes,
             'remainingStorageBytes' => max($limitBytes - $usedBytes, 0),
@@ -102,5 +62,41 @@ class FileIndex extends Component
                 StorageQuota::formatBytes($limitBytes),
             ),
         ]);
+    }
+
+    private function getMyFiles(): LengthAwarePaginator
+    {
+        return Auth::user()->files()
+            ->when($this->search, function ($query) {
+                $query->where('original_name', 'like', '%'.$this->search.'%');
+            })
+            ->latest()
+            ->paginate(15);
+    }
+
+    private function getSharedFiles(): Collection
+    {
+        $user = Auth::user();
+
+        $sharedFileIds = Cache::tags(['user_'.$user->id.'_files'])->remember(
+            'shared_file_ids',
+            now()->addHour(),
+            fn () => Share::where('shared_with', $user->id)
+                ->where('status', 'accepted')
+                ->where('shareable_type', File::class)
+                ->pluck('shareable_id')
+                ->toArray()
+        );
+
+        if (empty($sharedFileIds)) {
+            return collect();
+        }
+
+        return File::whereIn('id', $sharedFileIds)
+            ->when($this->search, function ($query) {
+                $query->where('original_name', 'like', '%'.$this->search.'%');
+            })
+            ->latest()
+            ->get();
     }
 }

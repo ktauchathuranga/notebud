@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Notifications\AdminNotification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
@@ -40,13 +41,13 @@ class NotificationSend extends Component
             'message' => ['required', 'string', 'max:1000'],
             'priority' => ['required', 'in:info,success,warning,danger'],
             'target' => ['required', 'in:all,selected'],
-            'action_url' => ['nullable', 'url', 'max:255'],
+            'action_url' => ['nullable', 'url:http,https', 'max:255'],
             'selectedUserIds' => ['array'],
             'selectedUserIds.*' => ['integer', 'exists:users,id'],
         ]);
 
         if ($validated['target'] === 'selected' && empty($validated['selectedUserIds'])) {
-            $this->addError('selectedUserIds', 'Select at least one user for selected delivery.');
+            $this->addError('selectedUserIds', __('Select at least one user for selected delivery.'));
 
             return;
         }
@@ -78,7 +79,7 @@ class NotificationSend extends Component
         session()->flash('status', "Notification sent to {$recipientCount} user(s).");
     }
 
-    public function render()
+    public function render(): View
     {
         $users = User::query()
             ->when($this->userSearch, fn ($query) => $query->where('username', 'like', '%'.$this->userSearch.'%'))

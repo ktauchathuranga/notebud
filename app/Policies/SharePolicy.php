@@ -11,4 +11,9 @@ class SharePolicy
     {
         return $share->shared_with === $user->id && $share->status === 'pending';
     }
+
+    public function delete(User $user, Share $share): bool
+    {
+        return $share->shared_with === $user->id;
+    }
 }

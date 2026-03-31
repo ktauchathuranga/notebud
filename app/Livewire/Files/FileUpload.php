@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Illuminate\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -50,12 +51,11 @@ class FileUpload extends Component
                     $requiredFreeBytes = ($usedBytes + $incomingBytes) - $limitBytes;
 
                     throw ValidationException::withMessages([
-                        'file' => sprintf(
-                            'Storage limit reached. Used %s of %s. Free up %s to upload this file.',
-                            StorageQuota::formatBytes($usedBytes),
-                            StorageQuota::formatBytes($limitBytes),
-                            StorageQuota::formatBytes($requiredFreeBytes),
-                        ),
+                        'file' => __('Storage limit reached. Used :used of :limit. Free up :free to upload this file.', [
+                            'used' => StorageQuota::formatBytes($usedBytes),
+                            'limit' => StorageQuota::formatBytes($limitBytes),
+                            'free' => StorageQuota::formatBytes($requiredFreeBytes),
+                        ]),
                     ]);
                 }
 
@@ -81,7 +81,7 @@ class FileUpload extends Component
         $this->redirect(route('files.index'), navigate: true);
     }
 
-    public function render()
+    public function render(): View
     {
         $user = Auth::user();
         $usedBytes = StorageQuota::usedBytes($user);

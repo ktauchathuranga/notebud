@@ -7,6 +7,7 @@ use Illuminate\Validation\Rule;
 
 trait ProfileValidationRules
 {
+    /** @return array<string, array<int, mixed>> */
     protected function profileRules(?int $userId = null): array
     {
         return [
@@ -14,6 +15,7 @@ trait ProfileValidationRules
         ];
     }
 
+    /** @return array<int, mixed> */
     protected function usernameRules(?int $userId = null): array
     {
         return [

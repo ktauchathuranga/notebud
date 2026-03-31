@@ -82,6 +82,7 @@
                         </tbody>
                     </table>
                 </div>
+                {{ $myFiles->links() }}
             @elseif($search)
                 <flux:text class="text-center py-8">{{ __('No files match your search.') }}</flux:text>
             @endif
