@@ -4,6 +4,7 @@ namespace App\Livewire\Notes;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -33,7 +34,7 @@ class NoteCreate extends Component
         $this->redirect(route('notes.index'), navigate: true);
     }
 
-    public function render()
+    public function render(): View
     {
         return view('livewire.notes.note-create');
     }

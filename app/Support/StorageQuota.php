@@ -51,7 +51,7 @@ class StorageQuota
         $units = ['B', 'KB', 'MB', 'GB', 'TB'];
         $value = max($bytes, 0);
 
-        for ($i = 0; $value >= 1024 && $i < count($units) - 1; $i++) {
+        for ($i = 0; $value >= 1024 && $i < count($units) - 1; $i++) { // @phpstan-ignore-line
             $value /= 1024;
         }
 

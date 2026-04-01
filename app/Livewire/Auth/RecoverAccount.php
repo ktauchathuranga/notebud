@@ -43,7 +43,7 @@ class RecoverAccount extends Component
             }
         );
 
-        $invalidRecoveryMessage = 'We could not verify that recovery code for this username.';
+        $invalidRecoveryMessage = __('We could not verify that recovery code for this username.');
 
         if (! $user) {
             throw ValidationException::withMessages([

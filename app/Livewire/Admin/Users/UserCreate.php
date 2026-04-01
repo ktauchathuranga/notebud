@@ -4,6 +4,7 @@ namespace App\Livewire\Admin\Users;
 
 use App\Models\User;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -44,7 +45,7 @@ class UserCreate extends Component
         $this->redirect(route('admin.users.index'), navigate: true);
     }
 
-    public function render()
+    public function render(): View
     {
         return view('livewire.admin.users.user-create');
     }

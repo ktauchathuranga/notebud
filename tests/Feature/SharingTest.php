@@ -54,12 +54,11 @@ test('recipient can accept a share', function () {
     $recipient = User::factory()->create();
     $note = Note::factory()->create(['user_id' => $owner->id]);
 
-    $share = Share::create([
+    $share = Share::factory()->create([
         'shared_by' => $owner->id,
         'shared_with' => $recipient->id,
         'shareable_type' => Note::class,
         'shareable_id' => $note->id,
-        'status' => 'pending',
     ]);
 
     $this->actingAs($recipient);
@@ -80,12 +79,11 @@ test('recipient can reject a share', function () {
     $recipient = User::factory()->create();
     $note = Note::factory()->create(['user_id' => $owner->id]);
 
-    $share = Share::create([
+    $share = Share::factory()->create([
         'shared_by' => $owner->id,
         'shared_with' => $recipient->id,
         'shareable_type' => Note::class,
         'shareable_id' => $note->id,
-        'status' => 'pending',
     ]);
 
     $this->actingAs($recipient);
@@ -102,12 +100,11 @@ test('accepted share allows note viewing', function () {
     $recipient = User::factory()->create();
     $note = Note::factory()->create(['user_id' => $owner->id]);
 
-    Share::create([
+    Share::factory()->accepted()->create([
         'shared_by' => $owner->id,
         'shared_with' => $recipient->id,
         'shareable_type' => Note::class,
         'shareable_id' => $note->id,
-        'status' => 'accepted',
     ]);
 
     $this->actingAs($recipient)
@@ -120,12 +117,11 @@ test('pending share does not allow note viewing', function () {
     $recipient = User::factory()->create();
     $note = Note::factory()->create(['user_id' => $owner->id]);
 
-    Share::create([
+    Share::factory()->create([
         'shared_by' => $owner->id,
         'shared_with' => $recipient->id,
         'shareable_type' => Note::class,
         'shareable_id' => $note->id,
-        'status' => 'pending',
     ]);
 
     $this->actingAs($recipient)
@@ -139,12 +135,11 @@ test('non-recipient cannot accept a share', function () {
     $intruder = User::factory()->create();
     $note = Note::factory()->create(['user_id' => $owner->id]);
 
-    $share = Share::create([
+    $share = Share::factory()->create([
         'shared_by' => $owner->id,
         'shared_with' => $recipient->id,
         'shareable_type' => Note::class,
         'shareable_id' => $note->id,
-        'status' => 'pending',
     ]);
 
     $this->actingAs($intruder);
@@ -162,20 +157,18 @@ test('share modal shows recently shared usernames and can autofill', function ()
     $firstNote = Note::factory()->create(['user_id' => $owner->id]);
     $secondNote = Note::factory()->create(['user_id' => $owner->id]);
 
-    Share::create([
+    Share::factory()->accepted()->create([
         'shared_by' => $owner->id,
         'shared_with' => $firstRecipient->id,
         'shareable_type' => Note::class,
         'shareable_id' => $firstNote->id,
-        'status' => 'accepted',
     ]);
 
-    Share::create([
+    Share::factory()->create([
         'shared_by' => $owner->id,
         'shared_with' => $secondRecipient->id,
         'shareable_type' => Note::class,
         'shareable_id' => $secondNote->id,
-        'status' => 'pending',
     ]);
 
     $this->actingAs($owner);
@@ -226,20 +219,18 @@ test('recent username click appends to existing comma separated input', function
     $recipientB = User::factory()->create();
     $note = Note::factory()->create(['user_id' => $owner->id]);
 
-    Share::create([
+    Share::factory()->accepted()->create([
         'shared_by' => $owner->id,
         'shared_with' => $recipientA->id,
         'shareable_type' => Note::class,
         'shareable_id' => $note->id,
-        'status' => 'accepted',
     ]);
 
-    Share::create([
+    Share::factory()->accepted()->create([
         'shared_by' => $owner->id,
         'shared_with' => $recipientB->id,
         'shareable_type' => Note::class,
         'shareable_id' => $note->id,
-        'status' => 'accepted',
     ]);
 
     $this->actingAs($owner);
@@ -251,4 +242,44 @@ test('recent username click appends to existing comma separated input', function
         ->set('username', $recipientA->username)
         ->call('useRecentUsername', $recipientB->username)
         ->assertSet('username', $recipientA->username.', '.$recipientB->username);
+});
+
+test('recipient can remove an accepted share', function () {
+    $owner = User::factory()->create();
+    $recipient = User::factory()->create();
+    $note = Note::factory()->create(['user_id' => $owner->id]);
+
+    $share = Share::factory()->accepted()->create([
+        'shared_by' => $owner->id,
+        'shared_with' => $recipient->id,
+        'shareable_type' => Note::class,
+        'shareable_id' => $note->id,
+    ]);
+
+    $this->actingAs($recipient);
+
+    Livewire\Livewire::test(IncomingShares::class)
+        ->call('remove', $share->id);
+
+    expect(Share::find($share->id))->toBeNull();
+});
+
+test('non-recipient cannot remove a share', function () {
+    $owner = User::factory()->create();
+    $recipient = User::factory()->create();
+    $intruder = User::factory()->create();
+    $note = Note::factory()->create(['user_id' => $owner->id]);
+
+    $share = Share::factory()->accepted()->create([
+        'shared_by' => $owner->id,
+        'shared_with' => $recipient->id,
+        'shareable_type' => Note::class,
+        'shareable_id' => $note->id,
+    ]);
+
+    $this->actingAs($intruder);
+
+    Livewire\Livewire::test(IncomingShares::class)
+        ->call('remove', $share->id)
+        ->assertForbidden();
 });

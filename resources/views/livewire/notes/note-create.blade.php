@@ -19,7 +19,7 @@
                         <flux:textarea wire:model="content" rows="15" placeholder="Write your note in markdown..." class="font-mono" />
                     </div>
                     <div x-show="tab === 'preview'" x-cloak>
-                        <div class="prose dark:prose-invert max-w-none rounded-lg border border-zinc-200 dark:border-zinc-700 p-4 min-h-[15rem]"
+                        <div class="prose dark:prose-invert max-w-none rounded-lg border border-zinc-200 dark:border-zinc-700 p-4 min-h-60"
                              x-data="{ html: '' }"
                              x-init="$watch('$wire.content', async (val) => { html = await parseMarkdown(val || ''); }); html = await parseMarkdown($wire.content || '');"
                              x-html="html || '<p class=\'text-zinc-400\'>Nothing to preview...</p>'">

@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Notifications\ShareRequestNotification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\View\View;
 use Livewire\Component;
 use Throwable;
 
@@ -36,6 +37,7 @@ class ShareModal extends Component
         $this->openEvent = 'open-share-modal-'.md5($this->shareableType.'-'.$this->shareableId);
     }
 
+    /** @return array<string, string> */
     protected function getListeners(): array
     {
         return [
@@ -84,8 +86,8 @@ class ShareModal extends Component
             ->values();
 
         if ($usernames->isEmpty()) {
-            $this->addError('username', 'Enter at least one valid username.');
-            $this->dispatch('share-feedback', type: 'error', message: 'Enter at least one valid username.');
+            $this->addError('username', __('Enter at least one valid username.'));
+            $this->dispatch('share-feedback', type: 'error', message: __('Enter at least one valid username.'));
 
             return;
         }
@@ -97,15 +99,15 @@ class ShareModal extends Component
         $missingUsernames = $usernames->diff($recipients->pluck('username'))->values();
 
         if ($missingUsernames->isNotEmpty()) {
-            $this->addError('username', 'Usernames not found: '.$missingUsernames->implode(', ').'.');
-            $this->dispatch('share-feedback', type: 'error', message: 'Some usernames were not found.');
+            $this->addError('username', __('Usernames not found: :names.', ['names' => $missingUsernames->implode(', ')]));
+            $this->dispatch('share-feedback', type: 'error', message: __('Some usernames were not found.'));
 
             return;
         }
 
         if ($recipients->contains('id', Auth::id())) {
-            $this->addError('username', 'You cannot share with yourself.');
-            $this->dispatch('share-feedback', type: 'error', message: 'You cannot share with yourself.');
+            $this->addError('username', __('You cannot share with yourself.'));
+            $this->dispatch('share-feedback', type: 'error', message: __('You cannot share with yourself.'));
 
             return;
         }
@@ -124,8 +126,8 @@ class ShareModal extends Component
                 ->pluck('username')
                 ->values();
 
-            $this->addError('username', 'Already shared with: '.$alreadySharedUsernames->implode(', ').'.');
-            $this->dispatch('share-feedback', type: 'error', message: 'Already shared with one or more selected users.');
+            $this->addError('username', __('Already shared with: :names.', ['names' => $alreadySharedUsernames->implode(', ')]));
+            $this->dispatch('share-feedback', type: 'error', message: __('Already shared with one or more selected users.'));
 
             return;
         }
@@ -148,20 +150,20 @@ class ShareModal extends Component
 
             $recipientCount = $recipients->count();
             $successMessage = $recipientCount === 1
-                ? 'Share request sent successfully.'
-                : "Share requests sent to {$recipientCount} users.";
+                ? __('Share request sent successfully.')
+                : __('Share requests sent to :count users.', ['count' => $recipientCount]);
 
             $this->close();
             $this->dispatch('share-feedback', type: 'success', message: $successMessage);
             $this->dispatch('shared');
         } catch (Throwable $e) {
             report($e);
-            $this->addError('username', 'Failed to send share request. Please try again.');
-            $this->dispatch('share-feedback', type: 'error', message: 'Failed to send share request. Please try again.');
+            $this->addError('username', __('Failed to send share request. Please try again.'));
+            $this->dispatch('share-feedback', type: 'error', message: __('Failed to send share request. Please try again.'));
         }
     }
 
-    public function render()
+    public function render(): View
     {
         $recentUsernames = collect(Cache::tags(['user_'.Auth::id().'_shares'])->remember(
             'recent_usernames',

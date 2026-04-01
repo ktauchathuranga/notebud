@@ -6,6 +6,7 @@ use App\Models\File;
 use App\Models\Note;
 use App\Models\Share;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
 use Livewire\Component;
 
 class NotificationBell extends Component
@@ -65,7 +66,7 @@ class NotificationBell extends Component
         Auth::user()->notifications()->delete();
     }
 
-    public function render()
+    public function render(): View
     {
         return view('livewire.notification-bell', [
             'notifications' => Auth::user()->notifications()->latest()->take(20)->get(),

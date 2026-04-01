@@ -43,7 +43,7 @@
                 @enderror
 
                 @if(auth()->user()->avatar_path)
-                    <flux:button type="button" variant="ghost" wire:click="removeAvatar" wire:confirm="{{ __('Remove your profile picture?') }}" class="!text-red-500 hover:!bg-red-50 dark:hover:!bg-red-900/20">
+                    <flux:button type="button" variant="ghost" wire:click="removeAvatar" wire:confirm="{{ __('Remove your profile picture?') }}" class="text-red-500! hover:bg-red-50! dark:hover:bg-red-900/20!">
                         {{ __('Remove picture') }}
                     </flux:button>
                 @endif

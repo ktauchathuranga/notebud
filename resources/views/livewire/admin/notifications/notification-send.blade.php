@@ -13,23 +13,17 @@
             <flux:textarea wire:model="message" :label="__('Message')" rows="5" required />
 
             <div class="grid gap-4 md:grid-cols-2">
-                <div>
-                    <flux:label>{{ __('Priority') }}</flux:label>
-                    <select wire:model="priority" class="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900">
-                        <option value="info">{{ __('Info') }}</option>
-                        <option value="success">{{ __('Success') }}</option>
-                        <option value="warning">{{ __('Warning') }}</option>
-                        <option value="danger">{{ __('Danger') }}</option>
-                    </select>
-                </div>
+                <flux:select wire:model="priority" :label="__('Priority')">
+                    <flux:select.option value="info">{{ __('Info') }}</flux:select.option>
+                    <flux:select.option value="success">{{ __('Success') }}</flux:select.option>
+                    <flux:select.option value="warning">{{ __('Warning') }}</flux:select.option>
+                    <flux:select.option value="danger">{{ __('Danger') }}</flux:select.option>
+                </flux:select>
 
-                <div>
-                    <flux:label>{{ __('Target') }}</flux:label>
-                    <select wire:model.live="target" class="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900">
-                        <option value="all">{{ __('All users (including admins)') }}</option>
-                        <option value="selected">{{ __('Selected users') }}</option>
-                    </select>
-                </div>
+                <flux:select wire:model.live="target" :label="__('Target')">
+                    <flux:select.option value="all">{{ __('All users (including admins)') }}</flux:select.option>
+                    <flux:select.option value="selected">{{ __('Selected users') }}</flux:select.option>
+                </flux:select>
             </div>
 
             <flux:input wire:model="action_url" :label="__('Action URL (optional)')" type="url" placeholder="https://example.com/path" />
@@ -44,10 +38,7 @@
 
                     <div class="max-h-72 space-y-2 overflow-y-auto">
                         @forelse($users as $user)
-                            <label class="flex cursor-pointer items-center justify-between rounded-lg border border-zinc-200 px-3 py-2 text-sm dark:border-zinc-700">
-                                <span>{{ $user->username }}</span>
-                                <input type="checkbox" wire:model="selectedUserIds" value="{{ $user->id }}" class="h-4 w-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-500" />
-                            </label>
+                            <flux:checkbox wire:model="selectedUserIds" value="{{ $user->id }}" :label="$user->username" />
                         @empty
                             <flux:text class="text-sm text-zinc-500">{{ __('No users match your search.') }}</flux:text>
                         @endforelse

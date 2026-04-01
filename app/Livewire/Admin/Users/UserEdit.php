@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -46,7 +47,7 @@ class UserEdit extends Component
         ]);
 
         if (Auth::id() === $this->user->id && $validated['role'] !== $this->user->role) {
-            $this->addError('role', 'You cannot change your own role.');
+            $this->addError('role', __('You cannot change your own role.'));
 
             return;
         }
@@ -68,7 +69,7 @@ class UserEdit extends Component
         $this->redirect(route('admin.users.index'), navigate: true);
     }
 
-    public function render()
+    public function render(): View
     {
         return view('livewire.admin.users.user-edit');
     }

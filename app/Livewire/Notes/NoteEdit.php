@@ -5,6 +5,7 @@ namespace App\Livewire\Notes;
 use App\Models\Note;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -46,7 +47,7 @@ class NoteEdit extends Component
         $this->redirect(route('notes.show', $this->note), navigate: true);
     }
 
-    public function render()
+    public function render(): View
     {
         return view('livewire.notes.note-edit');
     }

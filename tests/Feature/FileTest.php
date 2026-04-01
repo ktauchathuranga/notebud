@@ -46,23 +46,15 @@ test('upload is rejected when owned storage quota would be exceeded', function (
     $user = User::factory()->create();
     $other = User::factory()->create();
 
-    File::create([
+    File::factory()->create([
         'user_id' => $user->id,
-        'original_name' => 'existing.bin',
-        'stored_name' => 'existing.bin',
-        'path' => 'files/existing.bin',
         'size' => 900 * 1024,
-        'mime_type' => 'application/octet-stream',
     ]);
 
     // Other users' files must not count toward this user's quota.
-    File::create([
+    File::factory()->create([
         'user_id' => $other->id,
-        'original_name' => 'others.bin',
-        'stored_name' => 'others.bin',
-        'path' => 'files/others.bin',
         'size' => 10 * 1024 * 1024,
-        'mime_type' => 'application/octet-stream',
     ]);
 
     $this->actingAs($user);
@@ -83,13 +75,9 @@ test('grace bytes allow slightly above quota uploads', function () {
 
     $user = User::factory()->create();
 
-    File::create([
+    File::factory()->create([
         'user_id' => $user->id,
-        'original_name' => 'existing.bin',
-        'stored_name' => 'existing.bin',
-        'path' => 'files/existing.bin',
         'size' => 980 * 1024,
-        'mime_type' => 'application/octet-stream',
     ]);
 
     $this->actingAs($user);
@@ -127,7 +115,7 @@ test('user can download own file', function () {
     $storedName = 'test-stored.txt';
     Storage::disk('uploads')->putFileAs('', $uploadedFile, $storedName);
 
-    $file = File::create([
+    $file = File::factory()->create([
         'user_id' => $user->id,
         'original_name' => 'test.txt',
         'stored_name' => $storedName,
@@ -145,13 +133,9 @@ test('user cannot download another users file', function () {
     $user = User::factory()->create();
     $other = User::factory()->create();
 
-    $file = File::create([
+    $file = File::factory()->create([
         'user_id' => $other->id,
         'original_name' => 'secret.pdf',
-        'stored_name' => 'stored.pdf',
-        'path' => 'stored.pdf',
-        'size' => 1024,
-        'mime_type' => 'application/pdf',
     ]);
 
     $this->actingAs($user)
@@ -166,13 +150,11 @@ test('user can delete own file', function () {
     $storedName = 'delete-me.txt';
     Storage::disk('uploads')->put($storedName, 'content');
 
-    $file = File::create([
+    $file = File::factory()->create([
         'user_id' => $user->id,
         'original_name' => 'delete-me.txt',
         'stored_name' => $storedName,
         'path' => $storedName,
-        'size' => 7,
-        'mime_type' => 'text/plain',
     ]);
 
     $this->actingAs($user);
@@ -182,4 +164,20 @@ test('user can delete own file', function () {
 
     expect(File::find($file->id))->toBeNull();
     Storage::disk('uploads')->assertMissing($storedName);
+});
+
+test('download returns 404 when file is missing from disk', function () {
+    Storage::fake('uploads');
+
+    $user = User::factory()->create();
+
+    $file = File::factory()->create([
+        'user_id' => $user->id,
+        'original_name' => 'missing.pdf',
+        'path' => 'files/missing-stored.pdf',
+    ]);
+
+    $this->actingAs($user)
+        ->get("/files/{$file->id}/download")
+        ->assertNotFound();
 });

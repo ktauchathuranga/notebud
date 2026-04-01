@@ -2,7 +2,7 @@
     {{-- Desktop: styled like a sidebar item --}}
     <div class="hidden lg:block">
         <flux:dropdown position="bottom" align="start">
-            <button type="button" class="relative flex w-full items-center gap-3 rounded-lg border border-transparent px-3 py-0 h-8 text-start text-sm font-medium text-zinc-500 hover:bg-zinc-800/5 hover:text-zinc-800 dark:text-white/80 dark:hover:bg-white/[7%] dark:hover:text-white">
+            <button type="button" class="relative flex w-full items-center gap-3 rounded-lg border border-transparent px-3 py-0 h-8 text-start text-sm font-medium text-zinc-500 hover:bg-zinc-800/5 hover:text-zinc-800 dark:text-white/80 dark:hover:bg-white/7 dark:hover:text-white">
                 <flux:icon name="bell" class="size-4" />
                 <span class="flex-1 truncate">{{ __('Notifications') }}</span>
                 @if($unreadCount > 0)

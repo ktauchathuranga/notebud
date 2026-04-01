@@ -6,6 +6,7 @@ use App\Models\Share;
 use App\Notifications\ShareResponseNotification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -17,10 +18,7 @@ class IncomingShares extends Component
     public function remove(int $shareId): void
     {
         $share = Share::findOrFail($shareId);
-        // Only the recipient can remove
-        if ($share->shared_with !== Auth::id()) {
-            abort(403);
-        }
+        $this->authorize('delete', $share);
         $share->delete();
         $this->flushCaches();
     }
@@ -52,7 +50,7 @@ class IncomingShares extends Component
         Cache::tags(['user_'.Auth::id().'_files'])->flush();
     }
 
-    public function render()
+    public function render(): View
     {
         $pendingShares = Share::with(['sharer', 'shareable'])
             ->where('shared_with', Auth::id())

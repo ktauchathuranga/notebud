@@ -6,17 +6,21 @@ use App\Models\File;
 use App\Models\Note;
 use App\Models\User;
 use App\Support\StorageQuota;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
+use Illuminate\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 #[Layout('layouts.app')]
 #[Title('User Management')]
 class UserIndex extends Component
 {
+    use WithPagination;
+
     #[Url]
     public string $search = '';
 
@@ -26,19 +30,21 @@ class UserIndex extends Component
 
     public string $bulkQuotaMb = '';
 
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
     public function deleteUser(int $userId): void
     {
-        $currentUser = Auth::user();
-
-        if ($currentUser->id === $userId) {
-            $this->addError('delete', 'You cannot delete your own account from admin management.');
+        if (Auth::id() === $userId) {
+            $this->addError('delete', __('You cannot delete your own account from admin management.'));
 
             return;
         }
 
         User::findOrFail($userId)->delete();
 
-        Cache::tags(['admin_users'])->flush();
         session()->flash('status', 'User deleted successfully.');
     }
 
@@ -64,7 +70,7 @@ class UserIndex extends Component
         ]);
 
         if (empty($this->selectedUserIds)) {
-            $this->addError('bulkQuotaMb', 'Select at least one user.');
+            $this->addError('bulkQuotaMb', __('Select at least one user.'));
 
             return;
         }
@@ -75,7 +81,6 @@ class UserIndex extends Component
             'storage_quota_bytes' => $quotaBytes,
         ]);
 
-        Cache::tags(['admin_users'])->flush();
         session()->flash('status', 'Storage quota updated for selected users.');
     }
 
@@ -94,14 +99,13 @@ class UserIndex extends Component
         $this->selectedUserIds = [];
         $this->selectAll = false;
 
-        Cache::tags(['admin_users'])->flush();
         session()->flash('status', 'Storage quota updated for all users.');
     }
 
     public function resetQuotaForSelected(): void
     {
         if (empty($this->selectedUserIds)) {
-            $this->addError('bulkQuotaMb', 'Select at least one user.');
+            $this->addError('bulkQuotaMb', __('Select at least one user.'));
 
             return;
         }
@@ -110,7 +114,6 @@ class UserIndex extends Component
             'storage_quota_bytes' => null,
         ]);
 
-        Cache::tags(['admin_users'])->flush();
         session()->flash('status', 'Selected users now use the global default quota.');
     }
 
@@ -123,72 +126,58 @@ class UserIndex extends Component
         $this->selectedUserIds = [];
         $this->selectAll = false;
 
-        Cache::tags(['admin_users'])->flush();
         session()->flash('status', 'All users now use the global default quota.');
     }
 
-    public function render()
+    public function render(): View
     {
-        $search = $this->search;
+        return view('livewire.admin.users.user-index', [
+            'users' => $this->getUsers(),
+            'insights' => $this->getInsights(),
+        ]);
+    }
 
-        // Cache only user IDs, then re-query for Eloquent models
-        $userIds = Cache::tags(['admin_users'])->remember(
-            'users_index_'.md5($search),
-            now()->addHour(),
-            function () use ($search) {
-                return User::query()
-                    ->when($search, fn ($query) => $query->where('username', 'like', '%'.$search.'%'))
-                    ->latest()
-                    ->pluck('id')
-                    ->toArray();
-            }
-        );
-        $users = User::query()
-            ->whereIn('id', $userIds)
+    private function getUsers(): LengthAwarePaginator
+    {
+        return User::query()
+            ->when($this->search, fn ($query) => $query->where('username', 'like', '%'.$this->search.'%'))
             ->withCount(['notes', 'files'])
             ->withSum('files as used_storage_bytes', 'size')
-            ->get();
+            ->latest()
+            ->paginate(20);
+    }
 
-        $insights = Cache::tags(['admin_users'])->remember(
-            'admin_insights',
-            now()->addHour(),
-            function () {
-                $totalUsers = User::query()->count();
-                $adminUsers = User::query()->where('role', 'admin')->count();
-                $totalNotes = Note::query()->count();
-                $totalFiles = File::query()->count();
-                $totalStorageUsedBytes = (int) File::query()->sum('size');
+    private function getInsights(): array
+    {
+        $totalUsers = User::query()->count();
+        $adminUsers = User::query()->where('role', 'admin')->count();
+        $totalNotes = Note::query()->count();
+        $totalFiles = File::query()->count();
+        $totalStorageUsedBytes = (int) File::query()->sum('size');
 
-                $overQuotaUsers = User::query()
-                    ->withSum('files as used_storage_bytes', 'size')
-                    ->get(['id', 'storage_quota_bytes'])
-                    ->filter(function (User $user): bool {
-                        $usedStorageBytes = (int) ($user->used_storage_bytes ?? 0);
+        $overQuotaUsers = User::query()
+            ->withSum('files as used_storage_bytes', 'size')
+            ->get(['id', 'storage_quota_bytes'])
+            ->filter(function (User $user): bool {
+                $usedStorageBytes = (int) ($user->used_storage_bytes ?? 0);
 
-                        return $usedStorageBytes > StorageQuota::limitBytes($user);
-                    })
-                    ->count();
+                return $usedStorageBytes > StorageQuota::limitBytes($user);
+            })
+            ->count();
 
-                $averageStoragePerUserBytes = $totalUsers > 0
-                    ? (int) floor($totalStorageUsedBytes / $totalUsers)
-                    : 0;
+        $averageStoragePerUserBytes = $totalUsers > 0
+            ? (int) floor($totalStorageUsedBytes / $totalUsers)
+            : 0;
 
-                return [
-                    'total_users' => $totalUsers,
-                    'admin_users' => $adminUsers,
-                    'member_users' => max($totalUsers - $adminUsers, 0),
-                    'total_notes' => $totalNotes,
-                    'total_files' => $totalFiles,
-                    'total_storage_used_bytes' => $totalStorageUsedBytes,
-                    'over_quota_users' => $overQuotaUsers,
-                    'average_storage_per_user_bytes' => $averageStoragePerUserBytes,
-                ];
-            }
-        );
-
-        return view('livewire.admin.users.user-index', [
-            'users' => $users,
-            'insights' => $insights,
-        ]);
+        return [
+            'total_users' => $totalUsers,
+            'admin_users' => $adminUsers,
+            'member_users' => max($totalUsers - $adminUsers, 0),
+            'total_notes' => $totalNotes,
+            'total_files' => $totalFiles,
+            'total_storage_used_bytes' => $totalStorageUsedBytes,
+            'over_quota_users' => $overQuotaUsers,
+            'average_storage_per_user_bytes' => $averageStoragePerUserBytes,
+        ];
     }
 }
