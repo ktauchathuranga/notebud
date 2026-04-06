@@ -45,6 +45,10 @@ class FortifyServiceProvider extends ServiceProvider
             $user = User::where('username', $request->username)->first();
 
             if ($user && Hash::check($request->password, $user->password)) {
+                $user->forceFill([
+                    'last_login_at' => now(),
+                ])->save();
+
                 return $user;
             }
 
