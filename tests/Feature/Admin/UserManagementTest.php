@@ -4,6 +4,7 @@ use App\Livewire\Admin\Users\UserCreate;
 use App\Livewire\Admin\Users\UserEdit;
 use App\Livewire\Admin\Users\UserIndex;
 use App\Models\User;
+use Illuminate\Support\Carbon;
 
 test('admin users page requires admin role', function () {
     $user = User::factory()->create();
@@ -19,6 +20,35 @@ test('admin can view users page', function () {
     $this->actingAs($admin)
         ->get(route('admin.users.index'))
         ->assertOk();
+});
+
+test('admin can see last login status in user management', function () {
+    $this->travelTo(Carbon::create(2026, 4, 5, 12, 0, 0));
+
+    try {
+        $admin = User::factory()->admin()->create([
+            'last_login_at' => now()->subHour(),
+        ]);
+
+        User::factory()->create([
+            'username' => 'active_member',
+            'last_login_at' => now()->subMinutes(30),
+        ]);
+
+        User::factory()->create([
+            'username' => 'never_logged',
+            'last_login_at' => null,
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.users.index'))
+            ->assertOk()
+            ->assertSeeText('Last Login')
+            ->assertSeeText('30 minutes ago')
+            ->assertSeeText('Never');
+    } finally {
+        $this->travelBack();
+    }
 });
 
 test('admin can create user', function () {
