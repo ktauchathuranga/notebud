@@ -18,6 +18,37 @@ test('notes index page is displayed', function () {
         ->assertOk();
 });
 
+test('note create page shows markdown toolbar controls', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->get(route('notes.create'))
+        ->assertOk()
+        ->assertSeeText('Bold')
+        ->assertSeeText('Italic')
+        ->assertSeeText('Link')
+        ->assertSeeText('Inline Code')
+        ->assertSeeText('Code Block')
+        ->assertSeeText('Bulleted List')
+        ->assertSeeText('Numbered List');
+});
+
+test('note edit page shows markdown toolbar controls', function () {
+    $user = User::factory()->create();
+    $note = Note::factory()->create(['user_id' => $user->id]);
+
+    $this->actingAs($user)
+        ->get(route('notes.edit', $note))
+        ->assertOk()
+        ->assertSeeText('Bold')
+        ->assertSeeText('Italic')
+        ->assertSeeText('Link')
+        ->assertSeeText('Inline Code')
+        ->assertSeeText('Code Block')
+        ->assertSeeText('Bulleted List')
+        ->assertSeeText('Numbered List');
+});
+
 test('user can create a note', function () {
     $user = User::factory()->create();
 
