@@ -47,11 +47,11 @@ Route::middleware('guest')->group(function () {
         ->name('recovery.recover');
 });
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'update-last-used'])->group(function () {
     Route::livewire('auth/recovery-codes', RecoveryCodeHandoff::class)->name('recovery-codes.handoff');
 });
 
-Route::middleware(['auth', 'recovery-codes.handoff'])->group(function () {
+Route::middleware(['auth', 'update-last-used', 'recovery-codes.handoff'])->group(function () {
     Route::redirect('dashboard', 'notes');
 
     // Notes

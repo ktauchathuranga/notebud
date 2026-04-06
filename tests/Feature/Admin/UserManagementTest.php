@@ -22,28 +22,28 @@ test('admin can view users page', function () {
         ->assertOk();
 });
 
-test('admin can see last login status in user management', function () {
+test('admin can see last used status in user management', function () {
     $this->travelTo(Carbon::create(2026, 4, 5, 12, 0, 0));
 
     try {
         $admin = User::factory()->admin()->create([
-            'last_login_at' => now()->subHour(),
+            'last_used_at' => now()->subHour(),
         ]);
 
         User::factory()->create([
             'username' => 'active_member',
-            'last_login_at' => now()->subMinutes(30),
+            'last_used_at' => now()->subMinutes(30),
         ]);
 
         User::factory()->create([
             'username' => 'never_logged',
-            'last_login_at' => null,
+            'last_used_at' => null,
         ]);
 
         $this->actingAs($admin)
             ->get(route('admin.users.index'))
             ->assertOk()
-            ->assertSeeText('Last Login')
+            ->assertSeeText('Last Used')
             ->assertSeeText('30 minutes ago')
             ->assertSeeText('Never');
     } finally {

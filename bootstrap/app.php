@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\EnsureRecoveryCodesHandoffCompleted;
+use App\Http\Middleware\UpdateLastUsedAt;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -28,6 +29,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => AdminMiddleware::class,
             'recovery-codes.handoff' => EnsureRecoveryCodesHandoffCompleted::class,
+            'update-last-used' => UpdateLastUsedAt::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

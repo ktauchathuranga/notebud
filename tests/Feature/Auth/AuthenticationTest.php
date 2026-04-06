@@ -25,6 +25,7 @@ test('successful login updates last login timestamp', function () {
     try {
         $user = User::factory()->create([
             'last_login_at' => null,
+            'last_used_at' => null,
         ]);
 
         $response = $this->post('/login', [
@@ -39,6 +40,26 @@ test('successful login updates last login timestamp', function () {
 
         expect($updatedUser?->last_login_at)->not->toBeNull();
         expect($updatedUser?->last_login_at?->toDateTimeString())->toBe(now()->toDateTimeString());
+        expect($updatedUser?->last_used_at)->not->toBeNull();
+        expect($updatedUser?->last_used_at?->toDateTimeString())->toBe(now()->toDateTimeString());
+    } finally {
+        $this->travelBack();
+    }
+});
+
+test('authenticated request updates last used timestamp', function () {
+    $this->travelTo(Carbon::create(2026, 4, 5, 12, 0, 0));
+
+    try {
+        $user = User::factory()->create([
+            'last_used_at' => now()->subMinutes(5),
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('recovery-codes.handoff'))
+            ->assertRedirect();
+
+        expect($user->fresh()?->last_used_at?->toDateTimeString())->toBe(now()->toDateTimeString());
     } finally {
         $this->travelBack();
     }

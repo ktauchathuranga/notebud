@@ -83,7 +83,7 @@
                             <th class="px-4 py-3 font-medium hidden lg:table-cell">{{ __('Used') }}</th>
                             <th class="px-4 py-3 font-medium hidden lg:table-cell">{{ __('Left') }}</th>
                             <th class="px-4 py-3 font-medium hidden md:table-cell">{{ __('Quota') }}</th>
-                            <th class="px-4 py-3 font-medium hidden md:table-cell">{{ __('Last Login') }}</th>
+                            <th class="px-4 py-3 font-medium hidden md:table-cell">{{ __('Last Used') }}</th>
                             <th class="px-4 py-3 font-medium hidden md:table-cell">{{ __('Joined') }}</th>
                             <th class="px-4 py-3 font-medium text-right">{{ __('Actions') }}</th>
                         </tr>
@@ -147,8 +147,8 @@
                                     @endif
                                 </td>
                                 <td class="px-4 py-3 text-zinc-500 hidden md:table-cell">
-                                    @if($user->last_login_at)
-                                        <span title="{{ $user->last_login_at->toDayDateTimeString() }}">{{ $user->last_login_at->diffForHumans() }}</span>
+                                    @if($user->last_used_at)
+                                        <span title="{{ $user->last_used_at->toDayDateTimeString() }}">{{ $user->last_used_at->diffForHumans() }}</span>
                                     @else
                                         {{ __('Never') }}
                                     @endif
