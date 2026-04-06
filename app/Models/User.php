@@ -33,6 +33,7 @@ class User extends Authenticatable
             'password' => 'hashed',
             'storage_quota_bytes' => 'integer',
             'last_login_at' => 'datetime',
+            'last_used_at' => 'datetime',
         ];
     }
 
